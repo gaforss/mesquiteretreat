@@ -16,6 +16,7 @@ import exportRouter from './routes/export.routes.js';
 import adminActionsRouter from './routes/admin.actions.routes.js';
 import promotionsRouter from './routes/promotions.routes.js';
 import statsRouter, { publicStatsRouter } from './routes/stats.routes.js';
+import siteContentRouter from './routes/siteContent.routes.js';
 import drawRouter from './routes/draw.routes.js';
 import healthRouter from './routes/health.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
@@ -79,6 +80,11 @@ function isAuthed(req){
 app.get(['/admin','/admin.html'], (req, res) => {
   if (!isAuthed(req)) return res.redirect('/login.html');
   return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get(['/admin-content','/admin-content.html'], (req, res) => {
+  if (!isAuthed(req)) return res.redirect('/login.html');
+  return res.sendFile(path.join(__dirname, 'public', 'admin-content.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -174,6 +180,7 @@ app.use('/api/promotions', promotionsRouter);
 app.use('/api', statsRouter); // /admin-stats, /signups-by-day
 app.use('/api', publicStatsRouter); // /public/entries-today
 app.use('/api/draw', drawRouter);
+app.use('/api', siteContentRouter); // /site-content
 
 
 const port = Number(process.env.PORT || 3000);

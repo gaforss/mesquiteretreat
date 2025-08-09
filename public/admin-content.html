@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Content Editor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="admin-theme dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Content</span></div>
+        <nav>
+          <a href="/admin.html">Admin Dashboard</a>
+          <a href="/admin-content.html" aria-current="page">Edit Site Content</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+    <main class="container wide admin">
+      <div class="admin-layout">
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Panel</span></div>
+          </div>
+          <nav class="side-nav">
+            <a href="/admin.html">Dashboard</a>
+            <a href="/admin-content.html" class="active">Site Content</a>
+          </nav>
+        </aside>
+        <div class="content">
+          <div class="admin-header">
+            <div>
+              <div class="breadcrumbs small text-secondary">Home / Admin / Content</div>
+              <h1 class="page-title">Edit Landing Page</h1>
+            </div>
+            <div class="actions">
+              <button id="btnRevert" class="cta secondary" type="button">Revert</button>
+              <button id="btnSave" class="cta">Save</button>
+            </div>
+          </div>
+          <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
+
+          <div class="editor-nav">
+            <a href="#basics">Basics</a>
+            <a href="#features">Features</a>
+            <a href="#gallery">Gallery</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#amenities">Amenities</a>
+            <a href="#goodtoknow">Good to know</a>
+            <a href="#details">Details tabs</a>
+          </div>
+
+          <div class="editor-grid">
+            <div class="editor-form">
+              <section id="basics" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Basics</h2></div>
+                <div class="section-body">
+                  <div class="field-row">
+                    <div class="field"><label>Property name<input id="property_name" /></label></div>
+                    <div class="field"><label>Book URL<input id="book_url" /></label></div>
+                  </div>
+                  <div class="field-row">
+                    <div class="field"><label>Hero title<input id="hero_title" /></label></div>
+                    <div class="field"><label>Hero subtitle<input id="hero_subtitle" /></label></div>
+                    <div class="field"><label>Hero badge<input id="hero_badge" /></label></div>
+                  </div>
+                  <div class="field"><label>Hero image URL<input id="hero_image_url" /></label></div>
+                </div>
+              </section>
+
+              <section id="features" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Features</h2></div>
+                <div class="section-body">
+                  <div id="featuresWrap" class="list-wrap"></div>
+                  <button id="addFeature" class="cta secondary" type="button">Add feature</button>
+                </div>
+              </section>
+
+              <section id="gallery" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Gallery</h2></div>
+                <div class="section-body">
+                  <div id="galleryWrap" class="list-wrap"></div>
+                  <button id="addImage" class="cta secondary" type="button">Add image</button>
+                </div>
+              </section>
+
+              <section id="reviews" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Reviews</h2></div>
+                <div class="section-body">
+                  <div class="small text-secondary" style="margin-bottom:8px">Name, text, and stars (1-5). First 6 shown on homepage scroller.</div>
+                  <div id="reviewsWrap" class="list-wrap"></div>
+                  <button id="addReview" class="cta secondary" type="button">Add review</button>
+                </div>
+              </section>
+
+              <section id="amenities" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Amenities</h2></div>
+                <div class="section-body">
+                  <textarea id="amenities_textarea" rows="5" placeholder="One per line"></textarea>
+                </div>
+              </section>
+
+              <section id="goodtoknow" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Good to know</h2></div>
+                <div class="section-body">
+                  <textarea id="good_to_know" rows="5" placeholder="One per line"></textarea>
+                </div>
+              </section>
+
+              <section id="details" class="section-card">
+                <div class="section-head"><h2 style="margin:0">Details tabs</h2></div>
+                <div class="section-body">
+                  <h3>About the home</h3>
+                  <textarea id="tab_home_paragraph" rows="4"></textarea>
+                  <textarea id="tab_home_bullets" rows="4" placeholder="One per line"></textarea>
+                  <h3>Local area</h3>
+                  <textarea id="tab_area_paragraph" rows="4"></textarea>
+                  <textarea id="tab_area_bullets" rows="4" placeholder="One per line"></textarea>
+                  <h3>Why 4 bedrooms here</h3>
+                  <textarea id="tab_value_paragraph" rows="4"></textarea>
+                  <textarea id="tab_value_bullets" rows="4" placeholder="One per line"></textarea>
+                  <input id="tab_value_note" placeholder="Note" />
+                </div>
+              </section>
+            </div>
+            <aside class="editor-preview">
+              <div class="preview-card">
+                <div class="preview-hero">
+                  <div class="preview-hero-text">
+                    <div class="preview-badge" id="pv_badge">Badge</div>
+                    <h2 id="pv_title">Title</h2>
+                    <p id="pv_sub">Subtitle</p>
+                    <div class="preview-ctas"><span class="pill">Book</span><span class="pill">Contest</span></div>
+                  </div>
+                  <div class="preview-hero-img"><img id="pv_img" alt="preview" /></div>
+                </div>
+                <div class="preview-features" id="pv_features"></div>
+                <div class="preview-gallery" id="pv_gallery"></div>
+                <div class="preview-reviews" id="pv_reviews"></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script type="module" src="/admin-content.js"></script>
+  </body>
+  </html>
+

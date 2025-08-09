@@ -1,7 +1,104 @@
-const propertyName = (window.PROPERTY_NAME || document.title.replace('|', '').trim()) || 'Luxury Rental';
-document.getElementById('propertyName').textContent = propertyName;
-document.getElementById('footerName').textContent = propertyName;
 document.getElementById('year').textContent = new Date().getFullYear();
+
+async function loadSiteContent(){
+  try{
+    const r = await fetch('/api/site-content');
+    const j = await r.json();
+    if (!j.ok) return;
+    const c = j.content || {};
+    const name = c.property_name || (window.PROPERTY_NAME || document.title.replace('|','').trim()) || 'Luxury Rental';
+    const bookUrl = c.book_url || 'https://www.airbnb.com/';
+    document.getElementById('propertyName').textContent = name;
+    document.getElementById('footerName').textContent = name;
+    document.title = `${name} | Scottsdale`;
+    // Hero
+    const h1 = document.getElementById('heroTitle'); if (h1) h1.textContent = c.hero_title || name;
+    const heroBadge = document.querySelector('.hero .badge'); if (heroBadge) heroBadge.textContent = c.hero_badge || heroBadge.textContent;
+    const heroSub = document.querySelector('.hero .hero-text p'); if (heroSub) heroSub.textContent = c.hero_subtitle || heroSub.textContent;
+    const heroImg = document.querySelector('.hero-image img'); if (heroImg && c.hero_image_url) heroImg.src = c.hero_image_url;
+    // Book links
+    document.querySelectorAll('a.airbnb').forEach(a=>{ a.href = bookUrl; });
+    // Features
+    if (Array.isArray(c.features)){
+      const wrap = document.querySelector('.features'); if (wrap){
+        wrap.innerHTML = '';
+        c.features.forEach(f=>{
+          const div = document.createElement('div'); div.className='feature';
+          div.innerHTML = `<span class="emoji">${f.emoji||''}</span><div><strong>${f.title||''}</strong><div class="muted">${f.subtitle||''}</div></div>`;
+          wrap.appendChild(div);
+        });
+      }
+    }
+    // Gallery
+    if (Array.isArray(c.gallery)){
+      const gal = document.querySelector('.gallery'); if (gal){
+        gal.innerHTML = '';
+        c.gallery.forEach(img=>{
+          const el = document.createElement('img'); el.src = img.url; el.alt = img.alt||''; gal.appendChild(el);
+        });
+      }
+    }
+    // Amenities
+    if (Array.isArray(c.amenities)){
+      const ul = document.querySelector('.amenities'); if (ul){ ul.innerHTML = ''; c.amenities.forEach(t=>{ const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }); }
+    }
+    // Good to know
+    if (Array.isArray(c.good_to_know)){
+      const cont = document.querySelector('.good-to-know ul'); if (cont){ cont.innerHTML=''; c.good_to_know.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; cont.appendChild(li); }); }
+    }
+    // Tabs
+    const t = c.details_tabs||{};
+    if (t.home){
+      const card = document.querySelector('#tab-home .details-card'); if (card){
+        card.innerHTML = '';
+        if (t.home.paragraph){ const p = document.createElement('p'); p.textContent = t.home.paragraph; card.appendChild(p); }
+        if (Array.isArray(t.home.bullets) && t.home.bullets.length){ const ul = document.createElement('ul'); t.home.bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b; ul.appendChild(li); }); card.appendChild(ul); }
+      }
+    }
+    if (t.area){
+      const card = document.querySelector('#tab-area .details-card'); if (card){
+        card.innerHTML = '';
+        if (t.area.paragraph){ const p = document.createElement('p'); p.textContent = t.area.paragraph; card.appendChild(p); }
+        if (Array.isArray(t.area.bullets) && t.area.bullets.length){ const ul = document.createElement('ul'); t.area.bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b; ul.appendChild(li); }); card.appendChild(ul); }
+      }
+    }
+    if (t.value){
+      const card = document.querySelector('#tab-value .details-card'); if (card){
+        card.innerHTML = '';
+        if (t.value.paragraph){ const p = document.createElement('p'); p.textContent = t.value.paragraph; card.appendChild(p); }
+        if (Array.isArray(t.value.bullets) && t.value.bullets.length){ const ul = document.createElement('ul'); t.value.bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b; ul.appendChild(li); }); card.appendChild(ul); }
+        if (t.value.note){ const p2 = document.createElement('p'); p2.className='muted small'; p2.textContent = t.value.note; card.appendChild(p2); }
+      }
+    }
+    // Reviews
+    if (Array.isArray(c.reviews)){
+      const scroll = document.getElementById('reviewsScroll');
+      if (scroll){
+        scroll.innerHTML = '';
+        c.reviews.slice(0,8).forEach(rv=>{
+          const card = document.createElement('div'); card.className='card shadow-sm';
+          card.innerHTML = `
+            <div class="review-avatar">
+              <div class="avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="card-text">${escapeHtml(rv.text||'')}</p>
+              <div class="small text-secondary">${escapeHtml(rv.name||'Guest')} — <span class="stars">${'★'.repeat(Math.max(1, Math.min(5, Number(rv.stars)||5)))}</span></div>
+            </div>`;
+          scroll.appendChild(card);
+        });
+      }
+    }
+  }catch{}
+}
+
+loadSiteContent();
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
 
 const form = document.getElementById('signupForm');
 const out = document.getElementById('formMessage');
