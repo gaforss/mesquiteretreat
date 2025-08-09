@@ -353,6 +353,29 @@ nav a[aria-current="page"] { opacity: 1; }
   .sticky-cta .cta { white-space: nowrap; }
 }
 
+/* Promotion pill (public giveaway header) */
+.promo-pill-wrap { margin: 12px 0 14px; }
+.promo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px; /* slightly narrower */
+  border-radius: 999px;
+  background: rgba(52, 211, 153, .16); /* green tint */
+  border: 1px solid rgba(52, 211, 153, .35);
+  color: #a7f3d0; /* emerald-200 */
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.25;
+  box-shadow: 0 6px 14px rgba(52,211,153,.16);
+  white-space: nowrap;
+  width: fit-content;
+}
+.promo-pill .emoji { opacity: .9 }
+.promo-text { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.promo-main { line-height: 1.2; }
+.promo-sub { line-height: 1.15; opacity: .9; }
+
 /* Admin dashboard */
 .card { background: var(--card); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.24), 0 0 22px rgba(0,112,224,.12); }
 .card-body { padding: 14px; color: var(--text); }

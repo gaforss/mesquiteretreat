@@ -731,6 +731,7 @@ async function loadPromotions(){
       <label style="margin-left:auto"><input type="checkbox" data-id="${p._id}" class="promo-active" ${p.active?'checked':''}/> Active</label>
       <button class="cta secondary promo-edit" data-id="${p._id}">Edit</button>
       <button class="cta secondary promo-del" data-id="${p._id}">Delete</button>
+      <button class="cta secondary promo-make-active" data-id="${p._id}">Set as Active</button>
     </div>`;
     div.appendChild(row);
   });
@@ -769,6 +770,30 @@ async function loadPromotions(){
         notes: row?.notes||'',
         active: !!row?.active
       });
+    });
+  });
+  // Help note for admin
+  const help = document.createElement('div');
+  help.className = 'small text-secondary';
+  help.style.marginTop = '6px';
+  help.innerHTML = 'What is a Promotion? It defines a campaign window and optional draw date. The active Promotion powers the public countdown and labels. Entries still go to Subscribers; use the Draw panel to pick a winner. Setting one Promotion active will mark others inactive.';
+  div.parentElement?.appendChild(help);
+
+  // Bind Set as Active
+  div.querySelectorAll('.promo-make-active').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const id = el.getAttribute('data-id');
+      try{
+        const res = await fetch('/api/promotions', { credentials:'include' });
+        const j = await res.json();
+        const rows = j.rows||[];
+        for (const r of rows){
+          const desired = String(r._id)===String(id);
+          await fetch('/api/promotions/'+r._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ active: desired }), credentials:'include' });
+        }
+        toast('Active promotion set.');
+        loadPromotions();
+      }catch{ toast('Failed to set active', true); }
     });
   });
 }

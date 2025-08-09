@@ -242,9 +242,54 @@ form?.addEventListener('submit', async (e) => {
   }
 });
 
-// Countdown timer to drawing (configure via meta tag or fallback)
-const drawDateStr = document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
-if (drawDateStr) {
+// Promotion-aware: fetch active promotion to power countdown and copy
+(async function hydratePromotion(){
+  try{
+    const r = await fetch('/api/promotions/public/active');
+    const j = await r.json();
+    if (j?.ok && j.row){
+      const p = j.row;
+      // Set hero badge/cta hints if present
+    const banner = document.getElementById('addToCalWrap');
+    const copyWrap = document.querySelector('.signup-copy');
+    if (copyWrap){
+      const wrap = document.createElement('div');
+      wrap.className = 'promo-pill-wrap';
+      const info = document.createElement('span');
+      info.className = 'promo-pill';
+      const fmt = (d)=> d ? new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : null;
+      const start = fmt(p.start_date);
+      const end = fmt(p.end_date);
+      const draw = fmt(p.draw_date);
+      const windowText = (start && end) ? `${start}–${end}` : (end ? `Ends ${end}` : (start ? `Starts ${start}` : ''));
+      const primary = `${p.title||'Giveaway'}${windowText?` · ${windowText}`:''}`;
+      const secondary = draw ? `Winner drawn ${draw}` : '';
+      info.innerHTML = `<span class="emoji">🎁</span><span class="promo-text"><span class="promo-main">${primary}</span>${secondary?`<span class="promo-sub">${secondary}</span>`:''}</span>`;
+      wrap.appendChild(info);
+      copyWrap.insertBefore(wrap, copyWrap.firstChild?.nextSibling || copyWrap.firstChild);
+    } else if (banner){
+      const fmt = (d)=> d ? new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : null;
+      const start = fmt(p.start_date);
+      const end = fmt(p.end_date);
+      const draw = fmt(p.draw_date);
+      const windowText = (start && end) ? `${start}–${end}` : (end ? `Ends ${end}` : (start ? `Starts ${start}` : ''));
+      const primary = `${p.title||'Giveaway'}${windowText?` · ${windowText}`:''}`;
+      const secondary = draw ? `Winner drawn ${draw}` : '';
+      banner.insertAdjacentHTML('afterbegin', `<div class="promo-pill-wrap"><span class="promo-pill"><span class="emoji">🎁</span><span class="promo-text"><span class="promo-main">${primary}</span>${secondary?`<span class="promo-sub">${secondary}</span>`:''}</span></span></div>`);
+    }
+      // Prefer promotion draw date; fall back to meta
+      const promoDrawDate = p.draw_date ? new Date(p.draw_date).toISOString() : '';
+      initCountdown(promoDrawDate);
+      return;
+    }
+  }catch{}
+  // Fallback to meta if no active promotion
+  const drawDateStr = document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
+  initCountdown(drawDateStr);
+})();
+
+function initCountdown(drawDateStr){
+  if (!drawDateStr) return;
   const el = document.createElement('p');
   el.className = 'form-message';
   document.querySelector('.signup-copy')?.appendChild(el);
@@ -426,7 +471,8 @@ if (navToggle && siteNav) {
 
 // Add to calendar link under signup copy
 (function addToCal(){
-  const drawDateStr2 = document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
+  // Use active promotion if available (set earlier), else fallback meta
+  const drawDateStr2 = (window.__promoDrawIso) || document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
   const addWrap = document.getElementById('addToCalWrap');
   if (!drawDateStr2 || !addWrap) return;
   const title = encodeURIComponent('Mesquite Retreat Giveaway Drawing');

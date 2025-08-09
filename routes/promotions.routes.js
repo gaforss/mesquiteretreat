@@ -12,6 +12,21 @@ router.get('/', adminLimiter, requireAdmin, async (_req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Public: get active promotion (no auth)
+router.get('/public/active', async (_req, res) => {
+  try{
+    const now = new Date();
+    const row = await Promotion.findOne({ 
+      active: true,
+      $and: [
+        { $or: [ { start_date: { $lte: now } }, { start_date: null }, { start_date: { $exists: false } } ] },
+        { $or: [ { end_date: { $gte: now } }, { end_date: null }, { end_date: { $exists: false } } ] }
+      ]
+    }).sort({ created_at: -1 }).lean();
+    return res.json({ ok:true, row: row||null });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 router.post('/', adminLimiter, requireAdmin, async (req, res) => {
   try{
     const { title, code, start_date, end_date, draw_date, notes, active } = req.body || {};
