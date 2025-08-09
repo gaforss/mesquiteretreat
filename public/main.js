@@ -49,8 +49,17 @@ form?.addEventListener('submit', async (e) => {
         out.textContent = needs ? 'Check your email to confirm your entry.' : 'You are already confirmed.';
       }
       form.reset();
-      // Prompt bonus tasks modal after successful signup
-      if (entryModal){ entryModal.classList.remove('hidden'); }
+      // Prompt bonus tasks modal after successful signup (change CTA to Close)
+      if (entryModal){
+        entryModal.classList.remove('hidden');
+        const gotoBtn = entryModal.querySelector('#gotoSignup');
+        if (gotoBtn){
+          gotoBtn.textContent = 'Close';
+          gotoBtn.onclick = ()=> entryModal.classList.add('hidden');
+        }
+        const sub = entryModal.querySelector('.mh-sub');
+        if (sub){ sub.textContent = 'Increase your chances of winning by doing the following:'; }
+      }
       // Show share block
       const myRef = localStorage.getItem('myRefCode');
       const shareUrl = `${location.origin}${location.pathname}?ref=${encodeURIComponent(myRef||'')}`;
@@ -143,12 +152,11 @@ function initEntryModal(){
   tasksEls.forEach(el => el.addEventListener('change', updateStars));
   // no tag input listener
   updateStars();
-  entryModal.querySelector('#saveTasks').addEventListener('click', () => {
-    const { stars, tasks } = updateStars();
-    const igHandle = igInput.value.trim();
-    localStorage.setItem('igTasks', JSON.stringify({ stars, tasks, igHandle }));
-    entryModal.classList.add('hidden');
-    alert('Bonus tasks saved. Your stars are updated.');
+  // Auto-save IG handle on input
+  igInput.addEventListener('input', ()=>{
+    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
+    saved.igHandle = igInput.value.trim();
+    localStorage.setItem('igTasks', JSON.stringify(saved));
   });
   const goto = entryModal.querySelector('#gotoSignup');
   goto?.addEventListener('click', ()=>{
