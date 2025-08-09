@@ -42,6 +42,25 @@
         </div>
       </section>
     </main>
+    <!-- Lead modal -->
+    <div id="leadModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="leadTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="leadTitle">Request via Host</h2>
+        <form id="leadForm" class="signup-form">
+          <input type="hidden" id="leadOfferingId" />
+          <div class="field"><label>Your name<input id="leadName" required/></label></div>
+          <div class="field"><label>Email<input id="leadEmail" type="email" required/></label></div>
+          <div class="field"><label>Phone<input id="leadPhone"/></label></div>
+          <div class="field"><label>Dates / Timing<input id="leadDates"/></label></div>
+          <div class="field"><label>Notes<input id="leadNotes"/></label></div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="cta" type="submit">Send Request</button>
+            <p id="leadMsg" class="form-message"></p>
+          </div>
+        </form>
+      </div>
+    </div>
     <footer class="site-footer">
       <div class="container">
         <p>© <span id="year"></span> Mesquite Vendor Network</p>

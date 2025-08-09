@@ -32,10 +32,20 @@ document.getElementById('year').textContent = new Date().getFullYear();
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               ${o.url?`<a class=\"cta secondary\" href=\"/api/public/vendor-redirect?vendor=${encodeURIComponent(o.vendor_code||'')}&url=${encodeURIComponent(o.url||'')}\" target=\"_blank\" rel=\"noopener\">Learn more</a>`:''}
+              ${o.fulfillment_type==='lead'?`<button class=\"cta\" data-request=\"${o._id}\">Request via Host</button>`:''}
             </div>
           </div>
         </div>`;
         grid.appendChild(card);
+      });
+      // bind request buttons
+      grid.querySelectorAll('[data-request]')?.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-request');
+          const m = document.getElementById('leadModal');
+          document.getElementById('leadOfferingId').value = id||'';
+          m?.classList.remove('hidden');
+        });
       });
     }
     function apply(){
@@ -58,4 +68,30 @@ document.getElementById('year').textContent = new Date().getFullYear();
     apply();
   }catch{}
 })();
+
+// lead form submit
+document.getElementById('leadForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const out = document.getElementById('leadMsg'); out.textContent = 'Sending...';
+  const payload = {
+    offeringId: document.getElementById('leadOfferingId').value,
+    guest_name: document.getElementById('leadName').value.trim(),
+    guest_email: document.getElementById('leadEmail').value.trim(),
+    guest_phone: document.getElementById('leadPhone').value.trim(),
+    dates: document.getElementById('leadDates').value.trim(),
+    notes: document.getElementById('leadNotes').value.trim(),
+  };
+  try{
+    const r = await fetch('/api/public/request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const j = await r.json();
+    if (!j.ok){ out.textContent = j.error||'Failed'; return; }
+    out.textContent = 'Request sent!';
+    setTimeout(()=>{ document.getElementById('leadModal')?.classList.add('hidden'); out.textContent=''; (e.target).reset(); }, 800);
+  }catch{ out.textContent = 'Failed'; }
+});
+
+// modal close
+document.querySelectorAll('[data-close-modal]')?.forEach(btn=>btn.addEventListener('click', ()=>{
+  document.getElementById('leadModal')?.classList.add('hidden');
+}));
 

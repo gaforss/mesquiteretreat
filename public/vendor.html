@@ -48,6 +48,24 @@
                 <div class="field"><label>Discount Text (shown to guests)<input id="offDiscText" placeholder="10% off for Mesquite Retreat guests"/></label></div>
                 <div class="field"><label>Image URL (optional)<input id="offImg" type="url" placeholder="https://.../promo.jpg"/></label></div>
                 <div class="field"><label>Logo URL (optional)<input id="offLogo" type="url" placeholder="https://.../logo.png"/></label></div>
+                <div class="field-row">
+                  <div class="field"><label>Fulfillment Type
+                    <select id="offFulfill">
+                      <option value="redirect" selected>Redirect (affiliate)</option>
+                      <option value="lead">Lead (request via host)</option>
+                      <option value="managed">Managed (host fulfills)</option>
+                    </select>
+                  </label></div>
+                  <div class="field"><label>Commission % (optional)<input id="offCommission" type="number" min="0" max="100" step="1"/></label></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Lead Price (optional)<input id="offLeadPrice" type="number" step="0.01"/></label></div>
+                  <div class="field"><label>Service Fee (optional)<input id="offServiceFee" type="number" step="0.01"/></label></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Sponsored Rank (optional)<input id="offRank" type="number" min="0"/></label></div>
+                  <label style="display:flex;align-items:center;gap:8px"><input id="offFeatured" type="checkbox"/> Featured</label>
+                </div>
                 <div style="display:flex; gap:8px; align-items:center">
                   <button class="cta" type="submit">Add</button>
                   <p id="offerMsg" class="form-message"></p>

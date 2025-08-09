@@ -20,7 +20,8 @@ import siteContentRouter from './routes/siteContent.routes.js';
 import drawRouter from './routes/draw.routes.js';
 import healthRouter from './routes/health.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
-import vendorsRouter, { vendorPublicRouter } from './routes/vendors.routes.js';
+import vendorsRouter from './routes/vendors.routes.js';
+import vendorPublicRouter from './routes/vendors.public.routes.js';
 import Vendor from './models/vendor.js';
 
 const __filename = fileURLToPath(import.meta.url);

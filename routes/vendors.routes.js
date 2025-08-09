@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import Vendor from '../models/vendor.js';
 import VendorClick from '../models/vendorClick.js';
 import VendorOffering from '../models/vendorOffering.js';
+import ServiceRequest from '../models/serviceRequest.js';
 import { getCookieOpts, requireAdmin, signVendorToken, requireVendor } from '../middleware/auth.js';
 import Subscriber from '../models/subscriber.js';
 
@@ -66,9 +67,9 @@ router.get('/offerings', requireVendor, async (req, res) => {
 router.post('/offerings', requireVendor, async (req, res) => {
   try{
     const vendor = await Vendor.findById(req.vendor?.id).select({ vendor_code:1 }).lean();
-    const { title, description, url, price, discount_code, discount_percent, discount_text, image_url } = req.body || {};
+    const { title, description, url, price, discount_code, discount_percent, discount_text, image_url, logo_url, fulfillment_type, commission_percent, lead_price, service_fee, sponsored_rank, is_featured } = req.body || {};
     if (!title) return res.status(400).json({ ok:false, error:'Missing title' });
-    const row = await VendorOffering.create({ vendor_id: String(req.vendor?.id), vendor_code: vendor.vendor_code, title, description: description||'', url: url||'', price: price?Number(price):null, active: true, property_only: true, discount_code: discount_code||'', discount_percent: discount_percent!=null?Number(discount_percent):null, discount_text: discount_text||'', image_url: image_url||'' });
+    const row = await VendorOffering.create({ vendor_id: String(req.vendor?.id), vendor_code: vendor.vendor_code, title, description: description||'', url: url||'', price: price?Number(price):null, active: true, property_only: true, discount_code: discount_code||'', discount_percent: discount_percent!=null?Number(discount_percent):null, discount_text: discount_text||'', image_url: image_url||'', logo_url: logo_url||'', fulfillment_type: fulfillment_type||'redirect', commission_percent: commission_percent!=null?Number(commission_percent):null, lead_price: lead_price!=null?Number(lead_price):null, service_fee: service_fee!=null?Number(service_fee):null, sponsored_rank: sponsored_rank!=null?Number(sponsored_rank):null, is_featured: !!is_featured });
     return res.json({ ok:true, row });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });

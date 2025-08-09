@@ -56,38 +56,7 @@ pickBtn.addEventListener('click', async () => {
   else toast(data.error || 'Failed to pick winner.', true);
 });
 
-// Admin table to browse subscribers (modern table w/ sorting + pagination)
-const subsSection = document.createElement('section');
-subsSection.id = 'subscribers';
-subsSection.style.marginTop = '24px';
-subsSection.innerHTML = `
-  <h2>Subscribers</h2>
-  <div class="filters-grid">
-    <div class="field"><label>Trip type</label>
-      <select id="fltTrip"><option value="">All</option><option value="family">Family</option><option value="golf">Golf</option><option value="work">Work</option><option value="friends">Friends</option></select>
-    </div>
-    <div class="field"><label>Search</label><input id="fltQ" placeholder="email or name" /></div>
-    <div class="field"><label>Confirmed</label><select id="fltConfirmed"><option value="">Any</option><option value="1">Yes</option><option value="0">No</option></select></div>
-    <div class="field"><label>Min group</label><input id="fltMinGroup" type="number" min="1" /></div>
-    <div class="field"><label>Page size</label>
-      <select id="fltPageSize"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
-    </div>
-    <button class="cta" id="btnLoad" style="align-self:flex-end">Load</button>
-  </div>
-  <div id="subsMeta" class="small text-secondary" style="margin-top:6px"></div>
-  <div id="rows" class="table-wrap" style="margin-top:12px"></div>
-  <div id="subsPager" style="display:flex;align-items:center;gap:8px;margin-top:10px">
-    <button class="cta secondary" id="btnPrev">‹ Prev</button>
-    <span id="pageInfo" class="small text-secondary"></span>
-    <button class="cta secondary" id="btnNext">Next ›</button>
-  </div>
-  <div style="margin-top:12px">
-    <input id="emailDiscount" placeholder="email for discount" />
-    <button class="cta" id="btnDiscount">Issue discount</button>
-  </div>
-`;
-// Insert into admin content area
-document.querySelector('.content')?.appendChild(subsSection);
+// Removed dynamic subscribers section; using the primary table in admin.html
 
 const subsState = { page: 1, pageSize: 25, sort: 'created_at', dir: 'desc', total: 0, totalPages: 0 };
 
@@ -420,7 +389,7 @@ async function loadStats() {
 }
 
 // Auto-load stats and subscribers shortly after page load
-setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initBroadcastModal(); initQuickFilters(); initColVisibility(); }, 300);
+setTimeout(()=>{ loadStats(); /*loadSubs();*/ loadPromotions(); initDraw(); initBroadcastModal(); /*initQuickFilters(); initColVisibility();*/ }, 300);
 
 // Ensure authenticated, otherwise bounce to login
 (async ()=>{

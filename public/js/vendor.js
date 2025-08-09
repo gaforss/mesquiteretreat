@@ -82,8 +82,18 @@ async function ensureVendor(){
     const discount_text = document.getElementById('offDiscText').value.trim();
     const image_url = document.getElementById('offImg').value.trim();
     const logo_url = document.getElementById('offLogo').value.trim();
+    const fulfillment_type = document.getElementById('offFulfill').value;
+    const commission_percent_str = document.getElementById('offCommission').value;
+    const commission_percent = commission_percent_str? Number(commission_percent_str): undefined;
+    const lead_price_str = document.getElementById('offLeadPrice').value;
+    const lead_price = lead_price_str? Number(lead_price_str): undefined;
+    const service_fee_str = document.getElementById('offServiceFee').value;
+    const service_fee = service_fee_str? Number(service_fee_str): undefined;
+    const sponsored_rank_str = document.getElementById('offRank').value;
+    const sponsored_rank = sponsored_rank_str? Number(sponsored_rank_str): undefined;
+    const is_featured = document.getElementById('offFeatured').checked;
     try{
-      const r = await fetch('/api/vendors/offerings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, description, url, price, discount_code, discount_percent, discount_text, image_url, logo_url }), credentials:'include' });
+      const r = await fetch('/api/vendors/offerings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, description, url, price, discount_code, discount_percent, discount_text, image_url, logo_url, fulfillment_type, commission_percent, lead_price, service_fee, sponsored_rank, is_featured }), credentials:'include' });
       const j = await r.json();
       if (!j.ok){ out.textContent = j.error||'Failed'; return; }
       out.textContent = 'Added'; (e.target).reset();
