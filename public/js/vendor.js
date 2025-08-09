@@ -38,6 +38,8 @@ async function ensureVendor(){
       document.getElementById('kpiEntries').textContent = j.totals.total.toLocaleString();
       document.getElementById('kpiConfirmed').textContent = j.totals.confirmed.toLocaleString();
       document.getElementById('kpi7d').textContent = j.totals.last7d.toLocaleString();
+      const offeringSection = document.getElementById('offeringsSection'); if (offeringSection) offeringSection.style.display = '';
+      renderOfferings(j.offerings||[]);
     }
   }catch{}
 
@@ -64,5 +66,73 @@ async function ensureVendor(){
       }
     }catch{ out.textContent = 'Failed'; }
   });
+
+  // Offerings CRUD
+  document.getElementById('offerForm')?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const out = document.getElementById('offerMsg'); out.textContent = 'Saving...';
+    const title = document.getElementById('offTitle').value.trim();
+    const description = document.getElementById('offDesc').value.trim();
+    const url = document.getElementById('offUrl').value.trim();
+    const priceStr = document.getElementById('offPrice').value;
+    const price = priceStr? Number(priceStr) : undefined;
+    const discount_code = document.getElementById('offDiscCode').value.trim();
+    const discount_percent_str = document.getElementById('offDiscPct').value;
+    const discount_percent = discount_percent_str? Number(discount_percent_str) : undefined;
+    const discount_text = document.getElementById('offDiscText').value.trim();
+    const image_url = document.getElementById('offImg').value.trim();
+    const logo_url = document.getElementById('offLogo').value.trim();
+    try{
+      const r = await fetch('/api/vendors/offerings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, description, url, price, discount_code, discount_percent, discount_text, image_url, logo_url }), credentials:'include' });
+      const j = await r.json();
+      if (!j.ok){ out.textContent = j.error||'Failed'; return; }
+      out.textContent = 'Added'; (e.target).reset();
+      // Refresh list
+      const r2 = await fetch('/api/vendors/offerings', { credentials:'include' });
+      const j2 = await r2.json(); if (j2.ok) renderOfferings(j2.rows||[]);
+    }catch{ out.textContent = 'Failed'; }
+  });
 })();
+
+function renderOfferings(rows){
+  const wrap = document.getElementById('offeringsList'); if (!wrap) return;
+  wrap.innerHTML = `<table><thead><tr>
+    <th>Title</th><th>Description</th><th>URL</th><th>Price</th><th>Discount</th><th>Active</th><th>Actions</th>
+  </tr></thead><tbody></tbody></table>`;
+  const tbody = wrap.querySelector('tbody');
+  rows.forEach(o=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${o.title||''}</td>
+      <td>${o.description||''}</td>
+      <td>${o.url?`<a class="reviews-link" href="${o.url}" target="_blank" rel="noopener">Link</a>`:''}</td>
+      <td>${o.price!=null?o.price:''}</td>
+      <td>${o.discount_percent!=null?`${o.discount_percent}%`:(o.discount_code||o.discount_text||'')}</td>
+      <td>${o.active? 'Yes':'No'}</td>
+      <td>
+        <button class="cta secondary" data-off-toggle="${o._id}">${o.active?'Disable':'Enable'}</button>
+        <button class="cta danger" data-off-del="${o._id}" style="margin-left:6px">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  // Bind actions
+  wrap.querySelectorAll('[data-off-toggle]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-off-toggle');
+      const row = rows.find(r=>String(r._id)===String(id));
+      const next = !row.active;
+      await fetch('/api/vendors/offerings/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ active: next }), credentials:'include' });
+      const r = await fetch('/api/vendors/offerings', { credentials:'include' });
+      const j = await r.json(); if (j.ok) renderOfferings(j.rows||[]);
+    });
+  });
+  wrap.querySelectorAll('[data-off-del]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-off-del');
+      if (!confirm('Delete this offering?')) return;
+      await fetch('/api/vendors/offerings/'+id, { method:'DELETE', credentials:'include' });
+      const r = await fetch('/api/vendors/offerings', { credentials:'include' });
+      const j = await r.json(); if (j.ok) renderOfferings(j.rows||[]);
+    });
+  });
+}
 

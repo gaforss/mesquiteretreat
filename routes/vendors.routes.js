@@ -54,6 +54,42 @@ router.post('/change-password', requireVendor, async (req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Vendor self-service: offerings CRUD
+router.get('/offerings', requireVendor, async (req, res) => {
+  try{
+    const vendor = await Vendor.findById(req.vendor?.id).select({ vendor_code:1 }).lean();
+    const rows = await VendorOffering.find({ vendor_code: vendor.vendor_code }).sort({ created_at: -1 }).lean();
+    return res.json({ ok:true, rows });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.post('/offerings', requireVendor, async (req, res) => {
+  try{
+    const vendor = await Vendor.findById(req.vendor?.id).select({ vendor_code:1 }).lean();
+    const { title, description, url, price, discount_code, discount_percent, discount_text, image_url } = req.body || {};
+    if (!title) return res.status(400).json({ ok:false, error:'Missing title' });
+    const row = await VendorOffering.create({ vendor_id: String(req.vendor?.id), vendor_code: vendor.vendor_code, title, description: description||'', url: url||'', price: price?Number(price):null, active: true, property_only: true, discount_code: discount_code||'', discount_percent: discount_percent!=null?Number(discount_percent):null, discount_text: discount_text||'', image_url: image_url||'' });
+    return res.json({ ok:true, row });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.put('/offerings/:id', requireVendor, async (req, res) => {
+  try{
+    const { id } = req.params; const updates = req.body || {};
+    await VendorOffering.updateOne({ _id: id, vendor_id: req.vendor?.id }, { $set: updates });
+    const row = await VendorOffering.findById(id).lean();
+    return res.json({ ok:true, row });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.delete('/offerings/:id', requireVendor, async (req, res) => {
+  try{
+    const { id } = req.params;
+    await VendorOffering.deleteOne({ _id: id, vendor_id: req.vendor?.id });
+    return res.json({ ok:true });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 // Vendor stats (self)
 router.get('/stats', requireVendor, async (req, res) => {
   try{
@@ -138,5 +174,43 @@ vendorPublicRouter.get('/public/track', async (req, res) => {
     await VendorClick.create({ vendor_code, type, ip, user_agent });
     return res.json({ ok:true });
   }catch(err){ return res.status(500).json({ ok:false }); }
+});
+
+// Public: list active vendor offerings for this property
+vendorPublicRouter.get('/public/offerings', async (_req, res) => {
+  try{
+    const rows = await VendorOffering.find({ active: true, property_only: true })
+      .sort({ created_at: -1 })
+      .select({ vendor_code:1, title:1, description:1, url:1, price:1, discount_code:1, discount_percent:1, discount_text:1, image_url:1, logo_url:1 })
+      .lean();
+    return res.json({ ok:true, rows });
+  }catch(err){ return res.status(500).json({ ok:false }); }
+});
+
+// Public: outbound redirect with tracking + referral params
+vendorPublicRouter.get('/public/vendor-redirect', async (req, res) => {
+  try{
+    const vendor_code = String(req.query.vendor||'').toUpperCase();
+    const url = String(req.query.url||'');
+    if (!vendor_code || !url) return res.status(400).send('Missing params');
+    // Track outbound click
+    const headersIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ip = Array.isArray(headersIp) ? headersIp[0] : String(headersIp).split(',')[0];
+    const user_agent = req.headers['user-agent'] || '';
+    await VendorClick.create({ vendor_code, type: 'outbound', ip, user_agent });
+    // Append UTM/referral parameters for vendor analytics
+    let target;
+    try{ target = new URL(url); }
+    catch{ return res.status(400).send('Invalid URL'); }
+    const params = {
+      utm_source: 'mesquite_retreat',
+      utm_medium: 'vendor_network',
+      utm_campaign: 'mesquite_vendor_network',
+      utm_content: vendor_code,
+      mesquite_ref: vendor_code,
+    };
+    Object.entries(params).forEach(([k,v])=>{ target.searchParams.set(k, v); });
+    return res.redirect(302, target.toString());
+  }catch(err){ return res.status(500).send('Server error'); }
 });
 

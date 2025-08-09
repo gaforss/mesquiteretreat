@@ -32,6 +32,29 @@
             <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="kpiConfirmed" class="h4 m-0">–</div></div></div>
             <div class="card"><div class="card-body"><div class="small text-secondary">Last 7 days</div><div id="kpi7d" class="h4 m-0">–</div></div></div>
           </section>
+          <section class="section-card" id="offeringsSection" style="display:none">
+            <div class="section-head"><h2 style="margin:0">Your Offerings</h2></div>
+            <div class="section-body">
+              <div id="offeringsList" class="table-wrap" style="margin-bottom:12px"></div>
+              <form id="offerForm" class="signup-form">
+                <div class="field"><label>Title<input id="offTitle" required placeholder="Service or Product"/></label></div>
+                <div class="field"><label>Description<input id="offDesc" placeholder="Short description"/></label></div>
+                <div class="field"><label>URL<input id="offUrl" type="url" placeholder="https://..."/></label></div>
+                <div class="field"><label>Price (optional)<input id="offPrice" type="number" step="0.01"/></label></div>
+                <div class="field-row">
+                  <div class="field"><label>Discount Code (optional)<input id="offDiscCode" placeholder="e.g. MESQ10"/></label></div>
+                  <div class="field"><label>Discount % (optional)<input id="offDiscPct" type="number" min="0" max="100" step="1" placeholder="10"/></label></div>
+                </div>
+                <div class="field"><label>Discount Text (shown to guests)<input id="offDiscText" placeholder="10% off for Mesquite Retreat guests"/></label></div>
+                <div class="field"><label>Image URL (optional)<input id="offImg" type="url" placeholder="https://.../promo.jpg"/></label></div>
+                <div class="field"><label>Logo URL (optional)<input id="offLogo" type="url" placeholder="https://.../logo.png"/></label></div>
+                <div style="display:flex; gap:8px; align-items:center">
+                  <button class="cta" type="submit">Add</button>
+                  <p id="offerMsg" class="form-message"></p>
+                </div>
+              </form>
+            </div>
+          </section>
           <section class="section-card" id="linkSection" style="display:none">
             <div class="section-head"><h2 style="margin:0">Your Link</h2></div>
             <div class="section-body">

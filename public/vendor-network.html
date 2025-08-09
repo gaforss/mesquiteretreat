@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mesquite Vendor Network</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="admin-theme dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Mesquite Vendor Network</span><span class="badge-pill">Partners</span></div>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/vendor-login.html">Vendor Login</a>
+        </nav>
+        <div class="actions"></div>
+      </div>
+    </header>
+    <main>
+      <section class="hero" style="padding: 40px 0 24px; background: radial-gradient(800px 400px at 20% 0%, rgba(136,170,255,0.18) 0%, rgba(0,0,0,0) 60%)">
+        <div class="container hero-inner" style="grid-template-columns: 1.2fr .8fr; align-items: center;">
+          <div class="hero-text">
+            <h1 style="margin:0 0 8px">Discover local partners</h1>
+            <p class="muted" style="font-size:16px">Hand‑picked services with exclusive perks for Mesquite Retreat guests.</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
+              <input id="search" placeholder="Search services (e.g., spa, golf, chef)" style="flex:1; min-width:260px; padding:12px 12px; border-radius:10px; border:1px solid var(--border); background: rgba(255,255,255,.06); color: var(--text)"/>
+              <div id="filters" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+                <span class="chip active" data-filter="all">All</span>
+                <span class="chip" data-filter="discounts">Discounts</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-image" aria-hidden="true">
+            <img src="/images/hero.jpg" alt="Partners" style="height:240px; object-fit:cover"/>
+          </div>
+        </div>
+      </section>
+      <section class="details-section" style="padding-top: 24px">
+        <div class="container">
+          <div id="vendorGrid" class="gallery" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:16px"></div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>© <span id="year"></span> Mesquite Vendor Network</p>
+      </div>
+    </footer>
+    <script type="module" src="/js/vendor-network.js"></script>
+  </body>
+  </html>
+
