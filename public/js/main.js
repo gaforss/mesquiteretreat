@@ -381,9 +381,30 @@ function ensureReviewsOverflow(scroller){
 const navToggle = document.getElementById('navToggle');
 const siteNav = document.getElementById('siteNav');
 if (navToggle && siteNav) {
+  const header = document.querySelector('.site-header');
+  function setOpen(open){
+    if (!header) return;
+    header.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+    // Swap icon
+    navToggle.textContent = open ? '✕' : '☰';
+  }
   navToggle.addEventListener('click', () => {
-    const showing = getComputedStyle(siteNav).display !== 'none';
-    siteNav.style.display = showing ? 'none' : 'flex';
+    const isOpen = document.querySelector('.site-header')?.classList.contains('open');
+    setOpen(!isOpen);
+  });
+  // Close on escape and outside click
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') setOpen(false); }, { passive: true });
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+    const open = document.querySelector('.site-header')?.classList.contains('open');
+    if (!open) return;
+    if (t && (t.closest && (t.closest('#siteNav') || t.closest('#navToggle')))) return;
+    setOpen(false);
+  });
+  // Reset on resize to desktop
+  window.addEventListener('resize', ()=>{
+    if (window.innerWidth > 880) setOpen(false);
   });
 }
 
@@ -441,6 +462,30 @@ if (navToggle && siteNav) {
     if (vendor){ localStorage.setItem('vendorCode', vendor.toUpperCase()); }
     const code = vendor || localStorage.getItem('vendorCode');
     if (code){ fetch(`/api/public/track?vendor=${encodeURIComponent(code)}&type=landing`).catch(()=>{}); }
+  }catch{}
+})();
+
+
+// Header/topbar scrolled state + active link highlight
+(function polishNavbars(){
+  const header = document.querySelector('.site-header');
+  const topbar = document.querySelector('.topbar');
+  const onScroll = () => {
+    const sc = (document.documentElement.scrollTop || document.body.scrollTop) > 6;
+    if (header) header.classList.toggle('scrolled', sc);
+    if (topbar) topbar.classList.toggle('scrolled', sc);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Mark current link active if same pathname anchor
+  try{
+    const here = location.pathname.replace(/\/index\.html?$/, '/');
+    document.querySelectorAll('nav a[href]').forEach(a=>{
+      const url = new URL(a.href, location.origin);
+      const match = url.pathname.replace(/\/index\.html?$/, '/') === here && (!url.hash || url.hash === location.hash);
+      if (match) a.classList.add('active');
+    });
   }catch{}
 })();
 

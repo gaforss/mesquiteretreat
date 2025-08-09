@@ -7,14 +7,20 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body class="dark">
-    <header class="topbar">
-      <div class="container wide topbar-inner">
-        <div class="brand"><span class="logo">⟡</span><span>Mesquite Vendor Network</span><span class="badge-pill">Partners</span></div>
-        <nav>
-          <a href="/">Home</a>
-          <a href="/vendor-login.html">Vendor Login</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <span class="logo">⟡</span>
+          <span class="name" id="propertyName">The Mesquite Retreat on Oak</span>
+        </div>
+        <button class="menu-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+        <nav id="siteNav">
+          <a href="/scottsdale-experience.html">Experience Scottsdale</a>
+          <a href="/vendor-network.html" aria-current="page">Vendor Network</a>
+          <a href="/vendor-login.html">Supplier Login</a>
+          <a href="/index.html#signup">Contest</a>
+          <a class="pill" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book on Airbnb</a>
         </nav>
-        <div class="actions"></div>
       </div>
     </header>
     <main>
@@ -66,6 +72,7 @@
         <p>© <span id="year"></span> Mesquite Vendor Network</p>
       </div>
     </footer>
+    <script src="/js/nav.js"></script>
     <script type="module" src="/js/vendor-network.js"></script>
   </body>
   </html>
