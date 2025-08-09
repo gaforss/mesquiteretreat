@@ -200,7 +200,9 @@ form?.addEventListener('submit', async (e) => {
       if (data.isReturning && data.discountCode) {
         out.textContent = `Welcome back! Your returning guest code: ${data.discountCode}`;
       } else {
-        out.textContent = needs ? 'Check your email to confirm your entry.' : 'You are already confirmed.';
+        out.textContent = needs 
+          ? 'Check your email to confirm your entry. If you do not see it, please check your Spam/Junk folder (and Promotions on Gmail).'
+          : 'You are already confirmed.';
       }
       form.reset();
       // Prompt bonus tasks modal after successful signup (change CTA to Close)

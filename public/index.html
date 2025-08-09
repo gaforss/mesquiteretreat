@@ -58,10 +58,10 @@
     </div>
     <header class="site-header">
       <div class="container header-inner">
-        <div class="brand">
+        <a class="brand" href="/index.html">
           <span class="logo">⟡</span>
           <span class="name" id="propertyName">The Mesquite Retreat on Oak</span>
-        </div>
+        </a>
         <button class="menu-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
         <nav id="siteNav">
           <a href="/scottsdale-experience.html">Experience Scottsdale</a>
@@ -358,11 +358,11 @@
                 <label for="phone">Phone</label>
                 <input id="phone" name="phone" type="tel" autocomplete="tel" />
               </div>
-              <div class="field">
-                <label><input id="consentRules" type="checkbox" required /> I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</label>
+              <div class="field" style="display:flex; align-items:center; gap:8px">
+                <label class="checkbox-inline"><input id="consentRules" type="checkbox" required /> I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</label>
               </div>
               <button type="submit" class="cta submit">Enter now</button>
-              <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+              <p id="formMessage" class="form-message" role="status" aria-live="polite">Tip: After submitting, look for a confirmation email. If it’s not in your inbox, check Spam/Junk (and Promotions on Gmail).</p>
               <p class="legal">No purchase necessary. 18+. US only. Void where prohibited. By entering, you agree to receive occasional emails; you can unsubscribe anytime.</p>
             </form>
             <div id="shareAfter" class="details-card" style="display:none; margin-top:12px">
