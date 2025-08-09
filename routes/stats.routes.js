@@ -37,3 +37,13 @@ router.get('/signups-by-day', adminLimiter, requireAdmin, async (req, res) => {
 
 export default router;
 
+// Public stats for landing page: entries today (no admin required)
+export const publicStatsRouter = Router();
+publicStatsRouter.get('/public/entries-today', async (_req, res) => {
+  try{
+    const start = new Date(); start.setHours(0,0,0,0);
+    const count = await Subscriber.countDocuments({ created_at: { $gte: start } });
+    return res.json({ ok:true, count });
+  }catch(err){ return res.status(500).json({ ok:false }); }
+});
+

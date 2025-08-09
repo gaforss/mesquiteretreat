@@ -49,6 +49,26 @@ form?.addEventListener('submit', async (e) => {
         out.textContent = needs ? 'Check your email to confirm your entry.' : 'You are already confirmed.';
       }
       form.reset();
+      // Prompt bonus tasks modal after successful signup
+      if (entryModal){ entryModal.classList.remove('hidden'); }
+      // Show share block
+      const myRef = localStorage.getItem('myRefCode');
+      const shareUrl = `${location.origin}${location.pathname}?ref=${encodeURIComponent(myRef||'')}`;
+      const shareBox = document.getElementById('shareAfter');
+      if (shareBox){
+        const link = document.getElementById('shareLink');
+        if (link) link.value = shareUrl;
+        shareBox.style.display = 'block';
+        const btnCopy = document.getElementById('btnCopyShare');
+        const btnShare = document.getElementById('btnNativeShare');
+    const btnBoost = document.getElementById('btnBoostTasks');
+        if (btnCopy) btnCopy.onclick = ()=>{ navigator.clipboard.writeText(shareUrl); alert('Link copied'); };
+        if (btnShare) btnShare.onclick = async ()=>{
+          if (navigator.share){ try{ await navigator.share({ title: 'Win a stay at Mesquite Retreat', url: shareUrl }); } catch{} }
+          else { navigator.clipboard.writeText(shareUrl); alert('Link copied'); }
+        };
+    if (btnBoost) btnBoost.onclick = ()=>{ entryModal?.classList.remove('hidden'); };
+      }
     } else {
       out.textContent = data.error || 'Something went wrong.';
     }
@@ -74,22 +94,19 @@ if (drawDateStr) {
   setInterval(update, 60 * 1000);
 }
 
-// Entry modal for IG traffic: show on first visit or if utm_source=ig
-const shouldShowModal = (() => {
-  const params = new URLSearchParams(location.search);
-  if (params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram') return true;
-  return !localStorage.getItem('igTasks');
-})();
+// Entry modal: show on first visit or utm_source=ig; includes quick "Enter now" button
 const entryModal = document.getElementById('entryModal');
-if (entryModal && shouldShowModal) {
-  entryModal.classList.remove('hidden');
-  const c = entryModal.querySelector('#closeModal');
-  c?.addEventListener('click', () => entryModal.classList.add('hidden'));
+function initEntryModal(){
+  if (!entryModal) return;
+  const params = new URLSearchParams(location.search);
+  const shouldShow = params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram' || !localStorage.getItem('igTasks');
+  if (shouldShow) entryModal.classList.remove('hidden');
+  const closeBtn = entryModal.querySelector('#closeModal');
+  closeBtn?.addEventListener('click', () => entryModal.classList.add('hidden'));
   const starsOut = entryModal.querySelector('#starsOut');
   const tasksEls = Array.from(entryModal.querySelectorAll('.task'));
   const tagInput = entryModal.querySelector('#tagCount');
   const igInput = entryModal.querySelector('#igHandle');
-  // Simple mode: user manages checkboxes; no proof enforcement
   const updateStars = () => {
     let stars = 0;
     const tasks = {};
@@ -107,8 +124,16 @@ if (entryModal && shouldShowModal) {
     const igHandle = igInput.value.trim();
     localStorage.setItem('igTasks', JSON.stringify({ stars, tasks, igHandle }));
     entryModal.classList.add('hidden');
+    alert('Bonus tasks saved. Your stars are updated.');
+  });
+  const goto = entryModal.querySelector('#gotoSignup');
+  goto?.addEventListener('click', ()=>{
+    entryModal.classList.add('hidden');
+    document.getElementById('email')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('email')?.focus();
   });
 }
+initEntryModal();
 
 // Force dark theme
 document.documentElement.classList.add('dark');
@@ -132,4 +157,33 @@ if (navToggle && siteNav) {
     siteNav.style.display = showing ? 'none' : 'flex';
   });
 }
+
+// Public entries today counter
+(async function entriesToday(){
+  const el = document.getElementById('entriesToday'); if (!el) return;
+  async function tick(){
+    try{
+      const r = await fetch('/api/public/entries-today');
+      const j = await r.json();
+      if (j?.ok) el.textContent = `${j.count} entries today`;
+    }catch{}
+  }
+  tick();
+  setInterval(tick, 45 * 1000);
+})();
+
+// Add to calendar link under signup copy
+(function addToCal(){
+  const drawDateStr2 = document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
+  const addWrap = document.getElementById('addToCalWrap');
+  if (!drawDateStr2 || !addWrap) return;
+  const title = encodeURIComponent('Mesquite Retreat Giveaway Drawing');
+  const start = new Date(drawDateStr2).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0,15)+'Z';
+  const end = new Date(new Date(drawDateStr2).getTime()+60*60*1000).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0,15)+'Z';
+  const details = encodeURIComponent('Tune in for the drawing! Boost your chances by sharing your link.');
+  const location = encodeURIComponent('Online');
+  const gcal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+  addWrap.innerHTML = `<a class="cta secondary" href="${gcal}" target="_blank" rel="noopener">Add drawing to Google Calendar</a>`;
+})();
+
 

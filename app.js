@@ -15,7 +15,7 @@ import subscribersRouter from './routes/subscribers.routes.js';
 import exportRouter from './routes/export.routes.js';
 import adminActionsRouter from './routes/admin.actions.routes.js';
 import promotionsRouter from './routes/promotions.routes.js';
-import statsRouter from './routes/stats.routes.js';
+import statsRouter, { publicStatsRouter } from './routes/stats.routes.js';
 import drawRouter from './routes/draw.routes.js';
 import healthRouter from './routes/health.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
@@ -160,6 +160,7 @@ app.use('/api/export', exportRouter);
 app.use('/api', adminActionsRouter); // /discount, /pick-winner
 app.use('/api/promotions', promotionsRouter);
 app.use('/api', statsRouter); // /admin-stats, /signups-by-day
+app.use('/api', publicStatsRouter); // /public/entries-today
 app.use('/api/draw', drawRouter);
 
 

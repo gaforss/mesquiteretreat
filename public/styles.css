@@ -124,6 +124,7 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 .signup-section { padding: 48px 0 80px; }
 .signup-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; box-shadow: 0 10px 30px rgba(20,40,80,.08), 0 0 28px rgba(255,193,7,.14); }
 .signup-copy p { color: var(--muted); }
+.signup-copy .small { color: var(--muted); }
 .signup-form .field { margin-bottom: 14px; }
 .signup-form label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 14px; }
 .signup-form input, .signup-form textarea, .signup-form select { width: 100%; padding: 12px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); }
@@ -133,6 +134,24 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 
 .site-footer { border-top: 1px solid var(--border); background: #fff; }
 .site-footer .container { padding: 20px 0 40px; color: var(--muted); }
+
+/* Public dark inputs */
+.dark .signup-form input,
+.dark .signup-form textarea,
+.dark .signup-form select {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  color: var(--text) !important;
+}
+.dark .signup-form input::placeholder,
+.dark .signup-form textarea::placeholder { color: var(--muted); }
+.dark .signup-form input:focus,
+.dark .signup-form select:focus,
+.dark .signup-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138,180,255,.2);
+}
 
 @media (max-width: 880px) {
   .hero-inner { grid-template-columns: 1fr; }

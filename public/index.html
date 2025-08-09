@@ -28,7 +28,10 @@
           <label><input type="checkbox" class="task" data-points="1" data-key="tweet" /> Tweet about the giveaway (+1)</label>
         </div>
         <p id="starsOut">Stars: 0</p>
-        <button id="saveTasks" class="cta">Save & continue</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
+          <button id="saveTasks" class="cta">Save tasks</button>
+          <button id="gotoSignup" class="cta secondary" type="button">Enter now</button>
+        </div>
       </div>
     </div>
     <header class="site-header">
@@ -285,6 +288,8 @@
             <div class="signup-copy">
               <h2>Enter our giveaway</h2>
               <p>Sign up to enter our occasional giveaway and receive availability and offer updates.</p>
+              <div id="addToCalWrap" style="margin:10px 0 0"></div>
+              <p id="entriesToday" class="muted small" style="margin:6px 0 0"></p>
             </div>
             <form id="signupForm" class="signup-form">
               <div class="field-row">
@@ -332,6 +337,16 @@
               <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
               <p class="legal">No purchase necessary. 18+. US only. Void where prohibited. By entering, you agree to receive occasional emails; you can unsubscribe anytime.</p>
             </form>
+            <div id="shareAfter" class="details-card" style="display:none; margin-top:12px">
+              <h3 style="margin:0 0 6px; font-size:18px">Boost your chances</h3>
+              <p class="small text-secondary" style="margin:0 0 8px">Share your link to earn extra stars. Each friend who enters adds a star.</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap">
+                <input id="shareLink" readonly />
+                <button id="btnCopyShare" class="cta secondary" type="button">Copy</button>
+                <button id="btnNativeShare" class="cta" type="button">Share</button>
+                <button id="btnBoostTasks" class="cta secondary" type="button">Complete bonus tasks (+stars)</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
