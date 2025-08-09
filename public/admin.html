@@ -40,13 +40,16 @@
               <div class="breadcrumbs small text-secondary">Home / Admin</div>
               <h1 class="page-title">Admin Dashboard</h1>
             </div>
-            <div id="adminActions" class="actions"></div>
+            <div id="adminActions" class="actions">
+              <div class="search"><input id="globalSearch" placeholder="Search" /></div>
+              <div class="avatar">A</div>
+            </div>
           </div>
           <section id="cards" class="admin-kpis">
-            <div class="card"><div class="card-body"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div></div>
-            <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div></div>
-            <div class="card"><div class="card-body"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div></div>
-            <div class="card"><div class="card-body"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div><div class="kpi-icon">👥</div></div></div>
+            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div><div class="kpi-icon">✅</div></div></div>
+            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div><div class="kpi-icon">⭐</div></div></div>
+            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div><div class="kpi-icon">🔗</div></div></div>
           </section>
           <section id="chart" class="chart-grid" style="margin-bottom:20px">
             <div class="card"><div class="card-body">
