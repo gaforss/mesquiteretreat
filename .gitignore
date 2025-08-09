@@ -1,0 +1,4 @@
+
+# Ignore local curl cookie jar files
+cj.txt
+-H
