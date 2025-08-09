@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import Vendor from '../models/vendor.js';
 import VendorClick from '../models/vendorClick.js';
+import VendorOffering from '../models/vendorOffering.js';
 import { getCookieOpts, requireAdmin, signVendorToken, requireVendor } from '../middleware/auth.js';
 import Subscriber from '../models/subscriber.js';
 
@@ -16,9 +17,9 @@ router.post('/login', async (req, res) => {
     if (!v) return res.status(401).json({ ok:false, error:'Invalid credentials' });
     const ok = await bcrypt.compare(password, v.password_hash || '');
     if (!ok) return res.status(401).json({ ok:false, error:'Invalid credentials' });
-    const token = signVendorToken({ id: String(v._id), email: v.email, code: v.vendor_code, name: v.name||'' });
+  const token = signVendorToken({ id: String(v._id), email: v.email, code: v.vendor_code, name: v.name||'' });
     res.cookie('vendor_jwt', token, { ...getCookieOpts(), maxAge: 48 * 60 * 60 * 1000 });
-    return res.json({ ok:true });
+  return res.json({ ok:true, mustChangePassword: !!v.must_change_password });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
@@ -28,7 +29,11 @@ router.post('/logout', requireVendor, async (_req, res) => {
 });
 
 router.get('/me', requireVendor, async (req, res) => {
-  return res.json({ ok:true, vendor: { id: req.vendor?.id, email: req.vendor?.email, code: req.vendor?.code, name: req.vendor?.name } });
+  try{
+    const v = await Vendor.findById(req.vendor?.id).lean();
+    if (!v) return res.status(404).json({ ok:false, error:'Vendor not found' });
+    return res.json({ ok:true, vendor: { id: String(v._id), email: v.email, code: v.vendor_code, name: v.name||'', mustChangePassword: !!v.must_change_password } });
+  }catch{ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
 // Vendor self-service: change password
@@ -43,6 +48,7 @@ router.post('/change-password', requireVendor, async (req, res) => {
       if (!ok) return res.status(401).json({ ok:false, error:'Current password incorrect' });
     }
     v.password_hash = await bcrypt.hash(newPassword, 10);
+    v.must_change_password = false;
     await v.save();
     return res.json({ ok:true });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
@@ -57,7 +63,8 @@ router.get('/stats', requireVendor, async (req, res) => {
     const confirmed = await Subscriber.countDocuments({ vendor_code: code, confirmed: true });
     const week = await Subscriber.countDocuments({ vendor_code: code, created_at: { $gte: since } });
     const clicks = await VendorClick.countDocuments({ vendor_code: code });
-    return res.json({ ok:true, totals: { clicks, total, confirmed, last7d: week } });
+    const offerings = await VendorOffering.find({ vendor_code: code }).sort({ created_at: -1 }).lean();
+    return res.json({ ok:true, totals: { clicks, total, confirmed, last7d: week }, offerings });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
@@ -92,7 +99,7 @@ router.post('/', requireAdmin, async (req, res) => {
     const code = (vendor_code || (email.split('@')[0] + Math.random().toString(36).slice(2,6))).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);
     const initialPassword = password || code; // default password to vendor code
     const hash = await bcrypt.hash(initialPassword, 10);
-    const row = await Vendor.create({ email: String(email).toLowerCase(), name: name||'', company: company||'', password_hash: hash, vendor_code: code, status: 'active' });
+    const row = await Vendor.create({ email: String(email).toLowerCase(), name: name||'', company: company||'', password_hash: hash, vendor_code: code, status: 'active', must_change_password: true });
     return res.json({ ok:true, row });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });

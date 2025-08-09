@@ -7,6 +7,7 @@ const vendorSchema = new mongoose.Schema({
   password_hash: { type: String, required: true },
   vendor_code: { type: String, required: true, unique: true, index: true },
   status: { type: String, enum: ['active','suspended'], default: 'active' },
+  must_change_password: { type: Boolean, default: true },
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 
 const Vendor = mongoose.models.Vendor || mongoose.model('Vendor', vendorSchema, 'vendors');

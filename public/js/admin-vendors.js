@@ -71,12 +71,11 @@ document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const out = document.getElementById('vendorMsg'); out.textContent = 'Saving...';
   const email = document.getElementById('venEmail').value.trim();
-  const password = document.getElementById('venPassword').value;
   const name = document.getElementById('venName').value.trim();
   const company = document.getElementById('venCompany').value.trim();
   const vendor_code = document.getElementById('venCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
   try{
-    const r = await fetch('/api/vendors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password: password||undefined, name, company, vendor_code: vendor_code||undefined }), credentials:'include' });
+    const r = await fetch('/api/vendors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, name, company, vendor_code: vendor_code||undefined }), credentials:'include' });
     const j = await r.json();
     if (!j.ok){ out.textContent = j.error||'Failed'; return; }
     out.textContent = 'Added'; (e.target).reset(); loadVendors();
