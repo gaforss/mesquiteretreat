@@ -341,8 +341,14 @@
                 </div>
               </div>
               <div class="field">
-                <label for="travelMonths">Desired travel months (MMM YYYY, comma separated)</label>
-                <input id="travelMonths" name="travelMonths" placeholder="Jan 2026, Feb 2026" />
+                <label for="travelMonths">Desired travel months</label>
+                <div style="display:flex; gap:8px; flex-wrap:wrap">
+                  <input id="travelMonths" name="travelMonths" placeholder="Jan 2026, Feb 2026" aria-describedby="tmHelp" />
+                  <input id="travelMonthPicker" type="month" style="max-width:220px" />
+                  <button id="tmAdd" class="cta secondary" type="button">Add month</button>
+                  <button id="tmClear" class="cta secondary" type="button">Clear</button>
+                </div>
+                <p id="tmHelp" class="small text-secondary" style="margin:6px 0 0">Tip: pick a month and tap Add. You can add multiple months.</p>
               </div>
               <div class="field">
                 <label for="email">Email</label>

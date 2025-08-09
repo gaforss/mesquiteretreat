@@ -489,4 +489,34 @@ if (navToggle && siteNav) {
   }catch{}
 })();
 
+// Travel months UX: add month picker to list
+(function travelMonthsPicker(){
+  const input = document.getElementById('travelMonths');
+  const month = document.getElementById('travelMonthPicker');
+  const add = document.getElementById('tmAdd');
+  const clear = document.getElementById('tmClear');
+  if (!input || !month || !add || !clear) return;
+
+  // Format YYYY-MM to MMM YYYY
+  function formatMonth(ym){
+    const [y,m] = ym.split('-');
+    try{
+      const d = new Date(Number(y), Number(m)-1, 1);
+      return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+    }catch{return ym;}
+  }
+  function addMonth(){
+    const v = month.value; if (!v) return;
+    const fm = formatMonth(v);
+    const parts = String(input.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if (!parts.includes(fm)) parts.push(fm);
+    input.value = parts.join(', ');
+    month.value = '';
+    input.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+  add.addEventListener('click', addMonth);
+  month.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addMonth(); }});
+  clear.addEventListener('click', ()=>{ input.value=''; month.value=''; input.dispatchEvent(new Event('input',{bubbles:true})); });
+})();
+
 
