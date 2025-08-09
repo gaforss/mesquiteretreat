@@ -311,65 +311,156 @@ function initEntryModal(){
   const params = new URLSearchParams(location.search);
   const shouldShow = params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram' || !localStorage.getItem('igTasks');
   if (shouldShow) entryModal.classList.remove('hidden');
+  
   const closeBtn = entryModal.querySelector('#closeModal');
   closeBtn?.addEventListener('click', () => entryModal.classList.add('hidden'));
-  const starsOut = entryModal.querySelector('#starsOut');
-  const tasksEls = []; // checkboxes removed; stars awarded on link clicks
-  const tagInput = null;
-  const igInput = entryModal.querySelector('#igHandle');
-  // Pre-fill IG handle from saved tasks to reduce friction
+  
+  // Modal form elements
+  const modalForm = entryModal.querySelector('#modalSignupForm');
+  const modalEmail = entryModal.querySelector('#modalEmail');
+  const modalFirstName = entryModal.querySelector('#modalFirstName');
+  const modalNewsletter = entryModal.querySelector('#modalNewsletter');
+  const modalConsentRules = entryModal.querySelector('#modalConsentRules');
+  const modalFormMessage = entryModal.querySelector('#modalFormMessage');
+  const modalStarsOut = entryModal.querySelector('#modalStarsOut');
+  const modalStarsFill = entryModal.querySelector('#modalStarsFill');
+  const modalIgHandle = entryModal.querySelector('#modalIgHandle');
+  
+  // Pre-fill IG handle from saved tasks
   try{
     const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    if (igInput && saved.igHandle) igInput.value = saved.igHandle;
+    if (modalIgHandle && saved.igHandle) modalIgHandle.value = saved.igHandle;
   }catch{}
+  
   const updateStars = () => {
     const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
     let stars = Number(saved.stars||0);
     const tasks = saved.tasks||{};
-    // no tag input
-    starsOut.textContent = `Stars: ${stars}`;
+    
+    modalStarsOut.textContent = `Bonus entries: ${stars}`;
+    
     // Update progress and chip states from saved tasks
     const maxStars = 1+1+2+1; // remaining link tasks
     const pct = Math.min(100, Math.round((Math.min(stars, maxStars)/maxStars)*100));
-    const fill = document.getElementById('starsFill'); if (fill) fill.style.width = pct+'%';
+    if (modalStarsFill) modalStarsFill.style.width = pct+'%';
+    
     entryModal.querySelectorAll('.task-chip').forEach(chip=>{
-      const key = chip.getAttribute('data-chip'); if (tasks[key]) chip.classList.add('active');
+      const key = chip.getAttribute('data-chip'); 
+      if (tasks[key]) chip.classList.add('active');
     });
+    
     return { stars, tasks };
   };
-  // On outbound visit click, award points and mark task complete in memory
+  
+  // On outbound visit click, award points and mark task complete
   entryModal.querySelectorAll('.visit-task').forEach(a=>{
     a.addEventListener('click', ()=>{
       const key = a.getAttribute('data-task');
       const pts = Number(a.getAttribute('data-points')||0);
       const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-      const tasks = saved.tasks||{}; const current = saved.stars||0;
+      const tasks = saved.tasks||{}; 
+      const current = saved.stars||0;
+      
       if (!tasks[key]){
         tasks[key] = true;
         const stars = current + pts;
         localStorage.setItem('igTasks', JSON.stringify({ ...saved, tasks, stars }));
-        const starsOut = entryModal.querySelector('#starsOut');
-        if (starsOut) starsOut.textContent = `Stars: ${stars}`;
-        const chip = entryModal.querySelector(`.task-chip[data-chip="${key}"]`);
-        if (chip) chip.classList.add('active');
+        updateStars();
       }
     });
   });
-  tasksEls.forEach(el => el.addEventListener('change', updateStars));
-  // no tag input listener
-  updateStars();
+  
   // Auto-save IG handle on input
-  igInput.addEventListener('input', ()=>{
+  modalIgHandle?.addEventListener('input', ()=>{
     const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    saved.igHandle = igInput.value.trim();
+    saved.igHandle = modalIgHandle.value.trim();
     localStorage.setItem('igTasks', JSON.stringify(saved));
   });
-  const goto = entryModal.querySelector('#gotoSignup');
-  goto?.addEventListener('click', ()=>{
-    entryModal.classList.add('hidden');
-    document.getElementById('email')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.getElementById('email')?.focus();
+  
+  // Handle modal form submission
+  modalForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = modalEmail.value.trim();
+    const firstName = modalFirstName.value.trim();
+    const newsletter = modalNewsletter.checked;
+    const consentRules = modalConsentRules.checked;
+    
+    if (!email || !consentRules) {
+      modalFormMessage.textContent = 'Please provide your email and agree to the rules.';
+      modalFormMessage.className = 'form-message error';
+      return;
+    }
+    
+    // Get bonus entries from completed tasks
+    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
+    const bonusEntries = Number(saved.stars||0);
+    
+    try {
+      modalFormMessage.textContent = 'Submitting your entry...';
+      modalFormMessage.className = 'form-message loading';
+      
+      const formData = {
+        email: email,
+        firstName: firstName || '',
+        lastName: '',
+        tripType: '',
+        groupSize: '',
+        travelMonths: '',
+        phone: '',
+        igHandle: modalIgHandle.value.trim() || '',
+        stars: bonusEntries,
+        consentRules: consentRules
+      };
+      
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const result = await response.json();
+      
+      if (result.ok) {
+        modalFormMessage.textContent = 'Entry submitted successfully! Check your email for confirmation.';
+        modalFormMessage.className = 'form-message success';
+        
+        // Clear form
+        modalForm.reset();
+        
+        // Close modal after 3 seconds
+        setTimeout(() => {
+          entryModal.classList.add('hidden');
+        }, 3000);
+        
+      } else {
+        modalFormMessage.textContent = result.error || 'Failed to submit entry. Please try again.';
+        modalFormMessage.className = 'form-message error';
+      }
+      
+    } catch (error) {
+      console.error('Modal form submission error:', error);
+      modalFormMessage.textContent = 'Network error. Please try again.';
+      modalFormMessage.className = 'form-message error';
+    }
   });
+  
+  // Handle "Complete full entry form" button
+  const gotoFullSignup = entryModal.querySelector('#gotoFullSignup');
+  gotoFullSignup?.addEventListener('click', ()=>{
+    entryModal.classList.add('hidden');
+    document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Pre-fill the main form with modal data
+    const mainEmail = document.getElementById('email');
+    const mainFirstName = document.getElementById('firstName');
+    if (mainEmail && modalEmail.value) mainEmail.value = modalEmail.value;
+    if (mainFirstName && modalFirstName.value) mainFirstName.value = modalFirstName.value;
+    mainEmail?.focus();
+  });
+  
+  updateStars();
 }
 initEntryModal();
 

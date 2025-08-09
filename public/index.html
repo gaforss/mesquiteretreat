@@ -22,6 +22,184 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Modal form improvements */
+      #entryModal .signup-form {
+        margin: 0;
+      }
+      
+      #entryModal .field {
+        margin-bottom: 16px;
+      }
+      
+      #entryModal .field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #a9b0bc;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      
+      #entryModal .field input {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      
+      #entryModal .field input:focus {
+        outline: none;
+        border-color: #ffc107;
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 2px rgba(255,193,7,0.1);
+      }
+      
+      #entryModal .field input::placeholder {
+        color: #5f6b7a;
+      }
+      
+      #entryModal .checkbox-inline {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #a9b0bc;
+      }
+      
+      #entryModal .checkbox-inline input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+        margin-top: 2px;
+      }
+      
+      #entryModal .checkbox-inline a {
+        color: #ffc107;
+        text-decoration: none;
+      }
+      
+      #entryModal .checkbox-inline a:hover {
+        text-decoration: underline;
+      }
+      
+      #entryModal .form-message {
+        margin: 8px 0 0;
+        font-size: 14px;
+        min-height: 20px;
+      }
+      
+      #entryModal .form-message.error {
+        color: #ff6b6b;
+      }
+      
+      #entryModal .form-message.success {
+        color: #51cf66;
+      }
+      
+      #entryModal .form-message.loading {
+        color: #ffc107;
+      }
+      
+      /* Tasks section styling */
+      #entryModal .tasks {
+        margin: 0;
+      }
+      
+      #entryModal .task-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 8px;
+      }
+      
+      #entryModal .task-row:last-child {
+        margin-bottom: 0;
+      }
+      
+      #entryModal .task-title {
+        font-size: 14px;
+        color: #e8eef7;
+        font-weight: 500;
+      }
+      
+      #entryModal .task-row input {
+        width: auto;
+        flex: 1;
+        max-width: 150px;
+        margin: 0;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      
+      #entryModal .visit-task {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #e8eef7;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      
+      #entryModal .visit-task:hover {
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.18);
+      }
+      
+      #entryModal .task-chip {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.14);
+        color: #5f6b7a;
+      }
+      
+      #entryModal .task-chip::before {
+        content: '☆ ';
+      }
+      
+      #entryModal .task-chip.active {
+        background: rgba(255,193,7,0.16);
+        border-color: rgba(255,193,7,0.35);
+        color: #ffd666;
+      }
+      
+      #entryModal .task-chip.active::before {
+        content: '★ ';
+      }
+      
+      /* Progress bar */
+      #entryModal .progress {
+        height: 6px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 999px;
+        overflow: hidden;
+        margin: 12px 0 8px;
+      }
+      
+      #entryModal .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffc107, #ffd54f);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+    </style>
   </head>
   <body>
     <div id="entryModal" class="modal hidden">
@@ -31,28 +209,89 @@
             <span class="mh-icon">🎁</span>
             <div class="mh-text">
               <h2 class="mh-title">2 free nights giveaway</h2>
-              <p class="mh-sub">Boost your chances in under a minute</p>
+              <p class="mh-sub">Enter now & boost your chances</p>
             </div>
           </div>
           <button id="closeModal" class="modal-close">×</button>
         </div>
         <div class="modal-body">
-        <details class="fine-print"><summary>Rules & notes</summary>
-          <p style="margin:8px 0 0">Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
-        </details>
-        <div class="tasks">
-          <label class="task-row"><span class="task-title">IG handle</span> <input id="igHandle" placeholder="@yourhandle" /></label>
-          <label class="task-row"><span class="task-title">Follow @twolittlestolove</span> <a href="https://www.instagram.com/twolittlestolove/" target="_blank" rel="noopener" class="visit-task" data-task="follow_twolittlestolove" data-points="1">Visit</a><span class="task-chip" data-chip="follow_twolittlestolove">+1</span></label>
-          <label class="task-row"><span class="task-title">Follow @themesquiteretreat.scottsdale</span> <a href="https://www.instagram.com/themesquiteretreat.scottsdale/" target="_blank" rel="noopener" class="visit-task" data-task="follow_themesquiteretreat" data-points="1">Visit</a><span class="task-chip" data-chip="follow_themesquiteretreat">+1</span></label>
+          <details class="fine-print"><summary>Rules & notes</summary>
+            <p style="margin:8px 0 0">Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
+          </details>
           
-          <label class="task-row"><span class="task-title">Share in your story</span> <a href="https://www.instagram.com/stories/create/" target="_blank" rel="noopener" class="visit-task" data-task="share_story" data-points="2">Open IG</a><span class="task-chip" data-chip="share_story">+2</span></label>
-          <label class="task-row"><span class="task-title">Tweet about the giveaway</span> <a href="https://x.com/intent/tweet?text=I%20just%20entered%20to%20win%202%20free%20nights%20at%20The%20Mesquite%20Retreat%20on%20Oak!%20Join%20me%20%F0%9F%8F%83%E2%80%8D%E2%99%82%EF%B8%8F%20" target="_blank" rel="noopener" class="visit-task" data-task="tweet" data-points="1">Tweet</a><span class="task-chip" data-chip="tweet">+1</span></label>
-        </div>
-        <div class="progress" aria-hidden="true"><div id="starsFill" class="progress-fill" style="width:0%"></div></div>
-        <p id="starsOut">Stars: 0</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
-          <button id="gotoSignup" class="cta" type="button">Enter now</button>
-        </div>
+          <!-- Primary Email Entry Form -->
+          <form id="modalSignupForm" class="signup-form" style="margin-bottom: 20px;">
+            <div class="field">
+              <label for="modalEmail">Email address <span style="color: #ff6b6b;">*</span></label>
+              <input id="modalEmail" name="email" type="email" required autocomplete="email" placeholder="your@email.com" />
+            </div>
+            
+            <div class="field">
+              <label for="modalFirstName">First name</label>
+              <input id="modalFirstName" name="firstName" type="text" autocomplete="given-name" placeholder="Optional" />
+            </div>
+            
+            <div class="field">
+              <label class="checkbox-inline">
+                <input id="modalNewsletter" type="checkbox" />
+                <span>Subscribe to our newsletter for exclusive offers & updates</span>
+              </label>
+            </div>
+            
+            <div class="field" style="display:flex; align-items:center; gap:8px">
+              <label class="checkbox-inline">
+                <input id="modalConsentRules" type="checkbox" required />
+                <span>I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+              </label>
+            </div>
+            
+            <button type="submit" class="cta submit" style="width: 100%; margin-bottom: 16px;">Enter Giveaway</button>
+            <p id="modalFormMessage" class="form-message" role="status" aria-live="polite"></p>
+          </form>
+          
+          <!-- Optional Boost Tasks -->
+          <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+            <h4 style="margin: 0 0 12px; font-size: 16px; color: #a9b0bc;">🎯 Boost your chances (optional)</h4>
+            <p style="margin: 0 0 16px; font-size: 14px; color: #5f6b7a;">Complete these tasks to earn extra entries:</p>
+            
+            <div class="tasks">
+              <label class="task-row">
+                <span class="task-title">Instagram handle</span>
+                <input id="modalIgHandle" placeholder="@yourhandle" />
+              </label>
+              <label class="task-row">
+                <span class="task-title">Follow @twolittlestolove</span>
+                <a href="https://www.instagram.com/twolittlestolove/" target="_blank" rel="noopener" class="visit-task" data-task="follow_twolittlestolove" data-points="1">Visit</a>
+                <span class="task-chip" data-chip="follow_twolittlestolove">+1</span>
+              </label>
+              <label class="task-row">
+                <span class="task-title">Follow @themesquiteretreat.scottsdale</span>
+                <a href="https://www.instagram.com/themesquiteretreat.scottsdale/" target="_blank" rel="noopener" class="visit-task" data-task="follow_themesquiteretreat" data-points="1">Visit</a>
+                <span class="task-chip" data-chip="follow_themesquiteretreat">+1</span>
+              </label>
+              <label class="task-row">
+                <span class="task-title">Share in your story</span>
+                <a href="https://www.instagram.com/stories/create/" target="_blank" rel="noopener" class="visit-task" data-task="share_story" data-points="2">Open IG</a>
+                <span class="task-chip" data-chip="share_story">+2</span>
+              </label>
+              <label class="task-row">
+                <span class="task-title">Tweet about the giveaway</span>
+                <a href="https://x.com/intent/tweet?text=I%20just%20entered%20to%20win%202%20free%20nights%20at%20The%20Mesquite%20Retreat%20on%20Oak!%20Join%20me%20%F0%9F%8F%83%E2%80%8D%E2%99%82%EF%B8%8F%20" target="_blank" rel="noopener" class="visit-task" data-task="tweet" data-points="1">Tweet</a>
+                <span class="task-chip" data-chip="tweet">+1</span>
+              </label>
+            </div>
+            
+            <div class="progress" aria-hidden="true">
+              <div id="modalStarsFill" class="progress-fill" style="width:0%"></div>
+            </div>
+            <p id="modalStarsOut" style="margin: 8px 0 0; font-size: 14px; color: #a9b0bc;">Bonus entries: 0</p>
+          </div>
+          
+          <!-- Alternative: Full Signup Link -->
+          <div style="margin-top: 16px; text-align: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <p style="margin: 0 0 8px; font-size: 14px; color: #5f6b7a;">Want to provide more details?</p>
+            <button id="gotoFullSignup" class="cta secondary" type="button" style="width: 100%;">Complete full entry form</button>
+          </div>
         </div>
       </div>
     </div>
