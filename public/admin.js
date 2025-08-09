@@ -95,6 +95,7 @@ function renderSubsTable(rows){
   const container = document.getElementById('rows');
   const arrows = (key)=> subsState.sort===key ? (subsState.dir==='asc'?' ▲':' ▼') : '';
   container.innerHTML = `<table><thead><tr>
+    <th style="width:28px"><input type="checkbox" id="chkAll"/></th>
     <th data-sort="email">Email${arrows('email')}</th>
     <th data-sort="created_at">Created${arrows('created_at')}</th>
     <th>Name</th>
@@ -107,6 +108,7 @@ function renderSubsTable(rows){
     <th>Discount</th>
     <th>Ref</th>
     <th>ReferredBy</th>
+    <th style="width:120px">Actions</th>
   </tr></thead><tbody></tbody></table>`;
   const tbody = container.querySelector('tbody');
   rows.forEach(r => {
@@ -115,7 +117,8 @@ function renderSubsTable(rows){
     const name = `${r.first_name||''} ${r.last_name||''}`.trim();
     const dot = r.confirmed ? 'dot-success' : 'dot-warning';
     const initials = (r.first_name||r.email||'?').slice(0,1).toUpperCase();
-    tr.innerHTML = `<td><span class="code">${r.email}</span></td>
+    tr.innerHTML = `<td><input type="checkbox" class="chkRow" data-id="${r._id}"/></td>
+      <td><span class="code">${r.email}</span></td>
       <td>${created}</td>
       <td><span class="avatar">${initials}</span>${name||'—'}</td>
       <td>${r.trip_type||''}</td>
@@ -126,7 +129,11 @@ function renderSubsTable(rows){
       <td>${r.is_returning?'<span class="chip yes">Yes</span>':'<span class="chip no">No</span>'}</td>
       <td>${r.discount_code||''}</td>
       <td>${r.ref_code||''}</td>
-      <td>${r.referred_by||''}</td>`;
+      <td>${r.referred_by||''}</td>
+      <td>
+        <button class="cta secondary btnRowEdit" data-id="${r._id}">Edit</button>
+        <button class="cta secondary btnRowDelete" data-id="${r._id}" style="margin-left:6px">Delete</button>
+      </td>`;
     tbody.appendChild(tr);
   });
   // Sort header clicks
@@ -138,6 +145,28 @@ function renderSubsTable(rows){
       else { subsState.sort = key; subsState.dir = 'asc'; }
       subsState.page = 1;
       loadSubs();
+    });
+  });
+  // Select all
+  const chkAll = container.querySelector('#chkAll');
+  chkAll?.addEventListener('change', ()=>{
+    container.querySelectorAll('.chkRow').forEach(c=>{ c.checked = chkAll.checked; });
+  });
+  // Row actions
+  container.querySelectorAll('.btnRowDelete').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-id');
+      const ok = await confirmModal('Delete this subscriber?');
+      if (!ok) return;
+      await fetch('/api/subscribers/'+id, { method:'DELETE', credentials:'include' });
+      toast('Subscriber deleted.');
+      loadSubs();
+    });
+  });
+  container.querySelectorAll('.btnRowEdit').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-id');
+      subsEditOpen([id]);
     });
   });
 }
@@ -176,12 +205,61 @@ document.getElementById('fltPageSize').addEventListener('change', (e)=>{ subsSta
 document.getElementById('btnPrev').addEventListener('click', ()=>{ if (subsState.page>1){ subsState.page -= 1; loadSubs(); }});
 document.getElementById('btnNext').addEventListener('click', ()=>{ if (subsState.page < subsState.totalPages){ subsState.page += 1; loadSubs(); }});
 
+// Bulk toolbar actions
+document.getElementById('btnDeleteSelected')?.addEventListener('click', async ()=>{
+  const ids = Array.from(document.querySelectorAll('.chkRow:checked')).map(x=>x.getAttribute('data-id'));
+  if (!ids.length) { toast('No rows selected', true); return; }
+  const ok = await confirmModal(`Delete ${ids.length} selected?`);
+  if (!ok) return;
+  const res = await fetch('/api/subscribers/bulk-delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ids }), credentials:'include' });
+  const j = await res.json();
+  if (!j.ok) { toast(j.error||'Failed to delete', true); return; }
+  toast(`Deleted ${j.deleted} subscribers.`);
+  loadSubs();
+});
+
+document.getElementById('btnEditSelected')?.addEventListener('click', async ()=>{
+  const ids = Array.from(document.querySelectorAll('.chkRow:checked')).map(x=>x.getAttribute('data-id'));
+  if (!ids.length) { toast('No rows selected', true); return; }
+  subsEditOpen(ids);
+});
+
 document.getElementById('btnDiscount').addEventListener('click', async () => {
   const email = document.getElementById('emailDiscount').value.trim();
   const res = await fetch('/api/discount', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }), credentials: 'include' });
   const data = await res.json();
   if (data.ok) toast(`Issued code ${data.discountCode} to ${data.email}`);
   else toast(data.error || 'Failed to issue code', true);
+});
+
+// Subs edit modal logic
+function subsEditOpen(ids){
+  const m = document.getElementById('subsEditModal');
+  document.getElementById('subsEditCount').textContent = `${ids.length} selected`;
+  m.dataset.ids = JSON.stringify(ids);
+  document.getElementById('subsEditConfirmed').value = '';
+  document.getElementById('subsEditStars').value = '';
+  document.getElementById('subsEditDiscount').value = '';
+  m.classList.remove('hidden');
+}
+
+document.getElementById('subsEditForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const m = document.getElementById('subsEditModal');
+  const ids = JSON.parse(m.dataset.ids||'[]');
+  const payload = { ids };
+  const c = document.getElementById('subsEditConfirmed').value;
+  if (c!== '') payload.confirmed = c==='1';
+  const s = document.getElementById('subsEditStars').value;
+  if (s) payload.stars = Number(s)||0;
+  const d = document.getElementById('subsEditDiscount').value.trim();
+  if (d) payload.discount_code = d;
+  const res = await fetch('/api/subscribers/bulk-update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), credentials:'include' });
+  const j = await res.json();
+  if (!j.ok){ toast(j.error||'Failed to update', true); return; }
+  toast(`Updated ${j.modified} subscribers.`);
+  closeModals();
+  loadSubs();
 });
 
 // Toast helper

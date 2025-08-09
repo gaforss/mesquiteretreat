@@ -104,6 +104,24 @@
               <p id="promoMsg" class="form-message"></p>
             </form>
           </section>
+          <section id="subsTools" class="section-card" style="margin-top:24px">
+            <div class="section-head"><h2 style="margin:0">Subscribers</h2>
+              <div class="actions">
+                <button id="btnEditSelected" class="cta secondary">Edit Selected</button>
+                <button id="btnDeleteSelected" class="cta secondary">Delete Selected</button>
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="table-scroll" style="max-height:480px; overflow:auto">
+                <div id="rows" class="table-wrap" style="margin-top:12px"></div>
+              </div>
+              <div id="subsPager" style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                <button class="cta secondary" id="btnPrev">‹ Prev</button>
+                <span id="pageInfo" class="small text-secondary"></span>
+                <button class="cta secondary" id="btnNext">Next ›</button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -123,6 +141,28 @@
           <label>Draw<input id="promoEditDrawInput" type="date" /></label>
           <label>Notes<input id="promoEditNotesInput" type="text" /></label>
           <label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="promoEditActiveInput" type="checkbox"/> Active</label>
+          <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
+            <button class="cta" type="submit">Save</button>
+            <button class="cta secondary" type="button" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="subsEditModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="subsEditTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="subsEditTitle">Edit Subscribers</h2>
+        <form id="subsEditForm">
+          <p class="small text-secondary" id="subsEditCount">0 selected</p>
+          <label>Confirmed
+            <select id="subsEditConfirmed">
+              <option value="">— no change —</option>
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+          </label>
+          <label>Stars<input id="subsEditStars" type="number" min="0" placeholder="— no change —" /></label>
+          <label>Discount Code<input id="subsEditDiscount" type="text" placeholder="— no change —" /></label>
           <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
             <button class="cta" type="submit">Save</button>
             <button class="cta secondary" type="button" data-close-modal>Cancel</button>

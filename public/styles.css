@@ -270,3 +270,53 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 .section-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.14); margin: 14px 0; }
 .section-card .section-head { display:flex; align-items:center; justify-content:space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); }
 .section-card .section-body { padding: 14px; }
+
+/* Admin: dark inputs */
+.admin-theme input:not([type="checkbox"]):not([type="radio"]),
+.admin-theme select,
+.admin-theme textarea {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  border-radius: 10px;
+}
+.admin-theme input::placeholder,
+.admin-theme textarea::placeholder { color: var(--muted); }
+.admin-theme input:focus,
+.admin-theme select:focus,
+.admin-theme textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138,180,255,.2);
+}
+/* Stronger specificity to override .signup-form defaults on admin */
+.admin-theme .signup-form input,
+.admin-theme .signup-form select,
+.admin-theme .signup-form textarea {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  color: var(--text) !important;
+}
+.admin-theme .signup-form input::placeholder,
+.admin-theme .signup-form textarea::placeholder { color: var(--muted); }
+/* Filters grid explicit override */
+.admin-theme .filters-grid input,
+.admin-theme .filters-grid select {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  color: var(--text) !important;
+}
+/* Topbar search (if present) */
+.admin-theme .topbar .search input { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: var(--text) !important; }
+/* Improve native widget theming */
+.admin-theme input,
+.admin-theme select,
+.admin-theme textarea { color-scheme: dark; }
+/* Autofill */
+.admin-theme input:-webkit-autofill,
+.admin-theme input:-webkit-autofill:hover,
+.admin-theme input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,.06) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
