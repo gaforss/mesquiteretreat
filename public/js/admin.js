@@ -56,40 +56,17 @@ pickBtn.addEventListener('click', async () => {
   else toast(data.error || 'Failed to pick winner.', true);
 });
 
-// Admin table to browse subscribers (modern table w/ sorting + pagination)
-const subsSection = document.createElement('section');
-subsSection.id = 'subscribers';
-subsSection.style.marginTop = '24px';
-subsSection.innerHTML = `
-  <h2>Subscribers</h2>
-  <div class="filters-grid">
-    <div class="field"><label>Trip type</label>
-      <select id="fltTrip"><option value="">All</option><option value="family">Family</option><option value="golf">Golf</option><option value="work">Work</option><option value="friends">Friends</option></select>
-    </div>
-    <div class="field"><label>Search</label><input id="fltQ" placeholder="email or name" /></div>
-    <div class="field"><label>Confirmed</label><select id="fltConfirmed"><option value="">Any</option><option value="1">Yes</option><option value="0">No</option></select></div>
-    <div class="field"><label>Min group</label><input id="fltMinGroup" type="number" min="1" /></div>
-    <div class="field"><label>Page size</label>
-      <select id="fltPageSize"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
-    </div>
-    <button class="cta" id="btnLoad" style="align-self:flex-end">Load</button>
-  </div>
-  <div id="subsMeta" class="small text-secondary" style="margin-top:6px"></div>
-  <div id="rows" class="table-wrap" style="margin-top:12px"></div>
-  <div id="subsPager" style="display:flex;align-items:center;gap:8px;margin-top:10px">
-    <button class="cta secondary" id="btnPrev">‹ Prev</button>
-    <span id="pageInfo" class="small text-secondary"></span>
-    <button class="cta secondary" id="btnNext">Next ›</button>
-  </div>
-  <div style="margin-top:12px">
-    <input id="emailDiscount" placeholder="email for discount" />
-    <button class="cta" id="btnDiscount">Issue discount</button>
-  </div>
-`;
-// Insert into admin content area
-document.querySelector('.content')?.appendChild(subsSection);
+// Admin table (uses static markup in admin.html)
 
-const subsState = { page: 1, pageSize: 25, sort: 'created_at', dir: 'desc', total: 0, totalPages: 0 };
+const subsState = {
+  page: 1,
+  pageSize: 25,
+  sort: 'created_at',
+  dir: 'desc',
+  total: 0,
+  totalPages: 0,
+  filters: { tripType: '', q: '', confirmed: '', minGroupSize: '' }
+};
 
 function formatMonthYear(d){
   try { return new Date(d).toLocaleString(undefined, { month: 'short', year: 'numeric' }); } catch { return ''; }
@@ -183,10 +160,11 @@ function renderSubsTable(rows){
 
 async function loadSubs() {
   const params = new URLSearchParams();
-  const trip = document.getElementById('fltTrip').value; if (trip) params.set('tripType', trip);
-  const q = document.getElementById('fltQ').value.trim(); if (q) params.set('q', q);
-  const conf = document.getElementById('fltConfirmed').value; if (conf !== '') params.set('confirmed', conf);
-  const mg = document.getElementById('fltMinGroup').value; if (mg) params.set('minGroupSize', mg);
+  const { tripType, q, confirmed, minGroupSize } = subsState.filters || {};
+  if (tripType) params.set('tripType', tripType);
+  if (q) params.set('q', q);
+  if (confirmed !== undefined && confirmed !== '') params.set('confirmed', confirmed);
+  if (minGroupSize) params.set('minGroupSize', String(minGroupSize));
   params.set('page', String(subsState.page));
   params.set('pageSize', String(subsState.pageSize));
   params.set('sort', subsState.sort);
@@ -201,20 +179,14 @@ async function loadSubs() {
   subsState.total = data.total; subsState.totalPages = data.totalPages; subsState.page = data.page; subsState.pageSize = data.pageSize;
   lastSubsRows = data.rows;
   renderSubsTable(lastSubsRows);
-  meta.textContent = `${data.total} total · Sorted by ${subsState.sort} ${subsState.dir}`;
+  if (meta) meta.textContent = `${data.total} total · Sorted by ${subsState.sort} ${subsState.dir}`;
   pageInfo.textContent = `Page ${subsState.page} of ${subsState.totalPages||1}`;
   btnPrev.disabled = subsState.page <= 1;
   btnNext.disabled = subsState.page >= (subsState.totalPages||1);
 }
 
-document.getElementById('btnLoad').addEventListener('click', ()=>{ subsState.page = 1; loadSubs(); });
-document.getElementById('fltTrip').addEventListener('change', ()=>{ subsState.page = 1; loadSubs(); });
-document.getElementById('fltConfirmed').addEventListener('change', ()=>{ subsState.page = 1; loadSubs(); });
-document.getElementById('fltMinGroup').addEventListener('input', ()=>{ subsState.page = 1; });
-document.getElementById('fltQ').addEventListener('input', ()=>{ subsState.page = 1; });
-document.getElementById('fltPageSize').addEventListener('change', (e)=>{ subsState.pageSize = Number(e.target.value)||25; subsState.page = 1; loadSubs(); });
-document.getElementById('btnPrev').addEventListener('click', ()=>{ if (subsState.page>1){ subsState.page -= 1; loadSubs(); }});
-document.getElementById('btnNext').addEventListener('click', ()=>{ if (subsState.page < subsState.totalPages){ subsState.page += 1; loadSubs(); }});
+document.getElementById('btnPrev')?.addEventListener('click', ()=>{ if (subsState.page>1){ subsState.page -= 1; loadSubs(); }});
+document.getElementById('btnNext')?.addEventListener('click', ()=>{ if (subsState.page < subsState.totalPages){ subsState.page += 1; loadSubs(); }});
 
 // Bulk toolbar actions
 document.getElementById('btnDeleteSelected')?.addEventListener('click', async ()=>{
@@ -235,7 +207,7 @@ document.getElementById('btnEditSelected')?.addEventListener('click', async ()=>
   subsEditOpen(ids);
 });
 
-document.getElementById('btnDiscount').addEventListener('click', async () => {
+document.getElementById('btnDiscount')?.addEventListener('click', async () => {
   const email = document.getElementById('emailDiscount').value.trim();
   const res = await fetch('/api/discount', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }), credentials: 'include' });
   const data = await res.json();
@@ -421,6 +393,22 @@ async function loadStats() {
 
 // Auto-load stats and subscribers shortly after page load
 setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initBroadcastModal(); initQuickFilters(); initColVisibility(); }, 300);
+
+// Wire filter controls from static markup (if present)
+(()=>{
+  const trip = document.getElementById('fltTrip');
+  const q = document.getElementById('fltQ');
+  const conf = document.getElementById('fltConfirmed');
+  const mg = document.getElementById('fltMinGroup');
+  const size = document.getElementById('fltPageSize');
+  const loadBtn = document.getElementById('btnLoad');
+  if (trip) trip.addEventListener('change', (e)=>{ subsState.filters.tripType = e.target.value; subsState.page = 1; loadSubs(); });
+  if (conf) conf.addEventListener('change', (e)=>{ subsState.filters.confirmed = e.target.value; subsState.page = 1; loadSubs(); });
+  if (mg) mg.addEventListener('input', (e)=>{ subsState.filters.minGroupSize = e.target.value; subsState.page = 1; });
+  if (q) q.addEventListener('input', (e)=>{ subsState.filters.q = e.target.value.trim(); subsState.page = 1; });
+  if (size) size.addEventListener('change', (e)=>{ subsState.pageSize = Number(e.target.value)||25; subsState.page = 1; loadSubs(); });
+  if (loadBtn) loadBtn.addEventListener('click', ()=>{ subsState.page = 1; loadSubs(); });
+})();
 
 // Ensure authenticated, otherwise bounce to login
 (async ()=>{
@@ -654,11 +642,11 @@ function initQuickFilters(){
   document.querySelectorAll('#quickFilters [data-qf]')?.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const v = btn.getAttribute('data-qf');
-      if (v===''){ document.getElementById('fltConfirmed').value = ''; document.getElementById('fltQ').value=''; }
-      if (v==='confirmed:1') document.getElementById('fltConfirmed').value = '1';
-      if (v==='confirmed:0') document.getElementById('fltConfirmed').value = '0';
-      if (v==='returning:1') document.getElementById('fltQ').value = ''; // not in filter API; narrow via server later if needed
-      if (v==='discount:1') document.getElementById('fltQ').value = ''; // placeholder
+      if (v==='') { subsState.filters.confirmed = ''; subsState.filters.q = ''; }
+      if (v==='confirmed:1') subsState.filters.confirmed = '1';
+      if (v==='confirmed:0') subsState.filters.confirmed = '0';
+      if (v==='returning:1') { /* placeholder for future filter */ }
+      if (v==='discount:1') { /* placeholder for future filter */ }
       subsState.page = 1; loadSubs();
     });
   });
