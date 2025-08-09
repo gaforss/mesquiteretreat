@@ -155,6 +155,21 @@ form?.addEventListener('submit', async (e) => {
     term: params.get('utm_term') || undefined,
     content: params.get('utm_content') || undefined,
   };
+  // If no UTM on URL, fall back to sticky UTMs saved earlier
+  try{
+    if (!payload.utm.source && !payload.utm.medium && !payload.utm.campaign){
+      const sticky = JSON.parse(localStorage.getItem('stickyUtm')||'{}');
+      if (sticky && Object.keys(sticky).length){
+        payload.utm = {
+          source: sticky.utm_source || sticky.source || payload.utm.source,
+          medium: sticky.utm_medium || sticky.medium || payload.utm.medium,
+          campaign: sticky.utm_campaign || sticky.campaign || payload.utm.campaign,
+          term: sticky.utm_term || sticky.term || payload.utm.term,
+          content: sticky.utm_content || sticky.content || payload.utm.content,
+        };
+      }
+    }
+  }catch{}
   payload.ref = params.get('ref') || undefined;
   // Normalize MMM YYYY months input
   if (payload.travelMonths) {
@@ -250,6 +265,11 @@ function initEntryModal(){
   const tasksEls = []; // checkboxes removed; stars awarded on link clicks
   const tagInput = null;
   const igInput = entryModal.querySelector('#igHandle');
+  // Pre-fill IG handle from saved tasks to reduce friction
+  try{
+    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
+    if (igInput && saved.igHandle) igInput.value = saved.igHandle;
+  }catch{}
   const updateStars = () => {
     const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
     let stars = Number(saved.stars||0);
@@ -387,7 +407,25 @@ if (navToggle && siteNav) {
   const details = encodeURIComponent('Tune in for the drawing! Boost your chances by sharing your link.');
   const location = encodeURIComponent('Online');
   const gcal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
-  addWrap.innerHTML = `<a class="cta secondary" href="${gcal}" target="_blank" rel="noopener">Add drawing to Google Calendar</a>`;
+  // Also provide ICS download for Apple/Outlook
+  const ics = (()=>{
+    const lines = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MesquiteRetreat//Giveaway//EN','BEGIN:VEVENT',
+      `UID:${Date.now()}@mesquiteretreat`,`DTSTAMP:${start}`,
+      `DTSTART:${start}`,`DTEND:${end}`,`SUMMARY:Mesquite Retreat Giveaway Drawing`,`DESCRIPTION:Tune in for the drawing! Boost your chances by sharing your link.`,`LOCATION:Online`,'END:VEVENT','END:VCALENDAR'
+    ];
+    return 'data:text/calendar;charset=utf8,'+encodeURIComponent(lines.join('\r\n'));
+  })();
+  addWrap.innerHTML = `<a class="cta secondary" href="${gcal}" target="_blank" rel="noopener">Add to Google Calendar</a> <a class="cta secondary" href="${ics}" download="mesquite-drawing.ics">Download ICS</a>`;
+})();
+
+// Persist UTM params for later submissions (sticky attribution)
+(function persistUtm(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const utm = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].reduce((acc,k)=>{ const v=params.get(k); if(v) acc[k]=v; return acc; },{});
+    if (Object.keys(utm).length){ localStorage.setItem('stickyUtm', JSON.stringify(utm)); }
+  }catch{}
 })();
 
 

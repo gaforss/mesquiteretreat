@@ -67,6 +67,9 @@ const cookieOpts = { httpOnly: true, sameSite: 'lax', secure: isHttps, path: '/'
 function signAdminToken(payload){ return jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' }); }
 function verifyAdminToken(token){ return jwt.verify(token, JWT_SECRET); }
 
+// Sign a short-lived confirmation token that encodes the subscriber's email
+function signConfirmToken(email){ return jwt.sign({ email }, JWT_SECRET, { expiresIn: '3d' }); }
+
 app.get(['/login','/login.html'], (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -153,7 +156,7 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
         await Subscriber.updateOne({ ref_code: ref }, { $inc: { stars: 1 } });
       }
     }
-    const needsConfirm = true; let token = generateToken();
+    const needsConfirm = true; let token = signConfirmToken(normalizedEmail);
     const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
     const confirmUrl = `${siteUrl}/api/confirm?token=${encodeURIComponent(token||'')}`;
     const from = process.env.MAIL_FROM || 'noreply@example.com'; const propertyName = process.env.PROPERTY_NAME || 'Your Stay';
@@ -165,9 +168,17 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
 
 app.get('/api/confirm', async (req,res)=>{
   const token = String(req.query.token || ''); if (!token) return res.status(400).send('Missing token');
-  // In pure Mongo mode, we can’t look up token (unless stored in Mongo). Directly show confirmed page.
-  logInfo('Confirm ok');
-  return res.redirect('/confirmed.html?status=ok');
+  try{
+    const payload = verifyAdminToken(token);
+    const email = String(payload?.email||'').toLowerCase();
+    if (!email) { logWarn('Confirm missing email in token'); return res.redirect('/confirmed.html?status=invalid'); }
+    await confirmSubscriberByEmail(email);
+    logInfo('Confirm ok',{ email: maskEmail(email) });
+    return res.redirect('/confirmed.html?status=ok');
+  }catch(err){
+    logWarn('Confirm invalid token');
+    return res.redirect('/confirmed.html?status=invalid');
+  }
 });
 
 // Mount routers
