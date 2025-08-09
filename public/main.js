@@ -89,6 +89,8 @@ async function loadSiteContent(){
             </div>`;
           scroll.appendChild(card);
         });
+        ensureReviewsOverflow(scroll);
+        initReviewsScroller();
       }
     }
   }catch{}
@@ -267,14 +269,52 @@ initEntryModal();
 // Force dark theme
 document.documentElement.classList.add('dark');
 
-// Reviews horizontal scroll nav
-const scroller = document.getElementById('reviewsScroll');
-const btnPrev = document.getElementById('prevReviews');
-const btnNext = document.getElementById('nextReviews');
-if (scroller && btnPrev && btnNext) {
-  const step = 340;
-  btnPrev.addEventListener('click', () => scroller.scrollBy({ left: -step, behavior: 'smooth' }));
-  btnNext.addEventListener('click', () => scroller.scrollBy({ left: step, behavior: 'smooth' }));
+// Reviews horizontal scroll nav (re-initializes after DOM updates)
+function initReviewsScroller(){
+  document.addEventListener('click', (e)=>{
+    const t = e.target; if (!t) return;
+    const id = t.id || (t.closest && t.closest('#prevReviews, #nextReviews')?.id);
+    if (id !== 'prevReviews' && id !== 'nextReviews') return;
+    const scroller = document.getElementById('reviewsScroll'); if (!scroller) return;
+    const dir = id === 'prevReviews' ? -1 : 1;
+    const firstCard = scroller.querySelector('.card');
+    const step = Math.max(320, (firstCard?.offsetWidth||0) + 12);
+    const before = scroller.scrollLeft;
+    // Force a small overflow if equal widths to allow scroll
+    if (scroller.scrollWidth <= scroller.clientWidth) { scroller.style.paddingRight = '1px'; }
+    scroller.scrollBy({ left: dir * step, behavior: 'smooth' });
+    try { console.log('[reviews] click', { id, before, after: scroller.scrollLeft, scrollWidth: scroller.scrollWidth, clientWidth: scroller.clientWidth }); } catch {}
+  }, { passive: true });
+}
+initReviewsScroller();
+
+function ensureReviewsOverflow(scroller){
+  try{
+    const cards = scroller.querySelectorAll('.card');
+    if (cards.length){
+      cards.forEach(c=>{ c.style.minWidth = '300px'; c.style.maxWidth = '340px'; c.style.scrollSnapAlign = 'start'; });
+      scroller.style.display = 'flex';
+      scroller.style.gap = '12px';
+      scroller.style.overflowX = 'auto';
+      scroller.style.scrollSnapType = 'x mandatory';
+      scroller.style.webkitOverflowScrolling = 'touch';
+      requestAnimationFrame(()=>{
+        if (scroller.scrollWidth <= scroller.clientWidth) {
+          // Append a tiny spacer to force horizontal overflow
+          if (!scroller.querySelector('[data-spacer="1"]')){
+            const spacer = document.createElement('div');
+            spacer.dataset.spacer = '1';
+            spacer.style.flex = '0 0 24px';
+            spacer.style.width = '24px';
+            spacer.style.height = '1px';
+            spacer.style.pointerEvents = 'none';
+            scroller.appendChild(spacer);
+            try { console.log('[reviews] spacer added to force overflow'); } catch {}
+          }
+        }
+      });
+    }
+  }catch{}
 }
 
 // Mobile nav toggle
