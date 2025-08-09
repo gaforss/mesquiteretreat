@@ -254,3 +254,23 @@ function renderPreview(){
   }catch{}
 }
 
+// Bulk import reviews modal
+document.getElementById('bulkImportReviews')?.addEventListener('click', ()=>{
+  document.getElementById('reviewsImportModal')?.classList.remove('hidden');
+});
+document.getElementById('reviewsImportApply')?.addEventListener('click', ()=>{
+  const txt = document.getElementById('reviewsImportText').value||'';
+  const rows = txt.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const parsed = rows.map(line=>{
+    const [name, starsStr, ...rest] = line.split('|');
+    const text = (rest||[]).join('|').trim();
+    const stars = Math.max(1, Math.min(5, Number(starsStr)||5));
+    return { name: (name||'').trim(), stars, text };
+  }).filter(r=>r.name && r.text);
+  if (!parsed.length){ toast('Nothing to import', true); return; }
+  state.reviews = [...parsed, ...(state.reviews||[])].slice(0, 20);
+  renderReviews(state.reviews); renderPreview();
+  document.getElementById('reviewsImportModal')?.classList.add('hidden');
+  toast(`Imported ${parsed.length} reviews`);
+});
+

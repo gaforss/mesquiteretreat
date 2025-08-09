@@ -81,7 +81,10 @@
                 <div class="section-body">
                   <div class="small text-secondary" style="margin-bottom:8px">Name, text, and stars (1-5). First 6 shown on homepage scroller.</div>
                   <div id="reviewsWrap" class="list-wrap"></div>
-                  <button id="addReview" class="cta secondary" type="button">Add review</button>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px">
+                    <button id="addReview" class="cta secondary" type="button">Add review</button>
+                    <button id="bulkImportReviews" class="cta secondary" type="button">Bulk import</button>
+                  </div>
                 </div>
               </section>
 
@@ -136,6 +139,20 @@
       </div>
     </main>
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <!-- Reviews import modal -->
+    <div id="reviewsImportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reviewsImportTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="reviewsImportTitle">Bulk import reviews</h2>
+        <p class="small text-secondary">Paste one per line in the form: <code>Name|Stars|Text</code>. Example: <code>Jennifer|5|Amazing stay, super clean!</code></p>
+        <textarea id="reviewsImportText" rows="8" placeholder="Jennifer|5|Amazing stay, super clean!
+Natalia|5|Backyard was amazing and very clean."></textarea>
+        <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
+          <button id="reviewsImportApply" class="cta">Import</button>
+          <button class="cta secondary" type="button" data-close-modal>Cancel</button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/admin-content.js"></script>
   </body>
   </html>
