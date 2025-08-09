@@ -124,6 +124,8 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
   if(!consentRules) return res.status(400).json({ok:false,error:'Consent is required'});
   try{
     const normalizedEmail = email.trim().toLowerCase();
+    // Check prior state to make referral credit idempotent
+    const existing = await Subscriber.findOne({ email: normalizedEmail }).select({ referred_by: 1 }).lean();
     const headersIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const ipAddress = Array.isArray(headersIp) ? headersIp[0] : String(headersIp).split(',')[0];
     // crude geo from Cloudflare headers or placeholders
@@ -134,7 +136,17 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
     // generate ref code
     let myRefCode = generateRefCode();
     logDebug('Subscribe',{email:maskEmail(normalizedEmail),tripType,groupSize,stars,utm,ref,refCode:myRefCode});
-    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, travel_months:travelMonths||null, ig_handle:igHandle||null, stars: typeof stars==='number'?stars:(stars?Number(stars):0), tasks:tasks||null, ref_code: myRefCode, referred_by: ref||null, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
+    // Preserve existing referred_by if already set to avoid re-crediting
+    const referredByToSet = existing?.referred_by ? existing.referred_by : (ref || null);
+    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, travel_months:travelMonths||null, ig_handle:igHandle||null, stars: typeof stars==='number'?stars:(stars?Number(stars):0), tasks:tasks||null, ref_code: myRefCode, referred_by: referredByToSet, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
+
+    // If a ref code was provided and this is the first time setting referred_by, credit the referrer with +1 star
+    if (ref && !existing?.referred_by) {
+      const referrer = await Subscriber.findOne({ ref_code: ref }).select({ email: 1 }).lean();
+      if (referrer && String(referrer.email).toLowerCase() !== normalizedEmail) {
+        await Subscriber.updateOne({ ref_code: ref }, { $inc: { stars: 1 } });
+      }
+    }
     const needsConfirm = true; let token = generateToken();
     const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
     const confirmUrl = `${siteUrl}/api/confirm?token=${encodeURIComponent(token||'')}`;

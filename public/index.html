@@ -14,23 +14,35 @@
   </head>
   <body>
     <div id="entryModal" class="modal hidden">
-      <div class="modal-card">
-        <button id="closeModal" class="modal-close">×</button>
-        <h2>2 free nights giveaway</h2>
-        <p>Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
-        <div class="tasks">
-          <label>IG handle <input id="igHandle" placeholder="@yourhandle" /></label>
-          <label><input type="checkbox" class="task" data-points="1" data-key="follow_twolittlestolove" /> Follow @twolittlestolove</label>
-          <label><input type="checkbox" class="task" data-points="1" data-key="follow_themesquiteretreat" /> Follow @themesquiteretreat.scottsdale</label>
-          <label><input type="checkbox" class="task" data-points="1" data-key="like_save_posts" /> Like + save the posts</label>
-          <label>Tag friends (each tag = +1 star) <input id="tagCount" type="number" min="0" value="0" /></label>
-          <label><input type="checkbox" class="task" data-points="2" data-key="share_story" /> Share in your story (+2)</label>
-          <label><input type="checkbox" class="task" data-points="1" data-key="tweet" /> Tweet about the giveaway (+1)</label>
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <div class="mh-left">
+            <span class="mh-icon">🎁</span>
+            <div class="mh-text">
+              <h2 class="mh-title">2 free nights giveaway</h2>
+              <p class="mh-sub">Boost your chances in under a minute</p>
+            </div>
+          </div>
+          <button id="closeModal" class="modal-close">×</button>
         </div>
+        <div class="modal-body">
+        <details class="fine-print"><summary>Rules & notes</summary>
+          <p style="margin:8px 0 0">Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
+        </details>
+        <div class="tasks">
+          <label class="task-row"><span class="task-title">IG handle</span> <input id="igHandle" placeholder="@yourhandle" /></label>
+          <label class="task-row"><span class="task-title">Follow @twolittlestolove</span> <a href="https://www.instagram.com/twolittlestolove/" target="_blank" rel="noopener" class="visit-task" data-task="follow_twolittlestolove" data-points="1">Visit</a><span class="task-chip" data-chip="follow_twolittlestolove">+1</span></label>
+          <label class="task-row"><span class="task-title">Follow @themesquiteretreat.scottsdale</span> <a href="https://www.instagram.com/themesquiteretreat.scottsdale/" target="_blank" rel="noopener" class="visit-task" data-task="follow_themesquiteretreat" data-points="1">Visit</a><span class="task-chip" data-chip="follow_themesquiteretreat">+1</span></label>
+          
+          <label class="task-row"><span class="task-title">Share in your story</span> <a href="https://www.instagram.com/stories/create/" target="_blank" rel="noopener" class="visit-task" data-task="share_story" data-points="2">Open IG</a><span class="task-chip" data-chip="share_story">+2</span></label>
+          <label class="task-row"><span class="task-title">Tweet about the giveaway</span> <a href="https://x.com/intent/tweet?text=I%20just%20entered%20to%20win%202%20free%20nights%20at%20The%20Mesquite%20Retreat%20on%20Oak!%20Join%20me%20%F0%9F%8F%83%E2%80%8D%E2%99%82%EF%B8%8F%20" target="_blank" rel="noopener" class="visit-task" data-task="tweet" data-points="1">Tweet</a><span class="task-chip" data-chip="tweet">+1</span></label>
+        </div>
+        <div class="progress" aria-hidden="true"><div id="starsFill" class="progress-fill" style="width:0%"></div></div>
         <p id="starsOut">Stars: 0</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
           <button id="saveTasks" class="cta">Save tasks</button>
           <button id="gotoSignup" class="cta secondary" type="button">Enter now</button>
+        </div>
         </div>
       </div>
     </div>

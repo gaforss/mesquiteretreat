@@ -104,20 +104,44 @@ function initEntryModal(){
   const closeBtn = entryModal.querySelector('#closeModal');
   closeBtn?.addEventListener('click', () => entryModal.classList.add('hidden'));
   const starsOut = entryModal.querySelector('#starsOut');
-  const tasksEls = Array.from(entryModal.querySelectorAll('.task'));
-  const tagInput = entryModal.querySelector('#tagCount');
+  const tasksEls = []; // checkboxes removed; stars awarded on link clicks
+  const tagInput = null;
   const igInput = entryModal.querySelector('#igHandle');
   const updateStars = () => {
-    let stars = 0;
-    const tasks = {};
-    tasksEls.forEach(el => { if (el.checked) { stars += Number(el.dataset.points||0); tasks[el.dataset.key] = true; } });
-    const tags = Number(tagInput.value || 0);
-    stars += Math.max(0, tags);
+    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
+    let stars = Number(saved.stars||0);
+    const tasks = saved.tasks||{};
+    // no tag input
     starsOut.textContent = `Stars: ${stars}`;
+    // Update progress and chip states from saved tasks
+    const maxStars = 1+1+2+1; // remaining link tasks
+    const pct = Math.min(100, Math.round((Math.min(stars, maxStars)/maxStars)*100));
+    const fill = document.getElementById('starsFill'); if (fill) fill.style.width = pct+'%';
+    entryModal.querySelectorAll('.task-chip').forEach(chip=>{
+      const key = chip.getAttribute('data-chip'); if (tasks[key]) chip.classList.add('active');
+    });
     return { stars, tasks };
   };
+  // On outbound visit click, award points and mark task complete in memory
+  entryModal.querySelectorAll('.visit-task').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      const key = a.getAttribute('data-task');
+      const pts = Number(a.getAttribute('data-points')||0);
+      const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
+      const tasks = saved.tasks||{}; const current = saved.stars||0;
+      if (!tasks[key]){
+        tasks[key] = true;
+        const stars = current + pts;
+        localStorage.setItem('igTasks', JSON.stringify({ ...saved, tasks, stars }));
+        const starsOut = entryModal.querySelector('#starsOut');
+        if (starsOut) starsOut.textContent = `Stars: ${stars}`;
+        const chip = entryModal.querySelector(`.task-chip[data-chip="${key}"]`);
+        if (chip) chip.classList.add('active');
+      }
+    });
+  });
   tasksEls.forEach(el => el.addEventListener('change', updateStars));
-  tagInput.addEventListener('input', updateStars);
+  // no tag input listener
   updateStars();
   entryModal.querySelector('#saveTasks').addEventListener('click', () => {
     const { stars, tasks } = updateStars();

@@ -179,11 +179,33 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 .modal-close:hover { opacity: 1; }
 .modal-card h2 { margin: 0 0 8px; font-size: 22px; }
 .tasks label { display:block; margin: 10px 0; color: var(--text); font-weight: 500; }
+.task-row { display:flex !important; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+.task-row .task-title { opacity:.95; }
+.task-row a.visit-task { display:inline-block; padding:6px 10px; border-radius:8px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); color: var(--text); text-decoration:none; }
+.task-row a.visit-task:hover { background: rgba(255,255,255,.14); }
+.progress { height: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; margin: 8px 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #8ab4ff); width: 0%; transition: width .25s ease; }
+
+/* Compact modal layout */
+.modal-compact { padding: 0; max-height: 80vh; display:flex; flex-direction: column; overflow:hidden; }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.mh-left { display:flex; align-items:center; gap:10px; }
+.mh-icon { width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background: linear-gradient(135deg, var(--primary), #8ab4ff); color:#111; font-weight:800; }
+.mh-title { margin:0; font-size: 18px; }
+.mh-sub { margin:0; font-size:12px; color: var(--muted); }
+.modal-body { padding: 12px 14px; overflow:auto; }
+.fine-print summary { cursor: pointer; color: var(--muted); }
+.fine-print { margin-bottom: 8px; }
 .modal-card input[type="text"], .modal-card input[type="number"], .modal-card input[type="tel"], .modal-card input[type="email"], .modal-card select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: var(--text); }
 .modal-card input::placeholder { color: var(--muted); }
 .modal-card a.cta { background: var(--primary); color: #fff; }
 .modal-card .cta { width: 100%; text-align: center; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
 #starsOut { font-weight: 700; margin: 10px 0; color: var(--muted); }
+/* Task chip stars */
+.task-chip { display:inline-block; margin-left:6px; padding: 2px 6px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: var(--muted); }
+.task-chip::before { content: '☆ '; }
+.task-chip.active { background: rgba(255,193,7,.16); border-color: rgba(255,193,7,.35); color: #ffd666; }
+.task-chip.active::before { content: '★ '; }
 /* Modal form inputs */
 .modal-card label { display:block; margin: 10px 0; color: var(--muted); font-weight: 500; }
 .modal-card input[type="text"], .modal-card input[type="date"] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: var(--text); }
