@@ -3,21 +3,571 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vendor Login</title>
+    <title>Vendor Login - Mesquite Retreat</title>
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .login-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0b0d10 0%, #11161c 50%, #1a1f2e 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .login-page::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+          radial-gradient(800px 400px at 20% 20%, rgba(59,130,246,0.08) 0%, transparent 50%),
+          radial-gradient(600px 300px at 80% 80%, rgba(138,180,255,0.06) 0%, transparent 50%),
+          radial-gradient(400px 200px at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      
+      .login-container {
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      
+      .login-card {
+        background: linear-gradient(180deg, rgba(20,24,32,0.95), rgba(16,20,28,0.95));
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 20px;
+        padding: 40px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 
+          0 25px 50px rgba(0,0,0,0.5),
+          0 0 40px rgba(59,130,246,0.1),
+          inset 0 1px 0 rgba(255,255,255,0.1);
+        backdrop-filter: blur(20px);
+        position: relative;
+      }
+      
+      .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #8ab4ff);
+        border-radius: 20px 20px 0 0;
+        opacity: 0.9;
+      }
+      
+      .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      
+      .login-logo {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+      }
+      
+      .login-title {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 8px;
+        background: linear-gradient(135deg, #fff, #e8eef7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .login-subtitle {
+        color: #a9b0bc;
+        font-size: 16px;
+        margin: 0;
+        opacity: 0.8;
+      }
+      
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .form-field {
+        position: relative;
+      }
+      
+      .form-field label {
+        display: block;
+        color: #a9b0bc;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        transition: color 0.2s ease;
+      }
+      
+      .form-field input {
+        width: 100%;
+        padding: 16px 18px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+      }
+      
+      .form-field input::placeholder {
+        color: #5f6b7a;
+      }
+      
+      .form-field input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: rgba(255,255,255,0.08);
+        box-shadow: 
+          0 0 0 3px rgba(59,130,246,0.1),
+          0 8px 24px rgba(0,0,0,0.2);
+      }
+      
+      .form-field input:hover {
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.08);
+      }
+      
+      .login-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        color: #fff;
+        border: none;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .login-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+      }
+      
+      .login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(59,130,246,0.4);
+      }
+      
+      .login-button:hover::before {
+        left: 100%;
+      }
+      
+      .login-button:active {
+        transform: translateY(0);
+      }
+      
+      .form-message {
+        text-align: center;
+        min-height: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      
+      .form-message.error {
+        color: #ff6b6b;
+      }
+      
+      .form-message.success {
+        color: #51cf66;
+      }
+      
+      .form-message.loading {
+        color: #3b82f6;
+      }
+      
+      .login-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+      
+      .admin-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgba(59,130,246,0.1);
+        border: 1px solid rgba(59,130,246,0.2);
+      }
+      
+      .admin-link:hover {
+        background: rgba(59,130,246,0.15);
+        border-color: rgba(59,130,246,0.3);
+        transform: translateY(-1px);
+      }
+      
+      .forgot-password-link {
+        background: none;
+        border: none;
+        color: #a9b0bc;
+        text-decoration: underline;
+        font-size: 14px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+      
+      .forgot-password-link:hover {
+        color: #3b82f6;
+        background: rgba(59,130,246,0.1);
+      }
+      
+      .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+      
+      .login-footer p {
+        color: #5f6b7a;
+        font-size: 12px;
+        margin: 0;
+        opacity: 0.7;
+      }
+      
+      .floating-shapes {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
+      
+      .shape {
+        position: absolute;
+        background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(138,180,255,0.1));
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+      
+      .shape:nth-child(1) {
+        width: 80px;
+        height: 80px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+      }
+      
+      .shape:nth-child(2) {
+        width: 120px;
+        height: 120px;
+        top: 60%;
+        right: 15%;
+        animation-delay: 2s;
+      }
+      
+      .shape:nth-child(3) {
+        width: 60px;
+        height: 60px;
+        bottom: 20%;
+        left: 20%;
+        animation-delay: 4s;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+      }
+      
+      @media (max-width: 480px) {
+        .login-card {
+          padding: 32px 24px;
+          margin: 20px;
+        }
+        
+        .login-title {
+          font-size: 24px;
+        }
+        
+        .login-logo {
+          width: 56px;
+          height: 56px;
+          font-size: 24px;
+        }
+        
+        .login-links {
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+      
+      /* Forgot Password Modal */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        backdrop-filter: blur(6px) saturate(1.15);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      .modal-card {
+        background: linear-gradient(180deg, rgba(20,26,34,0.98), rgba(14,18,24,0.98));
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 400px;
+        width: 90%;
+        color: var(--text);
+        position: relative;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      }
+      
+      .modal.show .modal-card {
+        transform: translateY(0);
+      }
+      
+      .modal-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #8ab4ff);
+        opacity: .9;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+      }
+      
+      .modal-close {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        background: transparent;
+        color: var(--text);
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        opacity: .8;
+        transition: opacity 0.2s ease;
+      }
+      
+      .modal-close:hover {
+        opacity: 1;
+      }
+      
+      .modal-card h2 {
+        margin: 0 0 16px;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+      }
+      
+      .modal-card p {
+        color: #a9b0bc;
+        margin: 0 0 24px;
+        text-align: center;
+        line-height: 1.6;
+      }
+      
+      .modal-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .modal-form .form-field {
+        margin: 0;
+      }
+      
+      .modal-form input {
+        width: 100%;
+        padding: 16px 18px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+      }
+      
+      .modal-form input::placeholder {
+        color: #5f6b7a;
+      }
+      
+      .modal-form input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: rgba(255,255,255,0.08);
+        box-shadow: 
+          0 0 0 3px rgba(59,130,246,0.1),
+          0 8px 24px rgba(0,0,0,0.2);
+      }
+      
+      .modal-form .login-button {
+        width: 100%;
+        margin-top: 8px;
+      }
+      
+      .modal-message {
+        text-align: center;
+        min-height: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      
+      .modal-message.error {
+        color: #ff6b6b;
+      }
+      
+      .modal-message.success {
+        color: #51cf66;
+      }
+      
+      .modal-message.loading {
+        color: #3b82f6;
+      }
+    </style>
   </head>
-  <body class="admin-theme dark">
-    <main class="container" style="padding:40px 0; max-width:420px">
-      <h1>Vendor Login</h1>
-      <form id="vendorLoginForm" class="signup-form">
-        <div class="field"><label>Email</label><input id="vendorEmail" type="email" required /></div>
-        <div class="field"><label>Password</label><input id="vendorPassword" type="password" required /></div>
-        <button class="cta" type="submit">Login</button>
-        <p id="msg" class="form-message" role="status"></p>
-      </form>
-    </main>
+  <body class="admin-theme">
+    <div class="login-page">
+      <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+      </div>
+      
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-logo">🏪</div>
+            <h1 class="login-title">Vendor Portal</h1>
+            <p class="login-subtitle">Access your vendor dashboard</p>
+          </div>
+          
+          <form id="vendorLoginForm" class="login-form">
+            <div class="form-field">
+              <label for="vendorEmail">Email</label>
+              <input 
+                id="vendorEmail" 
+                type="email" 
+                placeholder="Enter your email address"
+                required 
+                autocomplete="email"
+              />
+            </div>
+            
+            <div class="form-field">
+              <label for="vendorPassword">Password</label>
+              <input 
+                id="vendorPassword" 
+                type="password" 
+                placeholder="Enter your password"
+                required 
+                autocomplete="current-password"
+              />
+            </div>
+            
+            <button class="login-button" type="submit">
+              Sign In
+            </button>
+            
+            <p id="msg" class="form-message" role="status"></p>
+          </form>
+          
+          <div class="login-links">
+            <a href="/login.html" class="admin-link">Admin Login</a>
+            <button type="button" class="forgot-password-link" id="forgotPasswordBtn">Forgot Password?</button>
+          </div>
+          
+          <div class="login-footer">
+            <p>Mesquite Retreat Vendor Portal</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+      <div class="modal-card">
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+        <h2>Reset Password</h2>
+        <p>Enter your email address and we'll send you a link to reset your password.</p>
+        
+        <form id="forgotPasswordForm" class="modal-form">
+          <div class="form-field">
+            <label for="resetEmail">Email Address</label>
+            <input 
+              id="resetEmail" 
+              type="email" 
+              placeholder="Enter your email address"
+              required 
+              autocomplete="email"
+            />
+          </div>
+          
+          <button class="login-button" type="submit">
+            Send Reset Link
+          </button>
+          
+          <p id="modalMsg" class="modal-message" role="status"></p>
+        </form>
+      </div>
+    </div>
+    
     <script src="/js/nav.js"></script>
     <script type="module" src="/js/vendor-login.js"></script>
   </body>
-  </html>
+</html>
 

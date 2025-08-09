@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import Vendor from '../models/vendor.js';
 import VendorClick from '../models/vendorClick.js';
 import VendorOffering from '../models/vendorOffering.js';
 import ServiceRequest from '../models/serviceRequest.js';
 import { getCookieOpts, requireAdmin, signVendorToken, requireVendor } from '../middleware/auth.js';
 import Subscriber from '../models/subscriber.js';
+import { sendEmail } from '../services/email.service.js';
 
 const router = Router();
 
@@ -35,6 +37,104 @@ router.get('/me', requireVendor, async (req, res) => {
     if (!v) return res.status(404).json({ ok:false, error:'Vendor not found' });
     return res.json({ ok:true, vendor: { id: String(v._id), email: v.email, code: v.vendor_code, name: v.name||'', mustChangePassword: !!v.must_change_password } });
   }catch{ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+// Forgot password functionality
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ ok: false, error: 'Email is required' });
+    
+    const vendor = await Vendor.findOne({ email: String(email).toLowerCase(), status: 'active' });
+    if (!vendor) {
+      // Don't reveal if email exists or not for security
+      return res.json({ ok: true, message: 'If the email exists, a reset link has been sent.' });
+    }
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    
+    // Save reset token to vendor
+    vendor.reset_token = resetToken;
+    vendor.reset_token_expiry = resetTokenExpiry;
+    await vendor.save();
+    
+    // Create reset URL
+    const resetUrl = `${process.env.SITE_URL || 'http://localhost:3000'}/vendor-reset-password.html?token=${resetToken}`;
+    
+    // Send email
+    const emailResult = await sendEmail({
+      to: vendor.email,
+      subject: 'Reset Your Password - Mesquite Retreat Vendor Portal',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Reset Your Password</h1>
+          </div>
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 12px 12px;">
+            <p>Hello ${vendor.name || 'there'},</p>
+            <p>We received a request to reset your password for the Mesquite Retreat Vendor Portal.</p>
+            <p>Click the button below to reset your password:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Reset Password</a>
+            </div>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666; font-size: 14px;">${resetUrl}</p>
+            <p><strong>This link will expire in 1 hour.</strong></p>
+            <p>If you didn't request this password reset, you can safely ignore this email.</p>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+            <p style="font-size: 12px; color: #666;">
+              Mesquite Retreat Vendor Portal<br>
+              This is an automated message, please do not reply.
+            </p>
+          </div>
+        </div>
+      `,
+      tag: 'password-reset'
+    });
+    
+    if (emailResult.success) {
+      return res.json({ ok: true, message: 'Reset link sent successfully.' });
+    } else {
+      console.error('Failed to send password reset email:', emailResult.error);
+      return res.status(500).json({ ok: false, error: 'Failed to send reset email. Please try again.' });
+    }
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ ok: false, error: 'Server error' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body || {};
+    if (!token || !newPassword) {
+      return res.status(400).json({ ok: false, error: 'Token and new password are required' });
+    }
+    
+    const vendor = await Vendor.findOne({
+      reset_token: token,
+      reset_token_expiry: { $gt: new Date() },
+      status: 'active'
+    });
+    
+    if (!vendor) {
+      return res.status(400).json({ ok: false, error: 'Invalid or expired reset token' });
+    }
+    
+    // Hash new password
+    vendor.password_hash = await bcrypt.hash(newPassword, 10);
+    vendor.reset_token = undefined;
+    vendor.reset_token_expiry = undefined;
+    vendor.must_change_password = false;
+    await vendor.save();
+    
+    return res.json({ ok: true, message: 'Password reset successfully.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ ok: false, error: 'Server error' });
+  }
 });
 
 // Vendor self-service: change password
