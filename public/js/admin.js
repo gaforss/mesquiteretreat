@@ -1,32 +1,3 @@
-const form = document.getElementById('broadcastForm');
-const out = document.getElementById('adminMessage');
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  out.textContent = 'Sending...';
-  const subject = document.getElementById('subject').value.trim();
-  const message = document.getElementById('message').value.trim();
-  try {
-    const res = await fetch('/api/broadcast', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject, message }),
-      credentials: 'include'
-    });
-    const data = await res.json();
-    if (data.ok) {
-      out.textContent = `Sent to ${data.count} subscribers.`;
-      toast(`Broadcast queued for ${data.count} recipients.`);
-      closeModals();
-    } else {
-      out.textContent = data.error || 'Failed to send.';
-      toast(data.error||'Failed to send.', true);
-    }
-  } catch (err) {
-    out.textContent = 'Network error.';
-    toast('Network error', true);
-  }
-});
-
 // Export entrants (CSV)
 // Header actions
 const exportBtn = document.createElement('button');
@@ -325,74 +296,330 @@ async function loadStats() {
   document.getElementById('statConfirmed').textContent = data.totals.confirmed.toLocaleString();
   document.getElementById('statStars').textContent = data.totals.totalStars.toLocaleString();
   document.getElementById('statReferred').textContent = data.totals.referred.toLocaleString();
-  const bars = document.getElementById('tripBars');
-  bars.innerHTML = '';
-  const max = Math.max(1, ...data.byTrip.map(x=>x.count));
-  data.byTrip.forEach(x => {
-    const col = document.createElement('div');
-    col.style.height = (x.count/max*100)+'%';
-    col.style.width = '36px';
-    col.style.background = 'linear-gradient(180deg, var(--primary), #8ab4ff)';
-    col.style.borderRadius = '8px 8px 0 0';
-    col.title = `${x.key}: ${x.count}`;
-    bars.appendChild(col);
-  });
-
-  // Country distribution (from subscribers endpoint quick sample)
+  // Sparkline for Total
   try{
-    const r2 = await fetch('/api/subscribers?page=1&pageSize=500&sort=created_at&dir=desc', { credentials:'include' });
-    const j2 = await r2.json();
-    if (j2.ok){
-      const counts = {};
-      (j2.rows||[]).forEach(s=>{ const k = (s.country_code||'').toUpperCase()||'UNK'; counts[k] = (counts[k]||0)+1; });
-      const arr = Object.entries(counts).filter(([k])=>k!=='UNK').sort((a,b)=>b[1]-a[1]).slice(0,6);
-      const max = Math.max(1, ...arr.map(([,c])=>c));
-      const wrap = document.getElementById('countryBars');
-      wrap.innerHTML = '';
-      arr.forEach(([cc,count])=>{
-        const row = document.createElement('div'); row.style.margin='10px 0';
-        const label = document.createElement('div'); label.textContent = cc; label.style.fontWeight='600';
-        const bar = document.createElement('div'); bar.style.height='8px'; bar.style.borderRadius='999px'; bar.style.background='rgba(255,255,255,.08)'; bar.style.overflow='hidden';
-        const fill = document.createElement('div'); fill.style.height='100%'; fill.style.width=(count/max*100)+'%'; fill.style.borderRadius='999px'; fill.style.background='linear-gradient(90deg, var(--primary), #8ab4ff)';
-        bar.appendChild(fill);
-        const meta = document.createElement('div'); meta.className='small text-secondary'; meta.textContent = count + ' subscribers';
-        row.appendChild(label); row.appendChild(bar); row.appendChild(meta); wrap.appendChild(row);
+    const elSpark = document.getElementById('sparkTotal');
+    if (window.ApexCharts && elSpark){
+      if (elSpark.__chart__) elSpark.__chart__.destroy();
+      // Build 14-day trend from signups endpoint
+      const r = await fetch('/api/admin/signups-by-day?days=14', { credentials:'include' });
+      const j = await r.json();
+      const d = (j.ok? j.rows:[]).map(p=>p.count);
+      elSpark.__chart__ = new ApexCharts(elSpark, {
+        chart: { 
+          type: 'line', 
+          height: 36, 
+          sparkline: { enabled: true },
+          dropShadow: { enabled: true, top: 1, left: 0, blur: 4, color: '#fbbf24', opacity: 0.3 }
+        },
+        stroke: { width: 2.5, curve: 'smooth', lineCap: 'round' },
+        colors: ['#fbbf24'],
+        tooltip: { enabled: false },
+        series: [{ data: d }],
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shade: 'dark',
+            type: 'vertical',
+            opacityFrom: 0.4,
+            opacityTo: 0.05,
+            stops: [0, 100]
+          }
+        }
       });
+      elSpark.__chart__.render();
+    }
+  }catch{}
+  // Enhanced modern chart styling inspired by financial dashboard
+  const baseGrid = { 
+    show: false,
+    borderColor: 'transparent', 
+    row: { colors: ['transparent'] },
+    column: { colors: ['transparent'] },
+    padding: { top: 20, right: 20, bottom: 20, left: 20 }
+  };
+  const baseAxis = {
+    labels: { 
+      style: { 
+        colors: '#e8eef7', 
+        fontSize: '12px', 
+        fontWeight: '500',
+        fontFamily: 'Inter, system-ui, sans-serif'
+      } 
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false }
+  };
+  const numberLabel = (val)=> {
+    try{ 
+      const num = Number(val);
+      return Number.isInteger(num) ? num.toLocaleString() : num.toFixed(0);
+    } catch{ 
+      return val; 
+    }
+  };
+
+  // Trip distribution (bar)
+  try{
+    const el = document.getElementById('tripBars');
+    if (window.ApexCharts && el){
+      const categories = data.byTrip.map(x=>x.key);
+      const seriesData = data.byTrip.map(x=>x.count);
+      if (el.__chart__) el.__chart__.destroy();
+      el.__chart__ = new ApexCharts(el, {
+        chart: { 
+          type: 'bar', 
+          height: 280, 
+          toolbar: { show: false }, 
+          foreColor: '#e8eef7',
+          background: 'transparent',
+          dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.15 }
+        },
+        theme: { 
+          mode: 'dark',
+          palette: 'palette1'
+        },
+        grid: baseGrid,
+        colors: ['#60a5fa'],
+        plotOptions: { 
+          bar: { 
+            borderRadius: 12, 
+            columnWidth: '45%', 
+            endingShape: 'rounded',
+            distributed: false
+          } 
+        },
+        dataLabels: { enabled: false },
+        xaxis: { ...baseAxis, categories },
+        yaxis: { 
+          labels: { 
+            formatter: numberLabel, 
+            style: { 
+              colors: '#9aa4b2',
+              fontSize: '11px',
+              fontWeight: '600'
+            } 
+          },
+          min: 0,
+          tickAmount: 5
+        },
+        series: [{ name: 'Signups', data: seriesData }],
+        fill: { 
+          type: 'gradient', 
+          gradient: { 
+            shade: 'dark', 
+            type: 'vertical', 
+            opacityFrom: 0.9, 
+            opacityTo: 0.4, 
+            stops: [0, 100],
+            colorStops: [
+              { offset: 0, color: '#60a5fa', opacity: 1 },
+              { offset: 100, color: '#3b82f6', opacity: 0.6 }
+            ]
+          } 
+        },
+        states: {
+          hover: {
+            filter: {
+              type: 'darken',
+              value: 0.1
+            }
+          }
+        }
+      });
+      el.__chart__.render();
     }
   }catch{}
 
-  // Signups chart (SVG area)
+  // Country distribution (horizontal bar)
   try{
-    const r = await fetch('/api/admin/signups-by-day?days=30', { credentials: 'include' });
+    const r2 = await fetch('/api/subscribers?page=1&pageSize=500&sort=created_at&dir=desc', { credentials:'include' });
+    const j2 = await r2.json();
+    if (j2.ok && window.ApexCharts){
+      const counts = {};
+      (j2.rows||[]).forEach(s=>{ 
+        const countryCode = s.country_code || '';
+        const k = countryCode ? countryCode.toUpperCase() : 'Unknown';
+        counts[k] = (counts[k]||0)+1; 
+      });
+      const arr = Object.entries(counts).filter(([k])=>k!=='Unknown').sort((a,b)=>b[1]-a[1]).slice(0,6);
+      const el = document.getElementById('countryBars');
+      if (el){
+        if (el.__chart__) el.__chart__.destroy();
+        el.__chart__ = new ApexCharts(el, {
+          chart: { 
+            type: 'donut', 
+            height: 280, 
+            toolbar: { show: false }, 
+            foreColor: '#e8eef7',
+            background: 'transparent',
+            dropShadow: { enabled: true, top: 2, left: 0, blur: 8, color: '#34d399', opacity: 0.2 }
+          },
+          theme: { 
+            mode: 'dark',
+            palette: 'palette2'
+          },
+          colors: ['#34d399', '#60a5fa', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+          plotOptions: { 
+            pie: { 
+              donut: {
+                size: '65%',
+                labels: {
+                  show: true,
+                  name: {
+                    show: true,
+                    fontSize: '14px',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 600,
+                    color: '#e8eef7',
+                    offsetY: -10
+                  },
+                  value: {
+                    show: true,
+                    fontSize: '16px',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 600,
+                    color: '#34d399',
+                    formatter: function (val) {
+                      return val
+                    }
+                  },
+                  total: {
+                    show: true,
+                    label: 'Total',
+                    fontSize: '14px',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 600,
+                    color: '#9aa4b2',
+                    formatter: function (w) {
+                      return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                    }
+                  }
+                }
+              }
+            } 
+          },
+          dataLabels: { enabled: false },
+          legend: {
+            position: 'bottom',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '12px',
+            fontWeight: 500,
+            labels: {
+              colors: '#9aa4b2'
+            }
+          },
+          series: arr.map(([,c])=>c),
+          labels: arr.map(([cc])=>cc),
+          states: {
+            hover: {
+              filter: {
+                type: 'darken',
+                value: 0.1
+              }
+            }
+          }
+        });
+        el.__chart__.render();
+      }
+    }
+  }catch{}
+
+  // Signups by day (area)
+  try{
+    const rangeEl = document.getElementById('signupsRange');
+    const activeDays = Number(rangeEl?.querySelector('[aria-selected="true"]')?.dataset.days || 30);
+    const r = await fetch('/api/admin/signups-by-day?days='+activeDays, { credentials: 'include' });
     const j = await r.json(); if (!j.ok) return;
     const points = j.rows || [];
-    const svg = document.getElementById('signupsChart');
-    const w = 600, h = 140, pl = 6, pr = 6, pt = 6, pb = 18;
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    if (!points.length){ svg.innerHTML = ''; return; }
-    const xs = points.map(p=>p._id); const ys = points.map(p=>p.count);
-    const maxY = Math.max(1, ...ys);
-    const stepX = (w - pl - pr) / Math.max(1, xs.length - 1);
-    const toX = (i)=> pl + i*stepX;
-    const toY = (v)=> pt + (h - pt - pb) * (1 - v/maxY);
-    let d = '';
-    points.forEach((p,i)=>{ const x = toX(i), y = toY(p.count); d += (i? ' L':'M')+x+','+y; });
-    const area = d + ` L ${toX(points.length-1)},${h-pb} L ${toX(0)},${h-pb} Z`;
-    svg.innerHTML = `
-      <defs>
-        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.6"/>
-          <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.06"/>
-        </linearGradient>
-      </defs>
-      <path d="${area}" fill="url(#g)" stroke="none"/>
-      <path d="${d}" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-    `;
+    const el = document.getElementById('signupsChart');
+    if (window.ApexCharts && el){
+      if (el.__chart__) el.__chart__.destroy();
+      el.__chart__ = new ApexCharts(el, {
+        chart: { 
+          type: 'area', 
+          height: 180, 
+          toolbar: { show: false }, 
+          foreColor: '#e8eef7',
+          background: 'transparent',
+          dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.3 }
+        },
+        theme: { 
+          mode: 'dark',
+          palette: 'palette1'
+        },
+        colors: ['#60a5fa'],
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3, lineCap: 'round' },
+        markers: { 
+          size: 4, 
+          colors: ['#60a5fa'],
+          strokeColors: '#ffffff',
+          strokeWidth: 2,
+          hover: { size: 6 }
+        },
+        fill: { 
+          type: 'gradient', 
+          gradient: { 
+            shade: 'dark', 
+            type: 'vertical', 
+            shadeIntensity: 0.8, 
+            opacityFrom: 0.6, 
+            opacityTo: 0.1, 
+            stops: [0, 70, 100],
+            colorStops: [
+              { offset: 0, color: '#60a5fa', opacity: 0.8 },
+              { offset: 70, color: '#3b82f6', opacity: 0.4 },
+              { offset: 100, color: '#1d4ed8', opacity: 0.1 }
+            ]
+          } 
+        },
+        grid: baseGrid,
+        xaxis: { 
+          ...baseAxis, 
+          categories: points.map(p=>p._id), 
+          labels: { 
+            rotate: -20, 
+            style: { 
+              colors: '#9aa4b2',
+              fontSize: '11px',
+              fontWeight: '500'
+            } 
+          } 
+        },
+        yaxis: { 
+          labels: { 
+            formatter: numberLabel, 
+            style: { 
+              colors: '#9aa4b2',
+              fontSize: '11px',
+              fontWeight: '600'
+            } 
+          }, 
+          min: 0 
+        },
+        tooltip: { 
+          theme: 'dark',
+          style: { fontSize: '12px' },
+          y: { formatter: (val) => val.toLocaleString() }
+        },
+        series: [{ name: 'Signups', data: points.map(p=>p.count) }],
+        states: {
+          hover: {
+            filter: {
+              type: 'darken',
+              value: 0.05
+            }
+          }
+        }
+      });
+      el.__chart__.render();
+    }
   }catch{}
 }
 
 // Auto-load stats and subscribers shortly after page load
-setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initBroadcastModal(); initQuickFilters(); initColVisibility(); }, 300);
+setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initQuickFilters(); initColVisibility(); }, 300);
 
 // Wire filter controls from static markup (if present)
 (()=>{
@@ -619,24 +846,6 @@ function initDraw(){
   refreshDrawHistory();
 }
 
-// Broadcast modal
-function initBroadcastModal(){
-  document.getElementById('openBroadcast')?.addEventListener('click', ()=>{
-    document.getElementById('broadcastModal').classList.remove('hidden');
-  });
-  // templates
-  document.querySelectorAll('#broadcastModal [data-tpl]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const tpl = btn.getAttribute('data-tpl');
-      const subj = document.getElementById('subject');
-      const msg = document.getElementById('message');
-      if (tpl==='winner'){ subj.value = 'We have a winner!'; msg.value = 'Congrats to our contest winner! Stay tuned for future promos.'; }
-      if (tpl==='confirm'){ subj.value = 'Confirm your entry'; msg.value = 'Please confirm your entry to be eligible for the draw.'; }
-      if (tpl==='promo'){ subj.value = 'Promotion update'; msg.value = 'New perks just added to our promotion.'; }
-    });
-  });
-}
-
 // Quick filters
 function initQuickFilters(){
   document.querySelectorAll('#quickFilters [data-qf]')?.forEach(btn=>{
@@ -651,6 +860,15 @@ function initQuickFilters(){
     });
   });
 }
+
+// Range segmented control for signups
+document.getElementById('signupsRange')?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.seg'); if (!btn) return;
+  const wrap = btn.parentElement;
+  wrap.querySelectorAll('.seg').forEach(b=>b.setAttribute('aria-selected','false'));
+  btn.setAttribute('aria-selected','true');
+  loadStats();
+});
 
 // Column visibility
 const colDefs = [

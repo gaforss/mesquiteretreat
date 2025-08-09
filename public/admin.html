@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Admin Broadcast</title>
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body class="admin-theme dark">
+  <body class="dark">
     <header class="topbar">
       <div class="container wide topbar-inner">
         <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Dashboard</span></div>
@@ -14,6 +14,7 @@
           <a href="/admin.html" aria-current="page">Admin Dashboard</a>
           <a href="/admin-content.html">Edit Site Content</a>
           <a href="/admin-vendors.html">Manage Vendors</a>
+          <a href="/newsletter.html" class="cta secondary">Newsletter</a>
         </nav>
         <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
       </div>
@@ -32,16 +33,27 @@
             </div>
             <div id="adminActions" class="actions">
               <div class="search"><input id="globalSearch" placeholder="Search" /></div>
-              <div class="avatar">A</div>
             </div>
           </div>
           <section id="cards" class="admin-kpis">
-            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div><div class="kpi-icon">👥</div></div></div>
-            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div><div class="kpi-icon">✅</div></div></div>
-            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div><div class="kpi-icon">⭐</div></div></div>
-            <div class="card"><div class="card-body kpi-card"><div class="kpi-meta"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div><div class="kpi-icon">🔗</div></div></div>
+            <div class="card"><div class="card-body kpi-card">
+              <div class="kpi-meta"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div><div id="sparkTotal" class="kpi-spark"></div></div>
+              <div class="kpi-icon">👥</div>
+            </div></div>
+            <div class="card"><div class="card-body kpi-card">
+              <div class="kpi-meta"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div>
+              <div class="kpi-icon">✅</div>
+            </div></div>
+            <div class="card"><div class="card-body kpi-card">
+              <div class="kpi-meta"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div>
+              <div class="kpi-icon">⭐</div>
+            </div></div>
+            <div class="card"><div class="card-body kpi-card">
+              <div class="kpi-meta"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div>
+              <div class="kpi-icon">🔗</div>
+            </div></div>
           </section>
-          <section id="chart" class="chart-grid" style="margin-bottom:20px">
+          <section id="chart" class="chart-grid" style="margin-bottom:16px">
             <div class="card"><div class="card-body">
               <div style="display:flex;justify-content:space-between;align-items:center">
                 <div>
@@ -49,15 +61,22 @@
                 </div>
                 <div class="small text-secondary">Report By: Monthly</div>
               </div>
-              <div id="tripBars" class="trip-bars"></div>
+              <div id="tripBars" class="apex-chart" style="height:180px"></div>
               <div>
-                <div class="small text-secondary">Signups</div>
-                <svg id="signupsChart" viewBox="0 0 600 140" preserveAspectRatio="none" style="width:100%;height:140px"></svg>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div class="small text-secondary">Signups</div>
+                  <div class="segmented" id="signupsRange" role="tablist" aria-label="Select range">
+                    <button class="seg active" data-days="7" aria-selected="false">7d</button>
+                    <button class="seg active-primary" data-days="30" aria-selected="true">30d</button>
+                    <button class="seg" data-days="90" aria-selected="false">90d</button>
+                  </div>
+                </div>
+                <div id="signupsChart" class="apex-chart" style="width:100%"></div>
               </div>
             </div></div>
             <div class="card"><div class="card-body">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:16px">By Country</h3><div class="small text-secondary">Report By: Monthly</div></div>
-              <div id="countryBars"></div>
+              <div id="countryBars" class="apex-chart" style="height:280px"></div>
             </div></div>
           </section>
           <section id="draw" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Draw</h2><div class="actions"><button id="btnSimulate" class="cta secondary">Simulate</button><button id="btnPickWinner" class="cta">Pick Winner</button><a id="btnExportEligible" class="cta secondary" href="#">Export Eligible</a></div></div><div class="section-body">
@@ -72,8 +91,7 @@
             <div id="drawPreview" class="small text-secondary" style="margin-top:8px">—</div>
             <div id="drawHistory" style="margin-top:12px"></div>
           </div></section>
-          <section id="broadcast" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast</h2><div class="actions"><button id="openBroadcast" class="cta">Compose</button></div></div><div class="section-body"><p class="small text-secondary">Send announcements or reminders.</p></div></section>
-          <section id="promotions" style="margin-top:24px">
+          <section id="promotions" style="margin-top:16px">
             <h2>Promotions</h2>
             <div id="promoRows" class="promo-grid"></div>
             <form id="promoForm" class="signup-form" style="margin-top:12px">
@@ -92,7 +110,7 @@
               <p id="promoMsg" class="form-message"></p>
             </form>
           </section>
-          <section id="subsTools" class="section-card" style="margin-top:24px">
+          <section id="subsTools" class="section-card" style="margin-top:16px">
             <div class="section-head"><h2 style="margin:0">Subscribers</h2>
               <div class="actions">
                 <button id="btnEditSelected" class="cta secondary">Edit Selected</button>
@@ -101,16 +119,8 @@
             </div>
             <div class="section-body">
               <div id="quickFilters" style="margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap">
-                <button class="cta ghost" data-qf="">All</button>
-                <button class="cta ghost" data-qf="confirmed:1">Confirmed</button>
-                <button class="cta ghost" data-qf="confirmed:0">Pending</button>
-                <button class="cta ghost" data-qf="returning:1">Returning</button>
-                <button class="cta ghost" data-qf="discount:1">With Discount</button>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center; gap:10px">
-                <div class="small text-secondary" id="colVisLabel">Columns</div>
-                <div id="colVis" class="small text-secondary" style="display:flex; gap:8px; flex-wrap:wrap"></div>
-              </div>
+              
               <div class="table-scroll" style="max-height:480px; overflow:auto">
                 <div id="rows" class="table-wrap" style="margin-top:12px"></div>
               </div>
@@ -146,33 +156,6 @@
           <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
             <button class="cta" type="submit">Save</button>
             <button class="cta secondary" type="button" data-close-modal>Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <!-- Broadcast modal -->
-    <div id="broadcastModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="broadcastTitle">
-      <div class="modal-card">
-        <button class="modal-close" data-close-modal>&times;</button>
-        <h2 id="broadcastTitle">Compose Broadcast</h2>
-        <form id="broadcastForm" class="signup-form" style="margin:0">
-          <div class="field">
-            <label for="subject">Subject</label>
-            <input id="subject" name="subject" type="text" required />
-          </div>
-          <div class="field">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="6" required></textarea>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap">
-            <button type="button" class="cta secondary" data-tpl="winner">Winner announcement</button>
-            <button type="button" class="cta secondary" data-tpl="confirm">Confirmation reminder</button>
-            <button type="button" class="cta secondary" data-tpl="promo">Promo update</button>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:10px; align-items:center">
-            <label class="small text-secondary"><input id="sendTest" type="checkbox"/> Send test to me</label>
-            <button type="submit" class="cta submit">Send</button>
-            <p id="adminMessage" class="form-message" role="status"></p>
           </div>
         </form>
       </div>
@@ -218,6 +201,7 @@
         </div>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script type="module" src="/js/admin.js"></script>
   </body>
   </html>
