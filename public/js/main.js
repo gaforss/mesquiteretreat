@@ -171,6 +171,11 @@ form?.addEventListener('submit', async (e) => {
     }
   }catch{}
   payload.ref = params.get('ref') || undefined;
+  // Include vendor attribution if present
+  try{
+    const vendor = params.get('vendor') || localStorage.getItem('vendorCode');
+    if (vendor) payload.vendor = vendor.toUpperCase();
+  }catch{}
   // Normalize MMM YYYY months input
   if (payload.travelMonths) {
     payload.travelMonths = String(payload.travelMonths).split(',').map(s=>s.trim()).filter(Boolean).join(', ');
@@ -425,6 +430,17 @@ if (navToggle && siteNav) {
     const params = new URLSearchParams(location.search);
     const utm = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].reduce((acc,k)=>{ const v=params.get(k); if(v) acc[k]=v; return acc; },{});
     if (Object.keys(utm).length){ localStorage.setItem('stickyUtm', JSON.stringify(utm)); }
+  }catch{}
+})();
+
+// Persist vendor code and track landing
+(function persistVendor(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const vendor = params.get('vendor');
+    if (vendor){ localStorage.setItem('vendorCode', vendor.toUpperCase()); }
+    const code = vendor || localStorage.getItem('vendorCode');
+    if (code){ fetch(`/api/public/track?vendor=${encodeURIComponent(code)}&type=landing`).catch(()=>{}); }
   }catch{}
 })();
 

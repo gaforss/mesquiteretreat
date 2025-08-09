@@ -20,6 +20,8 @@ import siteContentRouter from './routes/siteContent.routes.js';
 import drawRouter from './routes/draw.routes.js';
 import healthRouter from './routes/health.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
+import vendorsRouter, { vendorPublicRouter } from './routes/vendors.routes.js';
+import Vendor from './models/vendor.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,6 +75,20 @@ function signConfirmToken(email){ return jwt.sign({ email }, JWT_SECRET, { expir
 app.get(['/login','/login.html'], (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
+// Vendor public pages
+app.get(['/vendor-login','/vendor-login.html'], (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'vendor-login.html'));
+});
+
+function isVendorAuthed(req){
+  const token = req.cookies?.vendor_jwt; if (!token) return false;
+  try { jwt.verify(token, JWT_SECRET); return true; } catch { return false; }
+}
+
+app.get(['/vendor','/vendor.html'], (req, res) => {
+  if (!isVendorAuthed(req)) return res.redirect('/vendor-login.html');
+  return res.sendFile(path.join(__dirname, 'public', 'vendor.html'));
+});
 
 function isAuthed(req){
   const token = req.cookies?.admin_jwt;
@@ -88,6 +104,11 @@ app.get(['/admin','/admin.html'], (req, res) => {
 app.get(['/admin-content','/admin-content.html'], (req, res) => {
   if (!isAuthed(req)) return res.redirect('/login.html');
   return res.sendFile(path.join(__dirname, 'public', 'admin-content.html'));
+});
+
+app.get(['/admin-vendors','/admin-vendors.html'], (req, res) => {
+  if (!isAuthed(req)) return res.redirect('/login.html');
+  return res.sendFile(path.join(__dirname, 'public', 'admin-vendors.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -128,7 +149,7 @@ function generateToken(){ return Buffer.from(`${Date.now()}-${Math.random()}`).t
 logInfo('Server starting',{siteUrl:process.env.SITE_URL,smtp:hasSmtp?'smtp':'json',mongoUri:resolvedMongoUri?maskMongoUri(resolvedMongoUri):'none'});
 
 app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
-  const { email, firstName, lastName, phone, consentRules, utm, ref, tripType, groupSize, travelMonths, igHandle, stars, tasks } = req.body || {};
+  const { email, firstName, lastName, phone, consentRules, utm, ref, tripType, groupSize, travelMonths, igHandle, stars, tasks, vendor: vendorCodeRaw } = req.body || {};
   if(!email || typeof email!=='string') return res.status(400).json({ok:false,error:'Email is required'});
   if(!consentRules) return res.status(400).json({ok:false,error:'Consent is required'});
   try{
@@ -147,7 +168,13 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
     logDebug('Subscribe',{email:maskEmail(normalizedEmail),tripType,groupSize,stars,utm,ref,refCode:myRefCode});
     // Preserve existing referred_by if already set to avoid re-crediting
     const referredByToSet = existing?.referred_by ? existing.referred_by : (ref || null);
-    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, travel_months:travelMonths||null, ig_handle:igHandle||null, stars: typeof stars==='number'?stars:(stars?Number(stars):0), tasks:tasks||null, ref_code: myRefCode, referred_by: referredByToSet, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
+    // Resolve vendor code if provided
+    let vendor_code = null; let vendor_id = null; let source_type = null;
+    if (vendorCodeRaw){
+      const v = await Vendor.findOne({ vendor_code: String(vendorCodeRaw).toUpperCase(), status: 'active' }).select({ _id:1, vendor_code:1 }).lean();
+      if (v){ vendor_code = v.vendor_code; vendor_id = String(v._id); source_type = 'vendor'; }
+    }
+    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, travel_months:travelMonths||null, ig_handle:igHandle||null, stars: typeof stars==='number'?stars:(stars?Number(stars):0), tasks:tasks||null, ref_code: myRefCode, referred_by: referredByToSet, vendor_code, vendor_id, source_type, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
 
     // If a ref code was provided and this is the first time setting referred_by, credit the referrer with +1 star
     if (ref && !existing?.referred_by) {
@@ -184,12 +211,14 @@ app.get('/api/confirm', async (req,res)=>{
 // Mount routers
 app.use('/api', healthRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/vendors', vendorsRouter);
 app.use('/api/subscribers', subscribersRouter);
 app.use('/api/export', exportRouter);
 app.use('/api', adminActionsRouter); // /discount, /pick-winner
 app.use('/api/promotions', promotionsRouter);
 app.use('/api', statsRouter); // /admin-stats, /signups-by-day
 app.use('/api', publicStatsRouter); // /public/entries-today
+app.use('/api', vendorPublicRouter); // /public/track
 app.use('/api/draw', drawRouter);
 app.use('/api', siteContentRouter); // /site-content
 

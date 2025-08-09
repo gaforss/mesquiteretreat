@@ -23,6 +23,10 @@ const subscriberSchema = new mongoose.Schema({
   tasks: Object,
   ref_code: { type: String, unique: true, sparse: true },
   referred_by: String,
+  // Affiliate/vendor attribution
+  vendor_code: { type: String, index: true },
+  vendor_id: { type: String },
+  source_type: { type: String },
   confirmed: { type: Boolean, default: false },
   // Admin / lifecycle fields
   discount_code: String,

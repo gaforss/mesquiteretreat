@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vendor Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="admin-theme dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Vendor</span><span class="badge-pill">Dashboard</span></div>
+        <nav>
+          <a href="/vendor.html" aria-current="page">Dashboard</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+    <main class="container wide admin">
+      <div class="admin-layout no-sidebar">
+        <div class="content">
+          <div class="admin-header">
+            <div>
+              <div class="breadcrumbs small text-secondary">Home / Vendor</div>
+              <h1 class="page-title">Overview</h1>
+            </div>
+            <div id="vendorMeta" class="actions"></div>
+          </div>
+          <section class="admin-kpis" id="kpis">
+            <div class="card"><div class="card-body"><div class="small text-secondary">Clicks</div><div id="kpiClicks" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Entries</div><div id="kpiEntries" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="kpiConfirmed" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Last 7 days</div><div id="kpi7d" class="h4 m-0">–</div></div></div>
+          </section>
+          <section class="section-card">
+            <div class="section-head"><h2 style="margin:0">Your Link</h2></div>
+            <div class="section-body">
+              <div style="display:flex; gap:8px; flex-wrap:wrap">
+                <input id="shareLink" />
+                <button id="copyBtn" class="cta secondary">Copy</button>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px">
+                <a id="shareTwitter" class="cta secondary" target="_blank" rel="noopener">Share on X</a>
+                <a id="shareFacebook" class="cta secondary" target="_blank" rel="noopener">Share on Facebook</a>
+              </div>
+            </div>
+          </section>
+          <section class="section-card">
+            <div class="section-head"><h2 style="margin:0">Change Password</h2></div>
+            <div class="section-body">
+              <form id="pwdForm" class="signup-form">
+                <div class="field"><label>Current password (optional)<input id="curPwd" type="password"/></label></div>
+                <div class="field"><label>New password<input id="newPwd" type="password" required/></label></div>
+                <div style="display:flex; gap:8px; align-items:center">
+                  <button class="cta" type="submit">Update</button>
+                  <p id="pwdMsg" class="form-message"></p>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/js/vendor.js"></script>
+  </body>
+  </html>
+

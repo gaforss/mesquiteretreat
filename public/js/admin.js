@@ -697,5 +697,69 @@ function initColVisibility(){
 
 let lastSubsRows = [];
 
-// Vendors section removed from admin dashboard (moved to Manage Vendors page)
+// Vendors admin section
+async function loadVendors(){
+  try{
+    const r = await fetch('/api/vendors', { credentials:'include' });
+    const j = await r.json();
+    const wrap = document.getElementById('vendorsList'); if (!wrap) return;
+    if (!j.ok){ wrap.textContent = j.error||'Failed to load vendors'; return; }
+    const rows = j.rows||[];
+    wrap.innerHTML = `<table><thead><tr>
+      <th>Email</th><th>Name</th><th>Company</th><th>Code</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody></tbody></table>`;
+    const tbody = wrap.querySelector('tbody');
+    rows.forEach(v=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><span class="code">${v.email}</span></td>
+        <td>${v.name||''}</td>
+        <td>${v.company||''}</td>
+        <td><strong>${v.vendor_code}</strong></td>
+        <td>${v.status}</td>
+        <td>
+          <button class="cta secondary" data-ven-toggle="${v._id}">${v.status==='active'?'Suspend':'Activate'}</button>
+          <button class="cta danger" data-ven-del="${v._id}" style="margin-left:6px">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    // Bind actions
+    wrap.querySelectorAll('[data-ven-toggle]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-ven-toggle');
+        const row = rows.find(r=>String(r._id)===String(id));
+        if (!row) return;
+        const next = row.status==='active' ? 'suspended' : 'active';
+        await fetch('/api/vendors/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: next }), credentials:'include' });
+        loadVendors();
+      });
+    });
+    wrap.querySelectorAll('[data-ven-del]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-ven-del');
+        const ok = await confirmModal('Delete this vendor?'); if (!ok) return;
+        await fetch('/api/vendors/'+id, { method:'DELETE', credentials:'include' });
+        loadVendors();
+      });
+    });
+  }catch{}
+}
+
+document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const out = document.getElementById('vendorMsg'); out.textContent = 'Saving...';
+  const email = document.getElementById('venEmail').value.trim();
+  const password = document.getElementById('venPassword').value;
+  const name = document.getElementById('venName').value.trim();
+  const company = document.getElementById('venCompany').value.trim();
+  const vendor_code = document.getElementById('venCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  try{
+    const r = await fetch('/api/vendors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name, company, vendor_code: vendor_code||undefined }), credentials:'include' });
+    const j = await r.json();
+    if (!j.ok){ out.textContent = j.error||'Failed'; return; }
+    out.textContent = 'Added'; (e.target).reset(); loadVendors();
+  }catch{ out.textContent = 'Failed'; }
+});
+
+// Load vendors after page init
+setTimeout(loadVendors, 350);
 

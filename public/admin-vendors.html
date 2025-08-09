@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Vendors</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="admin-theme dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Vendors</span></div>
+        <nav>
+          <a href="/admin.html">Admin Dashboard</a>
+          <a href="/admin-content.html">Edit Site Content</a>
+          <a href="/admin-vendors.html" aria-current="page">Manage Vendors</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+    <main class="container wide admin">
+      <div class="admin-layout no-sidebar">
+        <div class="content">
+          <div class="admin-header">
+            <div>
+              <div class="breadcrumbs small text-secondary">Home / Admin / Vendors</div>
+              <h1 class="page-title">Manage Vendors</h1>
+            </div>
+          </div>
+          <section class="section-card">
+            <div class="section-head"><h2 style="margin:0">Vendors</h2></div>
+            <div class="section-body">
+              <div id="vendorsTable" class="table-wrap"></div>
+            </div>
+          </section>
+          <section class="section-card">
+            <div class="section-head"><h2 style="margin:0">Add Vendor</h2></div>
+            <div class="section-body">
+              <form id="vendorForm" class="signup-form">
+                <div class="field-row">
+                  <div class="field"><label>Email<input id="venEmail" type="email" required placeholder="vendor@example.com"/></label></div>
+                  <div class="field"><label>Password (optional)<input id="venPassword" type="password" placeholder="Defaults to vendor code"/></label></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Name<input id="venName" placeholder="Contact name"/></label></div>
+                  <div class="field"><label>Company<input id="venCompany" placeholder="Company (optional)"/></label></div>
+                </div>
+                <div class="field"><label>Vendor Code (optional)<input id="venCode" placeholder="CUSTOMCODE (A–Z, 0–9)"/></label></div>
+                <div style="display:flex; gap:8px; align-items:center">
+                  <button class="cta" type="submit">Add Vendor</button>
+                  <p id="vendorMsg" class="form-message"></p>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script type="module" src="/js/admin-vendors.js"></script>
+  </body>
+  </html>
+
