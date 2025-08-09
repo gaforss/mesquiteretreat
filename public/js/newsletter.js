@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
   checkAuth();
 });
 
+// Global form reference
+let newsletterForm;
+
 // Check authentication
 async function checkAuth() {
   try {
@@ -22,8 +25,8 @@ async function checkAuth() {
 // Initialize newsletter functionality
 function initNewsletter() {
   // Form submission
-  const form = document.getElementById('newsletterForm');
-  form.addEventListener('submit', handleNewsletterSubmit);
+  newsletterForm = document.getElementById('newsletterForm');
+  newsletterForm.addEventListener('submit', handleNewsletterSubmit);
   
   // Schedule options toggle
   const scheduleSelect = document.getElementById('schedule');
@@ -61,10 +64,10 @@ async function handleNewsletterSubmit(e) {
   e.preventDefault();
   
   const messageEl = document.getElementById('newsletterMessage');
-  const submitBtn = form.querySelector('button[type="submit"]');
+  const submitBtn = newsletterForm.querySelector('button[type="submit"]');
   
   // Get form data
-  const formData = new FormData(form);
+  const formData = new FormData(newsletterForm);
   const data = {
     subject: formData.get('subject'),
     preview: formData.get('preview'),
@@ -119,7 +122,7 @@ async function handleNewsletterSubmit(e) {
     
     if (result.ok) {
       showMessage(`Newsletter sent successfully to ${result.count} subscribers!`, 'success');
-      form.reset();
+      newsletterForm.reset();
       loadNewsletterStats(); // Refresh stats
     } else {
       showMessage(result.error || 'Failed to send newsletter.', 'error');
@@ -178,10 +181,38 @@ function showPreview() {
   
   // Update preview modal
   document.getElementById('previewSubject').textContent = subject;
-  document.getElementById('previewBody').innerHTML = message;
+  
+  // Convert plain text to readable HTML for preview
+  const formattedMessage = formatMessageForPreview(message);
+  document.getElementById('previewBody').innerHTML = formattedMessage;
   
   // Show modal
   document.getElementById('previewModal').classList.remove('hidden');
+}
+
+// Format plain text message for preview display
+function formatMessageForPreview(text) {
+  // Convert bullet points to HTML lists
+  text = text.replace(/^•\s+/gm, '<li>');
+  text = text.replace(/^-\s+/gm, '<li>');
+  
+  // Wrap consecutive list items in <ul> tags
+  text = text.replace(/(<li>.*?)(?=\n\n|\n$|$)/gs, '<ul>$1</ul>');
+  
+  // Convert double line breaks to paragraph breaks
+  text = text.replace(/\n\n/g, '</p><p>');
+  
+  // Convert single line breaks to <br> tags (but not for list items)
+  text = text.replace(/\n(?!<li>)/g, '<br>');
+  
+  // Wrap in paragraph tags
+  text = '<p>' + text + '</p>';
+  
+  // Clean up empty paragraphs
+  text = text.replace(/<p><\/p>/g, '');
+  text = text.replace(/<p>\s*<\/p>/g, '');
+  
+  return text;
 }
 
 // Load email template
@@ -190,85 +221,105 @@ function loadTemplate(templateType) {
     welcome: {
       subject: 'Welcome to Mesquite Retreat!',
       preview: 'We\'re excited to have you join our community.',
-      message: `<h2>Welcome to Mesquite Retreat!</h2>
-<p>Hi there!</p>
-<p>We're thrilled to welcome you to the Mesquite Retreat community. You're now part of an exclusive group that gets first access to our amazing retreat experiences.</p>
-<p>Here's what you can expect from us:</p>
-<ul>
-<li>Early access to new retreat dates</li>
-<li>Exclusive promotions and discounts</li>
-<li>Insider tips and travel advice</li>
-<li>Special member-only events</li>
-</ul>
-<p>We'll be in touch soon with exciting updates!</p>
-<p>Best regards,<br>The Mesquite Retreat Team</p>`
+      message: `Welcome to Mesquite Retreat!
+
+Hi there!
+
+We're thrilled to welcome you to the Mesquite Retreat community. You're now part of an exclusive group that gets first access to our amazing retreat experiences.
+
+Here's what you can expect from us:
+
+• Early access to new retreat dates
+• Exclusive promotions and discounts  
+• Insider tips and travel advice
+• Special member-only events
+
+We'll be in touch soon with exciting updates!
+
+Best regards,
+The Mesquite Retreat Team`
     },
     promotion: {
       subject: 'New Promotion Alert!',
       preview: 'Don\'t miss out on our latest special offer.',
-      message: `<h2>New Promotion Alert! 🎉</h2>
-<p>We have exciting news to share!</p>
-<p>We've just launched a new promotion that we think you'll love. Here are the details:</p>
-<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-<h3>Special Offer Details</h3>
-<p><strong>What:</strong> [Describe your promotion]</p>
-<p><strong>When:</strong> [Valid dates]</p>
-<p><strong>How:</strong> [How to claim]</p>
-</div>
-<p>This offer is available for a limited time, so don't wait!</p>
-<p>Ready to book? Reply to this email or visit our website.</p>
-<p>Happy travels!<br>The Mesquite Retreat Team</p>`
+      message: `New Promotion Alert! 🎉
+
+We have exciting news to share!
+
+We've just launched a new promotion that we think you'll love. Here are the details:
+
+SPECIAL OFFER DETAILS
+What: [Describe your promotion]
+When: [Valid dates]
+How: [How to claim]
+
+This offer is available for a limited time, so don't wait!
+
+Ready to book? Reply to this email or visit our website.
+
+Happy travels!
+The Mesquite Retreat Team`
     },
     reminder: {
       subject: 'Reminder: Your Retreat Awaits',
       preview: 'A gentle reminder about your upcoming adventure.',
-      message: `<h2>Your Retreat Awaits! ⏰</h2>
-<p>Hi there!</p>
-<p>This is just a friendly reminder that your retreat experience is coming up soon. We want to make sure you're fully prepared for an amazing time.</p>
-<p>Here's what to remember:</p>
-<ul>
-<li>Check your confirmation details</li>
-<li>Pack according to the weather forecast</li>
-<li>Arrive 15 minutes early for check-in</li>
-<li>Bring your ID and confirmation</li>
-</ul>
-<p>If you have any questions or need to make changes, please don't hesitate to reach out.</p>
-<p>We're looking forward to seeing you!</p>
-<p>Best regards,<br>The Mesquite Retreat Team</p>`
+      message: `Your Retreat Awaits! ⏰
+
+Hi there!
+
+This is just a friendly reminder that your retreat experience is coming up soon. We want to make sure you're fully prepared for an amazing time.
+
+Here's what to remember:
+
+• Check your confirmation details
+• Pack according to the weather forecast
+• Arrive 15 minutes early for check-in
+• Bring your ID and confirmation
+
+If you have any questions or need to make changes, please don't hesitate to reach out.
+
+We're looking forward to seeing you!
+
+Best regards,
+The Mesquite Retreat Team`
     },
     newsletter: {
       subject: 'Monthly Update - What\'s New at Mesquite Retreat',
       preview: 'Stay updated with our latest news and upcoming events.',
-      message: `<h2>Monthly Update - What's New at Mesquite Retreat</h2>
-<p>Hello from the Mesquite Retreat team!</p>
-<p>We hope this email finds you well. Here's what's been happening and what's coming up:</p>
+      message: `Monthly Update - What's New at Mesquite Retreat
 
-<h3>📅 Upcoming Events</h3>
-<p>Mark your calendars for these exciting events:</p>
-<ul>
-<li>[Event 1] - [Date]</li>
-<li>[Event 2] - [Date]</li>
-<li>[Event 3] - [Date]</li>
-</ul>
+Hello from the Mesquite Retreat team!
 
-<h3>🌟 New Features</h3>
-<p>We've been working hard to improve your experience:</p>
-<ul>
-<li>[Feature 1]</li>
-<li>[Feature 2]</li>
-<li>[Feature 3]</li>
-</ul>
+We hope this email finds you well. Here's what's been happening and what's coming up:
 
-<h3>💡 Travel Tips</h3>
-<p>This month's travel advice:</p>
-<p>[Your travel tip content here]</p>
+📅 UPCOMING EVENTS
+Mark your calendars for these exciting events:
 
-<h3>🎯 Special Offers</h3>
-<p>Don't miss these limited-time opportunities:</p>
-<p>[Promotion details]</p>
+• [Event 1] - [Date]
+• [Event 2] - [Date]  
+• [Event 3] - [Date]
 
-<p>As always, if you have any questions or feedback, we'd love to hear from you.</p>
-<p>Happy travels!<br>The Mesquite Retreat Team</p>`
+🌟 NEW FEATURES
+We've been working hard to improve your experience:
+
+• [Feature 1]
+• [Feature 2]
+• [Feature 3]
+
+💡 TRAVEL TIPS
+This month's travel advice:
+
+[Your travel tip content here]
+
+🎯 SPECIAL OFFERS
+Don't miss these limited-time opportunities:
+
+[Promotion details]
+
+As always, if you have any questions or feedback, we'd love to hear from you.
+
+Happy travels!
+The Mesquite Retreat Team`
     }
   };
   
@@ -284,7 +335,7 @@ function loadTemplate(templateType) {
 
 // Save draft
 async function saveDraft() {
-  const formData = new FormData(form);
+  const formData = new FormData(newsletterForm);
   const data = {
     subject: formData.get('subject'),
     preview: formData.get('preview'),
@@ -321,9 +372,29 @@ async function saveDraft() {
 
 // Load newsletter statistics
 async function loadNewsletterStats() {
+  console.log('Loading newsletter stats...');
   try {
     const response = await fetch('/api/newsletter/stats', { credentials: 'include' });
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    // Check if response is ok and contains JSON
+    if (!response.ok) {
+      console.warn('Newsletter stats endpoint not found or error:', response.status);
+      return;
+    }
+    
+    const contentType = response.headers.get('content-type');
+    console.log('Content-Type:', contentType);
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn('Newsletter stats endpoint returned non-JSON response');
+      console.warn('Response text preview:', await response.text().then(t => t.substring(0, 200)));
+      return;
+    }
+    
     const data = await response.json();
+    console.log('Parsed data:', data);
     
     if (data.ok) {
       document.getElementById('totalSent').textContent = data.totalSent || 0;
@@ -333,6 +404,7 @@ async function loadNewsletterStats() {
     }
   } catch (err) {
     console.error('Failed to load newsletter stats:', err);
+    // Don't show error to user since this endpoint doesn't exist yet
   }
 }
 

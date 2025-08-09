@@ -6,10 +6,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
 import mongoose from 'mongoose';
 import Subscriber, { upsertSubscriberDoc, confirmSubscriberByEmail } from './models/subscriber.js';
 import Promotion from './models/promotion.js';
+import { sendConfirmationEmail, sendTestEmail, getEmailTransportInfo } from './services/email.service.js';
 import authRouter from './routes/auth.routes.js';
 import subscribersRouter from './routes/subscribers.routes.js';
 import exportRouter from './routes/export.routes.js';
@@ -19,6 +19,7 @@ import statsRouter, { publicStatsRouter } from './routes/stats.routes.js';
 import siteContentRouter from './routes/siteContent.routes.js';
 import drawRouter from './routes/draw.routes.js';
 import healthRouter from './routes/health.routes.js';
+import newsletterRouter from './routes/newsletter.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
 import vendorsRouter from './routes/vendors.routes.js';
 import vendorPublicRouter from './routes/vendors.public.routes.js';
@@ -114,9 +115,7 @@ app.get(['/admin-vendors','/admin-vendors.html'], (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Email
-const hasSmtp = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
-const transporter = hasSmtp ? nodemailer.createTransport({ host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } }) : nodemailer.createTransport({ jsonTransport: true });
+// Email service is now centralized in services/email.service.js
 
 // Mongo (Mongoose)
 const resolvedMongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || '';
@@ -147,7 +146,7 @@ mongoose.connection.on('connected', ()=>{
 function generateRefCode(){ const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let code=''; for(let i=0;i<8;i+=1){ code+=alphabet[Math.floor(Math.random()*alphabet.length)]; } return code; }
 function generateToken(){ return Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64url').replace(/\./g,''); }
 
-logInfo('Server starting',{siteUrl:process.env.SITE_URL,smtp:hasSmtp?'smtp':'json',mongoUri:resolvedMongoUri?maskMongoUri(resolvedMongoUri):'none'});
+logInfo('Server starting',{siteUrl:process.env.SITE_URL,email:getEmailTransportInfo().transport,mongoUri:resolvedMongoUri?maskMongoUri(resolvedMongoUri):'none'});
 
 app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
   const { email, firstName, lastName, phone, consentRules, utm, ref, tripType, groupSize, travelMonths, igHandle, stars, tasks, vendor: vendorCodeRaw } = req.body || {};
@@ -188,7 +187,13 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
     const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
     const confirmUrl = `${siteUrl}/api/confirm?token=${encodeURIComponent(token||'')}`;
     const from = process.env.MAIL_FROM || 'noreply@example.com'; const propertyName = process.env.PROPERTY_NAME || 'Your Stay';
-    if (needsConfirm && token){ logDebug('Sending confirm email',{to:maskEmail(normalizedEmail)}); await transporter.sendMail({ from, to: normalizedEmail, subject:`Confirm your entry for ${propertyName}`, html:`<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>Confirm your entry</h2><p>Tap below to confirm your giveaway entry for <strong>${propertyName}</strong>.</p><p><a href="${confirmUrl}" style="display:inline-block;padding:10px 14px;background:#FF385C;color:#fff;border-radius:8px;text-decoration:none">Confirm entry</a></p><p>Or paste this link in your browser:<br/>${confirmUrl}</p></div>` }); }
+    if (needsConfirm && token){ 
+      logDebug('Sending confirm email',{to:maskEmail(normalizedEmail)}); 
+      const result = await sendConfirmationEmail(normalizedEmail, confirmUrl, propertyName);
+      if (!result.success) {
+        logError('Failed to send confirmation email', result.error);
+      }
+    }
     logInfo('Subscribe ok',{email:maskEmail(normalizedEmail), needsConfirm});
     return res.json({ ok:true, needsConfirm, refCode: myRefCode, shareUrl: `${siteUrl}/?ref=${myRefCode}` });
   }catch(err){ logError('Subscribe error', err); return res.status(500).json({ok:false,error:'Server error'}); }
@@ -209,6 +214,44 @@ app.get('/api/confirm', async (req,res)=>{
   }
 });
 
+// Test email endpoint (no auth required for testing)
+app.post('/api/test-email', async (req, res) => {
+  try {
+    const { to, subject, message } = req.body;
+    
+    if (!to || !subject || !message) {
+      return res.status(400).json({ ok: false, error: 'to, subject, and message are required' });
+    }
+    
+    const from = process.env.MAIL_FROM || 'noreply@mesquiteretreat.com';
+    
+    logInfo('Sending test email', { to: maskEmail(to), subject, from });
+    
+    const result = await sendTestEmail(to, subject, message);
+    
+    if (result.success) {
+      logInfo('Test email sent successfully', { to: maskEmail(to), messageId: result.messageId });
+      res.json({ 
+        ok: true, 
+        message: 'Test email sent successfully',
+        messageId: result.messageId,
+        transport: result.transport
+      });
+    } else {
+      logError('Test email failed', result.error);
+      res.status(500).json({ 
+        ok: false, 
+        error: 'Failed to send test email', 
+        details: result.error 
+      });
+    }
+    
+  } catch (err) {
+    logError('Test email error', err);
+    res.status(500).json({ ok: false, error: 'Failed to send test email', details: err.message });
+  }
+});
+
 // Mount routers
 app.use('/api', healthRouter);
 app.use('/api/auth', authRouter);
@@ -222,6 +265,7 @@ app.use('/api', publicStatsRouter); // /public/entries-today
 app.use('/api', vendorPublicRouter); // /public/track
 app.use('/api/draw', drawRouter);
 app.use('/api', siteContentRouter); // /site-content
+app.use('/api/newsletter', newsletterRouter); // /newsletter/*
 
 
 const port = Number(process.env.PORT || 3000);

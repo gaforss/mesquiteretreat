@@ -6,7 +6,7 @@
   <title>Newsletter - Admin</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body class="dark">
+<body class="dark newsletter-page">
   <header class="topbar">
     <div class="container wide topbar-inner">
       <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Newsletter</span></div>
@@ -59,9 +59,19 @@
               
               <div class="field">
                 <label for="message">✍️ Email Content *</label>
-                <textarea id="message" name="message" rows="15" required placeholder="Write your newsletter content here...&#10;&#10;You can use simple formatting:&#10;• Bullet points like this&#10;• Bold text with **bold**&#10;• Links with [text](url)&#10;• Keep it engaging and valuable!"></textarea>
+                <textarea id="message" name="message" rows="15" required placeholder="Write your newsletter content here...&#10;&#10;Simple formatting tips:&#10;• Use bullet points (•) for lists&#10;• Double line breaks for new paragraphs&#10;• Keep it friendly and engaging!&#10;• Write like you're talking to a friend"></textarea>
                 <div class="field-help">
-                  <p class="small text-secondary">💡 Tip: Write like you're talking to a friend. Keep paragraphs short and use bullet points for easy reading.</p>
+                  <p class="small text-secondary">💡 Tip: Write like you're talking to a friend. Use bullet points (•) for lists and double line breaks for new paragraphs.</p>
+                  <div class="formatting-examples">
+                    <details>
+                      <summary class="small text-secondary">📝 Click to see formatting examples</summary>
+                      <div class="formatting-examples-content">
+                        <p class="small text-secondary">• Bullet points like this</p>
+                        <p class="small text-secondary">Double line breaks create new paragraphs</p>
+                        <p class="small text-secondary">📱 Emojis work great too!</p>
+                      </div>
+                    </details>
+                  </div>
                 </div>
               </div>
 
@@ -257,6 +267,6 @@
     </div>
   </div>
 
-  <script src="/js/newsletter.js"></script>
+  <script src="/js/newsletter.js?v=1.0.1"></script>
 </body>
 </html> 

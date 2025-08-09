@@ -923,8 +923,29 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 }
 
 /* Newsletter page enhancements */
-.newsletter-page .container.wide {
-  max-width: 1400px;
+.newsletter-page .container.wide,
+.newsletter-page main.container.wide,
+.newsletter-page main.container.wide.admin {
+  max-width: 1280px !important;
+  padding: 0 24px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+/* Override base container constraints for newsletter page */
+.newsletter-page main.container {
+  max-width: 1100px !important;
+  padding: 0 24px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+/* Ensure the admin layout takes standard width */
+.newsletter-page .admin-layout {
+  max-width: 1280px !important;
+  padding: 0 24px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
 }
 
 .newsletter-page .admin-layout.no-sidebar {
@@ -1283,9 +1304,27 @@ nav a:hover { opacity: 1; text-decoration: underline; }
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
-  .newsletter-page .container.wide {
-    max-width: 100%;
-    padding: 0 20px;
+  .newsletter-page .container.wide,
+  .newsletter-page main.container.wide,
+  .newsletter-page main.container.wide.admin {
+    max-width: 1280px !important;
+    padding: 0 20px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+  
+  .newsletter-page main.container {
+    max-width: 1100px !important;
+    padding: 0 20px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+  
+  .newsletter-page .admin-layout {
+    max-width: 1280px !important;
+    padding: 0 20px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
   }
 }
 
