@@ -132,7 +132,7 @@ function renderSubsTable(rows){
       <td>${r.referred_by||''}</td>
       <td>
         <button class="cta secondary btnRowEdit" data-id="${r._id}">Edit</button>
-        <button class="cta secondary btnRowDelete" data-id="${r._id}" style="margin-left:6px">Delete</button>
+        <button class="cta danger btnRowDelete" data-id="${r._id}" style="margin-left:6px">Delete</button>
       </td>`;
     tbody.appendChild(tr);
   });
