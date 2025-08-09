@@ -12,6 +12,18 @@ function getDefaultContent(){
     hero_title: 'The Mesquite Retreat on Oak',
     hero_subtitle: 'Scottsdale, AZ — 3 bedrooms · 2 baths · Sleeps 6',
     hero_badge: 'Guest favorite · 5.0 (12)',
+    badge_title: 'Guest favorite',
+    badge_description: 'One of the most loved homes on Airbnb, according to guests',
+    rating_value: 5.0,
+    reviews_count: 12,
+    host_line: 'Hosted by Travli Hospitality · Superhost · 9 years hosting',
+    show_superhost_pill: true,
+    show_top_percent_pill: true,
+    highlights: [
+      { title: 'Top 5% of homes', description: 'This home is highly ranked based on ratings, reviews, and reliability.' },
+      { title: 'Exceptional check-in experience', description: 'Recent guests gave the check-in process a 5-star rating.' },
+      { title: 'Peace and quiet', description: 'Guests say this home is in a quiet area.' }
+    ],
     hero_image_url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/63811802-34d9-4987-8bd7-7395421b7648.jpeg',
     book_url: 'https://www.airbnb.com/rooms/1310467447728284655',
     features: [
@@ -87,7 +99,8 @@ router.get('/site-content', async (_req, res) => {
       return res.json({ ok:true, content: getDefaultContent() });
     }
     const doc = await SiteContent.findOne({ key: 'default' }).lean();
-    return res.json({ ok:true, content: doc || getDefaultContent() });
+    const merged = doc ? { ...getDefaultContent(), ...doc } : getDefaultContent();
+    return res.json({ ok:true, content: merged });
   }catch(err){
     // On error, still serve defaults to keep the public site functional
     return res.json({ ok:true, content: getDefaultContent() });

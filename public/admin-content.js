@@ -33,9 +33,10 @@ function renderFeatures(features){
   (features||[]).forEach((f,idx)=>{
     const row = el('div', { class:'field-row list-row' }, [
       el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Emoji'), el('input', { value: f.emoji||'', 'data-idx': String(idx), 'data-key':'emoji' }) ]) ]),
-      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Title'), el('input', { value: f.title||'', 'data-idx': String(idx), 'data-key':'title' }) ]) ]),
-      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Subtitle'), el('input', { value: f.subtitle||'', 'data-idx': String(idx), 'data-key':'subtitle' }) ]) ]),
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Title'), el('input', { value: f.title||'', placeholder:'Heated pool', 'data-idx': String(idx), 'data-key':'title' }) ]) ]),
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Subtitle'), el('input', { value: f.subtitle||'', placeholder:'+ hot tub', 'data-idx': String(idx), 'data-key':'subtitle' }) ]) ]),
       el('div', { class:'list-actions' }, [
+        el('span', { class:'drag-handle', title:'Drag to reorder', text:'↕' }),
         el('button', { class:'cta secondary', type:'button', 'data-up': String(idx) }, [ document.createTextNode('↑') ]),
         el('button', { class:'cta secondary', type:'button', 'data-down': String(idx) }, [ document.createTextNode('↓') ]),
         el('button', { class:'cta danger', type:'button', 'data-del': String(idx) }, [ document.createTextNode('Remove') ])
@@ -72,15 +73,17 @@ function renderFeatures(features){
       renderPreview();
     });
   });
+  initSortable('featuresWrap', 'features', renderFeatures);
 }
 
 function renderGallery(gallery){
   const wrap = document.getElementById('galleryWrap'); wrap.innerHTML='';
   (gallery||[]).forEach((g,idx)=>{
     const row = el('div', { class:'field-row list-row' }, [
-      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Image URL'), el('input', { value: g.url||'', 'data-idx': String(idx), 'data-key':'url' }) ]) ]),
-      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Alt text'), el('input', { value: g.alt||'', 'data-idx': String(idx), 'data-key':'alt' }) ]) ]),
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Image URL'), el('input', { value: g.url||'', placeholder:'https://...', 'data-idx': String(idx), 'data-key':'url' }) ]) ]),
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Alt text'), el('input', { value: g.alt||'', placeholder:'Pool at sunset', 'data-idx': String(idx), 'data-key':'alt' }) ]) ]),
       el('div', { class:'list-actions' }, [
+        el('span', { class:'drag-handle', title:'Drag to reorder', text:'↕' }),
         el('button', { class:'cta secondary', type:'button', 'data-up-img': String(idx) }, [ document.createTextNode('↑') ]),
         el('button', { class:'cta secondary', type:'button', 'data-down-img': String(idx) }, [ document.createTextNode('↓') ]),
         el('button', { class:'cta danger', type:'button', 'data-del': String(idx) }, [ document.createTextNode('Remove') ])
@@ -117,6 +120,7 @@ function renderGallery(gallery){
       renderPreview();
     });
   });
+  initSortable('galleryWrap', 'gallery', renderGallery);
 }
 
 function renderReviews(reviews){
@@ -127,6 +131,7 @@ function renderReviews(reviews){
       el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Stars (1-5)'), el('input', { type:'number', min:'1', max:'5', value: String(r.stars||5), 'data-idx': String(idx), 'data-key':'stars', 'data-type':'review' }) ]) ]),
       el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Text'), el('input', { value: r.text||'', 'data-idx': String(idx), 'data-key':'text', 'data-type':'review' }) ]) ]),
       el('div', { class:'list-actions' }, [
+        el('span', { class:'drag-handle', title:'Drag to reorder', text:'↕' }),
         el('button', { class:'cta secondary', type:'button', 'data-up-rev': String(idx) }, [ document.createTextNode('↑') ]),
         el('button', { class:'cta secondary', type:'button', 'data-down-rev': String(idx) }, [ document.createTextNode('↓') ]),
         el('button', { class:'cta danger', type:'button', 'data-del-rev': String(idx) }, [ document.createTextNode('Remove') ])
@@ -151,6 +156,7 @@ function renderReviews(reviews){
       state.reviews[i][key] = val; renderPreview();
     });
   });
+  initSortable('reviewsWrap', 'reviews', renderReviews);
 }
 
 async function loadContent(){
@@ -162,6 +168,9 @@ async function loadContent(){
     const c = j.content||{}; state = {
       property_name: c.property_name||'', book_url: c.book_url||'',
       hero_title: c.hero_title||'', hero_subtitle: c.hero_subtitle||'', hero_badge: c.hero_badge||'', hero_image_url: c.hero_image_url||'',
+      badge_title: c.badge_title||'', badge_description: c.badge_description||'', rating_value: c.rating_value||0, reviews_count: c.reviews_count||0, host_line: c.host_line||'',
+      show_superhost_pill: !!c.show_superhost_pill, show_top_percent_pill: !!c.show_top_percent_pill,
+      highlights: c.highlights||[],
       features: c.features||[], gallery: c.gallery||[], reviews: c.reviews||[], amenities: c.amenities||[], good_to_know: c.good_to_know||[],
       details_tabs: c.details_tabs||{ home:{}, area:{}, value:{} }
     };
@@ -171,9 +180,18 @@ async function loadContent(){
     document.getElementById('hero_subtitle').value = state.hero_subtitle;
     document.getElementById('hero_badge').value = state.hero_badge;
     document.getElementById('hero_image_url').value = state.hero_image_url;
+    const heroThumbEl = document.getElementById('hero_image_thumb'); if (heroThumbEl) heroThumbEl.src = state.hero_image_url||'';
+    const bt = document.getElementById('badge_title'); if (bt) bt.value = state.badge_title;
+    const bd = document.getElementById('badge_description'); if (bd) bd.value = state.badge_description;
+    const rv = document.getElementById('rating_value'); if (rv) rv.value = state.rating_value;
+    const rc = document.getElementById('reviews_count'); if (rc) rc.value = state.reviews_count;
+    const hl = document.getElementById('host_line'); if (hl) hl.value = state.host_line;
+    const sh = document.getElementById('show_superhost_pill'); if (sh) sh.checked = !!state.show_superhost_pill;
+    const tp = document.getElementById('show_top_percent_pill'); if (tp) tp.checked = !!state.show_top_percent_pill;
     renderFeatures(state.features);
     renderGallery(state.gallery);
     renderReviews(state.reviews);
+    renderHighlights(state.highlights);
     document.getElementById('amenities_textarea').value = (state.amenities||[]).join('\n');
     document.getElementById('good_to_know').value = (state.good_to_know||[]).join('\n');
     document.getElementById('tab_home_paragraph').value = state.details_tabs?.home?.paragraph||'';
@@ -189,13 +207,19 @@ async function loadContent(){
 }
 
 function bindBasics(){
-  ['property_name','book_url','hero_title','hero_subtitle','hero_badge','hero_image_url'].forEach(id=>{
+  ['property_name','book_url','hero_title','hero_subtitle','hero_badge','hero_image_url','badge_title','badge_description','rating_value','reviews_count','host_line'].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener('input', ()=>{ state[id] = el.value; renderPreview(); });
   });
+  document.getElementById('show_superhost_pill')?.addEventListener('change', (e)=>{ state.show_superhost_pill = e.target.checked; renderPreview(); });
+  document.getElementById('show_top_percent_pill')?.addEventListener('change', (e)=>{ state.show_top_percent_pill = e.target.checked; renderPreview(); });
+  const heroUrl = document.getElementById('hero_image_url');
+  const heroThumb = document.getElementById('hero_image_thumb');
+  heroUrl?.addEventListener('input', ()=>{ if (heroThumb) heroThumb.src = heroUrl.value.trim()||''; });
   document.getElementById('addFeature').addEventListener('click', ()=>{ state.features.push({ emoji:'', title:'', subtitle:'' }); renderFeatures(state.features); });
   document.getElementById('addImage').addEventListener('click', ()=>{ state.gallery.push({ url:'', alt:'' }); renderGallery(state.gallery); renderPreview(); });
   document.getElementById('addReview').addEventListener('click', ()=>{ state.reviews.push({ name:'', text:'', stars:5 }); renderReviews(state.reviews); renderPreview(); });
+  document.getElementById('addHighlight')?.addEventListener('click', ()=>{ state.highlights.push({ title:'', description:'' }); renderHighlights(state.highlights); renderPreview(); });
 }
 
 async function saveContent(){
@@ -207,8 +231,16 @@ async function saveContent(){
     hero_subtitle: state.hero_subtitle,
     hero_badge: state.hero_badge,
     hero_image_url: state.hero_image_url,
+    badge_title: state.badge_title,
+    badge_description: state.badge_description,
+    rating_value: Number(state.rating_value)||0,
+    reviews_count: Number(state.reviews_count)||0,
+    host_line: state.host_line,
+    show_superhost_pill: !!state.show_superhost_pill,
+    show_top_percent_pill: !!state.show_top_percent_pill,
     features: state.features,
     gallery: state.gallery,
+    highlights: state.highlights,
     reviews: state.reviews,
     amenities: String(document.getElementById('amenities_textarea').value||'').split('\n').map(s=>s.trim()).filter(Boolean),
     good_to_know: String(document.getElementById('good_to_know').value||'').split('\n').map(s=>s.trim()).filter(Boolean),
@@ -222,7 +254,7 @@ async function saveContent(){
     const r = await fetch('/api/site-content', { method:'PUT', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), credentials:'include' });
     const j = await r.json();
     if (!j.ok){ out.textContent = j.error||'Failed to save'; toast(j.error||'Failed to save', true); return; }
-    out.textContent = 'Saved.'; toast('Saved');
+    out.textContent = 'Saved.'; toast('Saved'); setStickyStatus('Saved');
   }catch{ out.textContent='Failed to save'; toast('Failed to save', true); }
 }
 
@@ -230,6 +262,10 @@ let state = { features:[], gallery:[], amenities:[], good_to_know:[], details_ta
 
 document.getElementById('btnSave')?.addEventListener('click', saveContent);
 document.getElementById('btnRevert')?.addEventListener('click', loadContent);
+
+// Sticky footer actions
+document.getElementById('stickySave')?.addEventListener('click', saveContent);
+document.getElementById('stickyRevert')?.addEventListener('click', loadContent);
 
 bindLogout();
 bindBasics();
@@ -254,6 +290,69 @@ function renderPreview(){
   }catch{}
 }
 
+// Section collapse toggles
+document.querySelectorAll('[data-toggle-section]')?.forEach(head=>{
+  head.style.cursor = 'pointer';
+  head.addEventListener('click', ()=>{
+    const body = head.parentElement?.querySelector('.section-body');
+    if (!body) return; const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+  });
+});
+
+function setStickyStatus(text){
+  const el = document.getElementById('stickyStatus'); if (el){ el.textContent = text; }
+}
+
+// Autosave indicator
+['input','change'].forEach(evt=>{
+  document.addEventListener(evt, (e)=>{
+    if (!(e.target instanceof HTMLElement)) return;
+    const wrap = e.target.closest('.section-card'); if (!wrap) return;
+    setStickyStatus('Unsaved changes');
+  }, { capture: true });
+});
+
+// Drag-and-drop sorting (HTML5)
+function initSortable(containerId, stateKey, renderFn){
+  const wrap = document.getElementById(containerId); if (!wrap) return;
+  let dragIndex = null;
+  Array.from(wrap.children).forEach((row, idx)=>{
+    if (!(row instanceof HTMLElement)) return;
+    row.draggable = true;
+    row.addEventListener('dragstart', (e)=>{
+      dragIndex = idx;
+      row.classList.add('dragging');
+      try{ e.dataTransfer.effectAllowed = 'move'; }catch{}
+    });
+    row.addEventListener('dragend', ()=>{
+      dragIndex = null;
+      row.classList.remove('dragging');
+      Array.from(wrap.children).forEach(r=>r.classList.remove('drop-before','drop-after'));
+    });
+    row.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      const target = e.currentTarget;
+      const bounds = target.getBoundingClientRect();
+      const before = (e.clientY - bounds.top) < bounds.height/2;
+      Array.from(wrap.children).forEach(r=>r.classList.remove('drop-before','drop-after'));
+      target.classList.add(before?'drop-before':'drop-after');
+    });
+    row.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      const target = e.currentTarget;
+      const targetIdx = Array.from(wrap.children).indexOf(target);
+      const arr = state[stateKey]; if (!arr) return;
+      const moving = arr.splice(dragIndex, 1)[0];
+      const bounds = target.getBoundingClientRect();
+      const before = (e.clientY - bounds.top) < bounds.height/2;
+      const insertIdx = targetIdx + (before?0:1);
+      arr.splice(insertIdx > dragIndex ? insertIdx-1 : insertIdx, 0, moving);
+      renderFn(arr); renderPreview();
+    });
+  });
+}
+
 // Bulk import reviews modal
 document.getElementById('bulkImportReviews')?.addEventListener('click', ()=>{
   document.getElementById('reviewsImportModal')?.classList.remove('hidden');
@@ -273,4 +372,23 @@ document.getElementById('reviewsImportApply')?.addEventListener('click', ()=>{
   document.getElementById('reviewsImportModal')?.classList.add('hidden');
   toast(`Imported ${parsed.length} reviews`);
 });
+
+function renderHighlights(items){
+  const wrap = document.getElementById('highlightsWrap'); if (!wrap) return; wrap.innerHTML = '';
+  (items||[]).forEach((h,idx)=>{
+    const row = el('div', { class:'field-row list-row' }, [
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Title'), el('input', { value: h.title||'', placeholder:'Top 5% of homes', 'data-idx': String(idx), 'data-key':'title', 'data-type':'highlight' }) ]) ]),
+      el('div', { class:'field' }, [ el('label', {}, [ document.createTextNode('Description'), el('input', { value: h.description||'', placeholder:'Highly ranked based on ratings, reviews, and reliability', 'data-idx': String(idx), 'data-key':'description', 'data-type':'highlight' }) ]) ]),
+      el('div', { class:'list-actions' }, [ el('span', { class:'drag-handle', text:'↕' }), el('button', { class:'cta danger', type:'button', 'data-del-hl': String(idx) }, [ document.createTextNode('Remove') ]) ])
+    ]);
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('[data-del-hl]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ const i = Number(btn.getAttribute('data-del-hl')); state.highlights.splice(i,1); renderHighlights(state.highlights); renderPreview(); });
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ const i = Number(inp.getAttribute('data-idx')); const key = inp.getAttribute('data-key'); state.highlights[i][key] = inp.value; renderPreview(); });
+  });
+  initSortable('highlightsWrap','highlights', renderHighlights);
+}
 

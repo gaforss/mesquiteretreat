@@ -23,6 +23,11 @@ const TabSchema = new mongoose.Schema({
   note: { type: String, default: '' },
 }, { _id: false });
 
+const HighlightSchema = new mongoose.Schema({
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+}, { _id: false });
+
 const SiteContentSchema = new mongoose.Schema({
   key: { type: String, default: 'default', unique: true },
   property_name: { type: String, default: '' },
@@ -35,6 +40,14 @@ const SiteContentSchema = new mongoose.Schema({
   gallery: { type: [GalleryImageSchema], default: [] },
   amenities: { type: [String], default: [] },
   good_to_know: { type: [String], default: [] },
+  badge_title: { type: String, default: '' },
+  badge_description: { type: String, default: '' },
+  rating_value: { type: Number, default: 0 },
+  reviews_count: { type: Number, default: 0 },
+  host_line: { type: String, default: '' },
+  show_superhost_pill: { type: Boolean, default: false },
+  show_top_percent_pill: { type: Boolean, default: false },
+  highlights: { type: [HighlightSchema], default: [] },
   reviews: { type: [ReviewSchema], default: [] },
   details_tabs: {
     home: { type: TabSchema, default: () => ({}) },

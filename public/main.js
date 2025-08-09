@@ -20,14 +20,49 @@ async function loadSiteContent(){
     document.querySelectorAll('a.airbnb').forEach(a=>{ a.href = bookUrl; });
     // Features
     if (Array.isArray(c.features)){
-      const wrap = document.querySelector('.features'); if (wrap){
+      const wrap = document.querySelector('.hero .features') || document.querySelector('.features'); if (wrap){
         wrap.innerHTML = '';
         c.features.forEach(f=>{
           const div = document.createElement('div'); div.className='feature';
-          div.innerHTML = `<span class="emoji">${f.emoji||''}</span><div><strong>${f.title||''}</strong><div class="muted">${f.subtitle||''}</div></div>`;
+          div.innerHTML = `
+            <div class="feat-text">
+              <div class="feat-title">${f.title||''}</div>
+              <div class="feat-sub">${f.subtitle||''}</div>
+            </div>
+            <div class="feat-icon"><span class="emoji">${f.emoji||''}</span></div>
+          `;
           wrap.appendChild(div);
         });
       }
+    }
+    // Badge overlay inside hero
+    const heroEl = document.querySelector('.hero');
+    if (heroEl){
+      let ov = document.getElementById('heroBadgeOverlay');
+      if (!ov){ ov = document.createElement('div'); ov.id = 'heroBadgeOverlay'; ov.className = 'hero-badge'; heroEl.appendChild(ov); }
+      const ratingNum = Number(c.rating_value);
+      const countNum = Number(c.reviews_count);
+      const rating = isFinite(ratingNum) && ratingNum>0 ? ratingNum.toFixed(1) : '5.0';
+      const count = isFinite(countNum) && countNum>0 ? countNum : 12;
+      const isSuperhost = /superhost/i.test(c.host_line||'');
+      const topHl = (Array.isArray(c.highlights)?c.highlights:[]).find(h=>/top\s*5%/i.test(h?.title||'') || /top\s*5%/i.test(h?.description||''));
+      ov.innerHTML = `
+        <div class="ab-badge" aria-label="${c.badge_title||'Guest favorite'}">
+          <div class="ab-row">
+            <span class="ab-pill ab-guest">
+              <span class="ab-star">★</span>
+              <span>${c.badge_title||'Guest favorite'}</span>
+            </span>
+            ${(c.show_superhost_pill||isSuperhost)?'<span class="ab-pill ab-superhost">SUPERHOST</span>':''}
+            ${(c.show_top_percent_pill||topHl)?`<span class=\"ab-pill ab-top\">Top 5% of homes</span>`:''}
+          </div>
+          <div class="ab-lines">
+            ${c.badge_description?`<div class=\"ab-line ab-desc\">${c.badge_description}</div>`:''}
+            <div class="ab-line ab-meta"><span class="stars">${'★'.repeat(Math.round(Number(c.rating_value||5)))}</span> ${rating} · ${count} reviews</div>
+            ${c.host_line?`<div class=\"ab-line ab-host\">${c.host_line}</div>`:''}
+          </div>
+        </div>
+      `;
     }
     // Gallery
     if (Array.isArray(c.gallery)){
