@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="draw-date" content="2025-10-01T19:00:00-07:00" />
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>The Mesquite Retreat on Oak | Scottsdale</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="entryModal" class="modal hidden">
+      <div class="modal-card">
+        <button id="closeModal" class="modal-close">×</button>
+        <h2>2 free nights giveaway</h2>
+        <p>Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
+        <div class="tasks">
+          <label>IG handle <input id="igHandle" placeholder="@yourhandle" /></label>
+          <label><input type="checkbox" class="task" data-points="1" data-key="follow_twolittlestolove" /> Follow @twolittlestolove</label>
+          <label><input type="checkbox" class="task" data-points="1" data-key="follow_themesquiteretreat" /> Follow @themesquiteretreat.scottsdale</label>
+          <label><input type="checkbox" class="task" data-points="1" data-key="like_save_posts" /> Like + save the posts</label>
+          <label>Tag friends (each tag = +1 star) <input id="tagCount" type="number" min="0" value="0" /></label>
+          <label><input type="checkbox" class="task" data-points="2" data-key="share_story" /> Share in your story (+2)</label>
+          <label><input type="checkbox" class="task" data-points="1" data-key="tweet" /> Tweet about the giveaway (+1)</label>
+        </div>
+        <p id="starsOut">Stars: 0</p>
+        <button id="saveTasks" class="cta">Save & continue</button>
+      </div>
+    </div>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <span class="logo">⟡</span>
+          <span class="name" id="propertyName">The Mesquite Retreat on Oak</span>
+        </div>
+        <button class="menu-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+        <nav id="siteNav">
+          <a href="#photos">Photos</a>
+          <a href="#amenities">Amenities</a>
+          <a href="#signup">Contest</a>
+          <a class="pill" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book on Airbnb</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-text">
+            <h1 id="heroTitle">The Mesquite Retreat on Oak</h1>
+            <div class="badge">Guest favorite · 5.0 (12)</div>
+            <p>Scottsdale, AZ — 3 bedrooms · 2 baths · Sleeps 6</p>
+            <div class="hero-ctas">
+              <a class="cta airbnb" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book on Airbnb</a>
+              <a class="cta" href="#signup">Sign up for our contest</a>
+            </div>
+          </div>
+          <div class="hero-image">
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/63811802-34d9-4987-8bd7-7395421b7648.jpeg" alt="Private pool and outdoor lounge at The Mesquite Retreat on Oak" />
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature"><span class="emoji">🏊‍♂️</span><div><strong>Heated pool</strong><div class="muted">+ hot tub</div></div></div>
+          <div class="feature"><span class="emoji">⛳</span><div><strong>Putting green</strong><div class="muted">Backyard fun</div></div></div>
+          <div class="feature"><span class="emoji">📍</span><div><strong>Near Old Town</strong><div class="muted">Dining & shopping</div></div></div>
+          <div class="feature"><span class="emoji">🛏️</span><div><strong>3 bedrooms</strong><div class="muted">Sleeps 6</div></div></div>
+        </div>
+      </section>
+
+      <section id="photos" class="gallery-section">
+        <div class="container">
+          <h2>Photo gallery</h2>
+          <div class="gallery">
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3fff9ca9-4d3d-4baa-b267-613fb1550be8.jpeg" alt="Modern living room with luxe finishes" />
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/106bf015-98ca-4743-a6f8-0b148a361b8c.jpeg" alt="Updated kitchen with stainless appliances" />
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/ca824749-585f-48e9-a187-c668ca23876d.jpeg" alt="Primary bedroom with king bed" />
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/97ba340f-876c-4bee-bb8a-b46c23fb0ff8.jpeg" alt="Pool, hot tub, patio TV and putting green" />
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/0841e224-efbe-4e6e-a9f8-ae5350a6aa85.jpeg" alt="Open concept dining and living" />
+            <img src="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/18b7447f-d610-4165-a2f2-6a5ee7792a3e.jpeg" alt="Guest bedroom with queen bed" />
+          </div>
+        </div>
+      </section>
+
+      <section id="amenities" class="amenities-section">
+        <div class="container">
+          <h2>Amenities</h2>
+          <ul class="amenities">
+            <li>Private pool (heat optional)</li>
+            <li>Hot tub</li>
+            <li>Fire pit lounge</li>
+            <li>3‑hole putting green</li>
+            <li>Fully stocked kitchen</li>
+            <li>Coffee & wine bar</li>
+            <li>Dedicated workspace</li>
+            <li>Fast Wi‑Fi</li>
+            <li>Washer & dryer</li>
+            <li>Patio with TV & BBQ grill</li>
+            <li>Free parking</li>
+            <li>Single‑level home</li>
+          </ul>
+          <div class="good-to-know">
+            <h3>Good to know</h3>
+            <ul>
+              <li>No animals due to severe allergies (Airbnb policy exemption).</li>
+              <li>Pool heat available for $75/night or $400/week (request 72h before check‑in).</li>
+              <li>Pool use & safety waiver required before check‑in.</li>
+              <li>No parties or events. Quiet, residential area.</li>
+              <li>Exterior security cameras at entry, garage, and side gate.</li>
+              <li>Noise/occupancy sensor monitors decibel levels only.</li>
+              <li>Pack‑N‑Play and highchair available on request.</li>
+              <li>Scottsdale License #2036818 · TPT #21589672</li>
+            </ul>
+            <p style="margin-top:12px">
+              <a class="cta airbnb" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book on Airbnb</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="details" class="details-section">
+        <div class="container">
+          <ul class="nav nav-tabs" id="detailsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-home-tab" data-bs-toggle="tab" data-bs-target="#tab-home" type="button" role="tab" aria-controls="tab-home" aria-selected="true">About the home</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-area-tab" data-bs-toggle="tab" data-bs-target="#tab-area" type="button" role="tab" aria-controls="tab-area" aria-selected="false">Local area</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-value-tab" data-bs-toggle="tab" data-bs-target="#tab-value" type="button" role="tab" aria-controls="tab-value" aria-selected="false">Why 4 bedrooms here</button>
+            </li>
+          </ul>
+          <div class="tab-content details-content" id="detailsTabsContent">
+            <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="tab-home-tab" tabindex="0">
+              <div class="details-card">
+                <p>
+                  A modern Scottsdale oasis designed for relaxing and entertaining: open‑concept living with a wine & coffee bar, a fully stocked kitchen, and stylish bedrooms. Step outside to a private resort backyard featuring a heated pool, hot tub, firepit lounge, covered patio with TV & dining, BBQ, and a 3‑hole putting green. Minutes to Old Town, top golf courses, Fashion Square, and the best dining in Scottsdale.
+                </p>
+                <ul>
+                  <li>Heated pool & hot tub • Firepit • Patio TV & dining • BBQ</li>
+                  <li>3 stylish bedrooms, 2 full baths • Hotel‑quality linens</li>
+                  <li>Dedicated workspace • Fast Wi‑Fi • Washer & dryer</li>
+                </ul>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab-area" role="tabpanel" aria-labelledby="tab-area-tab" tabindex="0">
+              <div class="details-card">
+                <p>
+                  You’ll be close to everything that makes Scottsdale special. Start in Old Town for art walks, dining, and nightlife; tee off at world‑class courses (TPC, Troon, Talking Stick); then unwind at spa resorts or hike Camelback and McDowell Sonoran Preserve. Families love the Phoenix Zoo, OdySea Aquarium, and spring training baseball. End your day poolside at home with a perfect desert sunset.
+                </p>
+                <ul>
+                  <li>Old Town Scottsdale: 10–15 min</li>
+                  <li>Golf: TPC, Talking Stick, Troon, Papago — easy drives</li>
+                  <li>Shopping & dining: Fashion Square, Kierland Commons</li>
+                </ul>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab-value" role="tabpanel" aria-labelledby="tab-value-tab" tabindex="0">
+              <div class="details-card">
+                <p>
+                  In Scottsdale, extra bedrooms are a premium. A four‑bedroom layout unlocks flexibility: families can spread out, golf foursomes get private rooms, and multi‑generational or friends’ trips gain comfort without booking multiple homes. That means better sleep, easier mornings, and real savings versus reserving two separate properties.
+                </p>
+                <ul>
+                  <li>Ideal for families, golf trips, and work‑friendly stays</li>
+                  <li>Private rooms for everyone • More storage • Better privacy</li>
+                  <li>One destination hub close to courses, dining, and Old Town</li>
+                </ul>
+                <p class="muted small">Tip: Add extra nights to extend your stay for a full long‑weekend experience.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews" class="reviews-section">
+        <div class="container">
+          <div class="reviews-head">
+            <h2 class="m-0">What guests say</h2>
+            <a class="reviews-link" href="https://www.airbnb.com/rooms/1310467447728284655#reviews" target="_blank" rel="noopener">5.0 · 12 reviews on Airbnb →</a>
+          </div>
+          <div class="position-relative">
+            <button class="btn btn-outline-light btn-sm reviews-nav" id="prevReviews" aria-label="Previous">‹</button>
+            <div class="reviews-scroll" id="reviewsScroll">
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“The place was very cute and comfortable in a nice area... Hot tub and pool were in great shape and temps were perfect. Would definitely stay here again and recommend to family and friends!!”</p>
+                  <div class="small text-secondary">Jennifer — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“Our family had a wonderful stay!... The backyard was amazing and provided many activities... beautifully clean. We would love to stay again.”</p>
+                  <div class="small text-secondary">Natalia — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“We had a fantastic stay. Clean, comfortable, and well‑equipped... host was friendly and responsive. We’d love to come back again!”</p>
+                  <div class="small text-secondary">Brooks — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“This place is amazing. Perfect location, close to a park and Old Town Scottsdale. We will definitely come back.”</p>
+                  <div class="small text-secondary">Fernando — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“The place was clean and convenient.”</p>
+                  <div class="small text-secondary">Carolyn & Rich — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“Lovely home in a perfect location! Spotlessly clean with everything we needed. Backyard with pool, hot tub, and fire table was a huge plus.”</p>
+                  <div class="small text-secondary">Terri — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“Beautiful home and exactly as described! Clean and quiet! Easy to deal with.”</p>
+                  <div class="small text-secondary">Tiffany — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+              <div class="card shadow-sm">
+                <div class="review-avatar">
+                  <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 3.134-8 7v1h16v-1c0-3.866-3.582-7-8-7z"/></svg>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-text">“Overall great stay! Beautifully decorated, clean, and calming. Mini golf, corn hole, and games were a hit. Pool temp was perfect.”</p>
+                  <div class="small text-secondary">Larissa — <span class="stars">★★★★★</span></div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-outline-light btn-sm reviews-nav" id="nextReviews" aria-label="Next">›</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="signup" class="signup-section">
+        <div class="container">
+          <div class="signup-card">
+            <div class="signup-copy">
+              <h2>Enter our giveaway</h2>
+              <p>Sign up to enter our occasional giveaway and receive availability and offer updates.</p>
+            </div>
+            <form id="signupForm" class="signup-form">
+              <div class="field-row">
+                <div class="field">
+                  <label for="firstName">First name</label>
+                  <input id="firstName" name="firstName" type="text" autocomplete="given-name" />
+                </div>
+                <div class="field">
+                  <label for="lastName">Last name</label>
+                  <input id="lastName" name="lastName" type="text" autocomplete="family-name" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="tripType">Trip type</label>
+                  <select id="tripType" name="tripType">
+                    <option value="">Select...</option>
+                    <option value="family">Family</option>
+                    <option value="golf">Golf</option>
+                    <option value="work">Work</option>
+                    <option value="friends">Friends</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="groupSize">Group size</label>
+                  <input id="groupSize" name="groupSize" type="number" min="1" max="16" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="travelMonths">Desired travel months (MMM YYYY, comma separated)</label>
+                <input id="travelMonths" name="travelMonths" placeholder="Jan 2026, Feb 2026" />
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" required autocomplete="email" />
+              </div>
+              <div class="field">
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" />
+              </div>
+              <div class="field">
+                <label><input id="consentRules" type="checkbox" required /> I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</label>
+              </div>
+              <button type="submit" class="cta submit">Enter now</button>
+              <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+              <p class="legal">No purchase necessary. 18+. US only. Void where prohibited. By entering, you agree to receive occasional emails; you can unsubscribe anytime.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Mobile sticky CTA -->
+    <div class="sticky-cta">
+      <a class="cta secondary" href="#signup">Enter giveaway</a>
+      <a class="cta" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book</a>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© <span id="year"></span> <span id="footerName">The Mesquite Retreat on Oak</span>. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/main.js" type="module"></script>
+  </body>
+  </html>
+

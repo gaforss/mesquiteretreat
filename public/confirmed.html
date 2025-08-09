@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entry confirmed</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container" style="padding:40px 0; min-height:60vh">
+      <h1>Thanks! Your entry is confirmed.</h1>
+      <p id="status"></p>
+      <p>
+        Share with friends to earn extra entries:
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="shareLink" style="flex:1;max-width:600px" />
+        <button class="cta" id="copyBtn">Copy</button>
+      </div>
+      <p style="margin-top:12px"><a href="/">Back to home</a></p>
+    </main>
+    <script type="module">
+      const params = new URLSearchParams(location.search);
+      const status = params.get('status');
+      document.getElementById('status').textContent = status === 'already' ? 'It looks like you were already confirmed.' : '';
+      // Pre-fill share link if we have ref in localStorage
+      const ref = localStorage.getItem('myRefCode');
+      const link = `${location.origin}/?ref=${ref||''}`;
+      document.getElementById('shareLink').value = link;
+      document.getElementById('copyBtn').addEventListener('click',async ()=>{
+        try { await navigator.clipboard.writeText(link); alert('Link copied'); } catch {}
+      });
+    </script>
+  </body>
+  </html>
+
