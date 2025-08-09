@@ -70,21 +70,19 @@
               <div id="countryBars"></div>
             </div></div>
           </section>
-          <section id="broadcast" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast a message</h2></div><div class="section-body">
-          <form id="broadcastForm" class="signup-form" style="margin:0">
-            <div class="field">
-              <label for="subject">Subject</label>
-              <input id="subject" name="subject" type="text" required />
+          <section id="draw" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Draw</h2><div class="actions"><button id="btnSimulate" class="cta secondary">Simulate</button><button id="btnPickWinner" class="cta">Pick Winner</button><a id="btnExportEligible" class="cta secondary" href="#">Export Eligible</a></div></div><div class="section-body">
+            <div class="filters-grid">
+              <div class="field"><label>Confirmed</label><select id="drawConfirmed"><option value="1" selected>Yes</option><option value="0">No</option><option value="">Any</option></select></div>
+              <div class="field"><label>Min stars</label><input id="drawMinStars" type="number" min="0" value="0"/></div>
+              <div class="field"><label>Returning only</label><select id="drawReturning"><option value="">Any</option><option value="1">Yes</option></select></div>
+              <div class="field"><label>Country</label><input id="drawCountry" placeholder="US"/></div>
+              <div class="field"><label>From</label><input id="drawFrom" type="date"/></div>
+              <div class="field"><label>To</label><input id="drawTo" type="date"/></div>
             </div>
-            <div class="field">
-              <label for="message">Message</label>
-              <textarea id="message" name="message" rows="6" required></textarea>
-            </div>
-            
-            <button type="submit" class="cta submit">Send</button>
-            <p id="adminMessage" class="form-message" role="status"></p>
-          </form>
+            <div id="drawPreview" class="small text-secondary" style="margin-top:8px">—</div>
+            <div id="drawHistory" style="margin-top:12px"></div>
           </div></section>
+          <section id="broadcast" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast</h2><div class="actions"><button id="openBroadcast" class="cta">Compose</button></div></div><div class="section-body"><p class="small text-secondary">Send announcements or reminders.</p></div></section>
           <section id="promotions" style="margin-top:24px">
             <h2>Promotions</h2>
             <div id="promoRows" class="promo-grid"></div>
@@ -112,6 +110,17 @@
               </div>
             </div>
             <div class="section-body">
+              <div id="quickFilters" style="margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap">
+                <button class="cta ghost" data-qf="">All</button>
+                <button class="cta ghost" data-qf="confirmed:1">Confirmed</button>
+                <button class="cta ghost" data-qf="confirmed:0">Pending</button>
+                <button class="cta ghost" data-qf="returning:1">Returning</button>
+                <button class="cta ghost" data-qf="discount:1">With Discount</button>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center; gap:10px">
+                <div class="small text-secondary" id="colVisLabel">Columns</div>
+                <div id="colVis" class="small text-secondary" style="display:flex; gap:8px; flex-wrap:wrap"></div>
+              </div>
               <div class="table-scroll" style="max-height:480px; overflow:auto">
                 <div id="rows" class="table-wrap" style="margin-top:12px"></div>
               </div>
@@ -120,6 +129,7 @@
                 <span id="pageInfo" class="small text-secondary"></span>
                 <button class="cta secondary" id="btnNext">Next ›</button>
               </div>
+              <div id="selectionBar" class="section-card" style="position:sticky; bottom:12px; margin-top:12px; display:none"><div class="section-body" style="display:flex; gap:8px; align-items:center"><span id="selCount" class="small text-secondary">0 selected</span><button id="selEdit" class="cta secondary">Edit</button><button id="selDelete" class="cta danger">Delete</button></div></div>
             </div>
           </section>
         </div>
@@ -146,6 +156,41 @@
             <button class="cta secondary" type="button" data-close-modal>Cancel</button>
           </div>
         </form>
+      </div>
+    </div>
+    <!-- Broadcast modal -->
+    <div id="broadcastModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="broadcastTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="broadcastTitle">Compose Broadcast</h2>
+        <form id="broadcastForm" class="signup-form" style="margin:0">
+          <div class="field">
+            <label for="subject">Subject</label>
+            <input id="subject" name="subject" type="text" required />
+          </div>
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="6" required></textarea>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button type="button" class="cta secondary" data-tpl="winner">Winner announcement</button>
+            <button type="button" class="cta secondary" data-tpl="confirm">Confirmation reminder</button>
+            <button type="button" class="cta secondary" data-tpl="promo">Promo update</button>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px; align-items:center">
+            <label class="small text-secondary"><input id="sendTest" type="checkbox"/> Send test to me</label>
+            <button type="submit" class="cta submit">Send</button>
+            <p id="adminMessage" class="form-message" role="status"></p>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Details drawer -->
+    <div id="detailsDrawer" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" style="justify-content:flex-end">
+      <div class="modal-card" style="width:420px; max-width:92%; height:100%; border-radius: 0; border-left: 1px solid rgba(255,255,255,.12);">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="detailsTitle">Subscriber</h2>
+        <div id="detailsBody" class="small text-secondary">Loading…</div>
       </div>
     </div>
     <div id="subsEditModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="subsEditTitle">

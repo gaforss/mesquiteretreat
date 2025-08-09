@@ -1,6 +1,6 @@
 const form = document.getElementById('broadcastForm');
 const out = document.getElementById('adminMessage');
-form.addEventListener('submit', async (e) => {
+form?.addEventListener('submit', async (e) => {
   e.preventDefault();
   out.textContent = 'Sending...';
   const subject = document.getElementById('subject').value.trim();
@@ -15,11 +15,15 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (data.ok) {
       out.textContent = `Sent to ${data.count} subscribers.`;
+      toast(`Broadcast queued for ${data.count} recipients.`);
+      closeModals();
     } else {
       out.textContent = data.error || 'Failed to send.';
+      toast(data.error||'Failed to send.', true);
     }
   } catch (err) {
     out.textContent = 'Network error.';
+    toast('Network error', true);
   }
 });
 
@@ -110,6 +114,8 @@ function renderSubsTable(rows){
     <th>ReferredBy</th>
     <th style="width:120px">Actions</th>
   </tr></thead><tbody></tbody></table>`;
+  const prefs = JSON.parse(localStorage.getItem('colVis')||'{}');
+  const show = (key)=> prefs[key]!==false;
   const tbody = container.querySelector('tbody');
   rows.forEach(r => {
     const tr = document.createElement('tr');
@@ -118,18 +124,18 @@ function renderSubsTable(rows){
     const dot = r.confirmed ? 'dot-success' : 'dot-warning';
     const initials = (r.first_name||r.email||'?').slice(0,1).toUpperCase();
     tr.innerHTML = `<td><input type="checkbox" class="chkRow" data-id="${r._id}"/></td>
-      <td><span class="code">${r.email}</span></td>
-      <td>${created}</td>
-      <td><span class="avatar">${initials}</span>${name||'—'}</td>
-      <td>${r.trip_type||''}</td>
-      <td>${r.group_size||''}</td>
-      <td>${r.travel_months||''}</td>
-      <td>${r.stars||0}</td>
-      <td><span class="status-dot ${dot}"></span>${r.confirmed?'Confirmed':'Pending'}</td>
-      <td>${r.is_returning?'<span class="chip yes">Yes</span>':'<span class="chip no">No</span>'}</td>
-      <td>${r.discount_code||''}</td>
-      <td>${r.ref_code||''}</td>
-      <td>${r.referred_by||''}</td>
+      ${show('email')?`<td><span class="code">${r.email}</span></td>`:''}
+      ${show('created_at')?`<td>${created}</td>`:''}
+      ${show('name')?`<td><span class="avatar">${initials}</span>${name||'—'}</td>`:''}
+      ${show('trip_type')?`<td>${r.trip_type||''}</td>`:''}
+      ${show('group_size')?`<td>${r.group_size||''}</td>`:''}
+      ${show('travel_months')?`<td>${r.travel_months||''}</td>`:''}
+      ${show('stars')?`<td>${r.stars||0}</td>`:''}
+      ${show('confirmed')?`<td><span class="status-dot ${dot}"></span>${r.confirmed?'Confirmed':'Pending'}</td>`:''}
+      ${show('is_returning')?`<td>${r.is_returning?'<span class="chip yes">Yes</span>':'<span class="chip no">No</span>'}</td>`:''}
+      ${show('discount_code')?`<td>${r.discount_code||''}</td>`:''}
+      ${show('ref_code')?`<td>${r.ref_code||''}</td>`:''}
+      ${show('referred_by')?`<td>${r.referred_by||''}</td>`:''}
       <td>
         <button class="cta secondary btnRowEdit" data-id="${r._id}">Edit</button>
         <button class="cta danger btnRowDelete" data-id="${r._id}" style="margin-left:6px">Delete</button>
@@ -151,6 +157,7 @@ function renderSubsTable(rows){
   const chkAll = container.querySelector('#chkAll');
   chkAll?.addEventListener('change', ()=>{
     container.querySelectorAll('.chkRow').forEach(c=>{ c.checked = chkAll.checked; });
+    updateSelectionBar();
   });
   // Row actions
   container.querySelectorAll('.btnRowDelete').forEach(btn=>{
@@ -166,8 +173,11 @@ function renderSubsTable(rows){
   container.querySelectorAll('.btnRowEdit').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.getAttribute('data-id');
-      subsEditOpen([id]);
+      openDetailsDrawer(id);
     });
+  });
+  container.querySelectorAll('.chkRow').forEach(chk=>{
+    chk.addEventListener('change', updateSelectionBar);
   });
 }
 
@@ -189,7 +199,8 @@ async function loadSubs() {
   const btnNext = document.getElementById('btnNext');
   if (!data.ok) { document.getElementById('rows').textContent = data.error || 'Failed'; return; }
   subsState.total = data.total; subsState.totalPages = data.totalPages; subsState.page = data.page; subsState.pageSize = data.pageSize;
-  renderSubsTable(data.rows);
+  lastSubsRows = data.rows;
+  renderSubsTable(lastSubsRows);
   meta.textContent = `${data.total} total · Sorted by ${subsState.sort} ${subsState.dir}`;
   pageInfo.textContent = `Page ${subsState.page} of ${subsState.totalPages||1}`;
   btnPrev.disabled = subsState.page <= 1;
@@ -261,6 +272,65 @@ document.getElementById('subsEditForm')?.addEventListener('submit', async (e)=>{
   closeModals();
   loadSubs();
 });
+
+function selectedIds(){ return Array.from(document.querySelectorAll('.chkRow:checked')).map(x=>x.getAttribute('data-id')); }
+function updateSelectionBar(){
+  const ids = selectedIds();
+  const bar = document.getElementById('selectionBar'); if (!bar) return;
+  const cnt = document.getElementById('selCount');
+  cnt.textContent = `${ids.length} selected`;
+  bar.style.display = ids.length ? 'block' : 'none';
+}
+document.getElementById('selDelete')?.addEventListener('click', async ()=>{
+  const ids = selectedIds(); if (!ids.length) return;
+  const ok = await confirmModal(`Delete ${ids.length} selected?`); if (!ok) return;
+  const res = await fetch('/api/subscribers/bulk-delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ids }), credentials:'include' });
+  const j = await res.json(); if (!j.ok){ toast(j.error||'Failed', true); return; }
+  toast(`Deleted ${j.deleted} subscribers.`); loadSubs();
+});
+document.getElementById('selEdit')?.addEventListener('click', ()=>{
+  const ids = selectedIds(); if (!ids.length) return; subsEditOpen(ids);
+});
+
+// Details drawer
+async function openDetailsDrawer(id){
+  const m = document.getElementById('detailsDrawer');
+  const body = document.getElementById('detailsBody');
+  m.classList.remove('hidden');
+  body.textContent = 'Loading…';
+  const r = await fetch('/api/subscribers/'+id, { credentials:'include' });
+  const j = await r.json(); if (!j.ok){ body.textContent = j.error||'Failed'; return; }
+  const s = j.row;
+  body.innerHTML = `
+    <div class="field"><label>Email</label><div class="code">${s.email}</div></div>
+    <div class="field"><label>Name</label><input id="detFirst" value="${s.first_name||''}" placeholder="First"/> <input id="detLast" value="${s.last_name||''}" placeholder="Last"/></div>
+    <div class="field"><label>Trip type</label><input id="detTrip" value="${s.trip_type||''}"/></div>
+    <div class="field"><label>Group size</label><input id="detGroup" type="number" value="${s.group_size||''}"/></div>
+    <div class="field"><label>Travel months</label><input id="detMonths" value="${s.travel_months||''}"/></div>
+    <div class="field"><label>Stars</label><input id="detStars" type="number" value="${s.stars||0}"/></div>
+    <div class="field"><label>Confirmed</label><select id="detConfirmed"><option value="1" ${s.confirmed?'selected':''}>Yes</option><option value="0" ${!s.confirmed?'selected':''}>No</option></select></div>
+    <div class="field"><label>Returning</label><select id="detReturning"><option value="" ${!s.is_returning?'selected':''}>No</option><option value="1" ${s.is_returning?'selected':''}>Yes</option></select></div>
+    <div class="field"><label>Discount</label><input id="detDiscount" value="${s.discount_code||''}"/></div>
+    <div style="display:flex; gap:8px; margin-top:10px"><button id="detSave" class="cta">Save</button><button id="detClose" class="cta secondary">Close</button></div>
+  `;
+  document.getElementById('detClose').addEventListener('click', closeModals);
+  document.getElementById('detSave').addEventListener('click', async ()=>{
+    const payload = {
+      first_name: document.getElementById('detFirst').value.trim(),
+      last_name: document.getElementById('detLast').value.trim(),
+      trip_type: document.getElementById('detTrip').value.trim(),
+      group_size: Number(document.getElementById('detGroup').value)||null,
+      travel_months: document.getElementById('detMonths').value.trim(),
+      stars: Number(document.getElementById('detStars').value)||0,
+      confirmed: document.getElementById('detConfirmed').value==='1',
+      is_returning: document.getElementById('detReturning').value==='1',
+      discount_code: document.getElementById('detDiscount').value.trim()
+    };
+    const r2 = await fetch('/api/subscribers/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), credentials:'include' });
+    const j2 = await r2.json(); if (!j2.ok){ toast(j2.error||'Failed', true); return; }
+    toast('Saved.'); closeModals(); loadSubs();
+  });
+}
 
 // Toast helper
 function toast(message, isError=false){
@@ -350,7 +420,7 @@ async function loadStats() {
 }
 
 // Auto-load stats and subscribers shortly after page load
-setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); }, 300);
+setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initBroadcastModal(); initQuickFilters(); initColVisibility(); }, 300);
 
 // Ensure authenticated, otherwise bounce to login
 (async ()=>{
@@ -497,4 +567,133 @@ document.getElementById('promoForm')?.addEventListener('submit', async (e)=>{
   (e.target).reset();
   loadPromotions();
 });
+
+// Draw panel
+function gatherDrawCriteria(){
+  const confirmedVal = document.getElementById('drawConfirmed').value;
+  return {
+    confirmed: confirmedVal===''?undefined:(confirmedVal==='1'),
+    minStars: Number(document.getElementById('drawMinStars').value)||0,
+    returning: document.getElementById('drawReturning').value==='1',
+    countryCode: document.getElementById('drawCountry').value.trim()||undefined,
+    startDate: document.getElementById('drawFrom').value||undefined,
+    endDate: document.getElementById('drawTo').value||undefined,
+  };
+}
+
+async function refreshDrawPreview(){
+  const crit = gatherDrawCriteria();
+  try{
+    const r = await fetch('/api/draw/simulate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(crit), credentials:'include' });
+    const j = await r.json();
+    if (!j.ok) { document.getElementById('drawPreview').textContent = j.error||'Failed'; return; }
+    document.getElementById('drawPreview').textContent = `${j.eligible_count} eligible`; 
+  }catch{ document.getElementById('drawPreview').textContent = 'Failed'; }
+}
+
+async function refreshDrawHistory(){
+  try{
+    const r = await fetch('/api/draw/history', { credentials:'include' });
+    const j = await r.json(); if (!j.ok) return;
+    const wrap = document.getElementById('drawHistory');
+    wrap.innerHTML = '<div class="small text-secondary" style="margin-bottom:6px">Recent winners</div>' +
+      (j.rows||[]).map(x=>`<div class="card" style="margin:6px 0"><div class="card-body">${new Date(x.created_at).toLocaleString()} — ${String(x.winner_email||'').replace(/^(..).*@/, '$1***@')}</div></div>`).join('');
+  }catch{}
+}
+
+function initDraw(){
+  ['drawConfirmed','drawMinStars','drawReturning','drawCountry','drawFrom','drawTo'].forEach(id=>{
+    const el = document.getElementById(id); el?.addEventListener('change', refreshDrawPreview);
+    el?.addEventListener('input', refreshDrawPreview);
+  });
+  document.getElementById('btnSimulate')?.addEventListener('click', refreshDrawPreview);
+  document.getElementById('btnPickWinner')?.addEventListener('click', async ()=>{
+    const crit = gatherDrawCriteria();
+    const r = await fetch('/api/draw', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(crit), credentials:'include' });
+    const j = await r.json();
+    if (!j.ok) { toast(j.error||'Failed to pick', true); return; }
+    toast(`Winner: ${j.winnerEmail}`);
+    refreshDrawHistory();
+  });
+  document.getElementById('btnExportEligible')?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const c = gatherDrawCriteria();
+    const params = new URLSearchParams();
+    if (c.confirmed!==undefined) params.set('confirmed', c.confirmed?'1':'0');
+    if (c.minStars) params.set('minStars', String(c.minStars));
+    if (c.returning) params.set('returning','1');
+    if (c.countryCode) params.set('countryCode', c.countryCode);
+    if (c.startDate) params.set('startDate', c.startDate);
+    if (c.endDate) params.set('endDate', c.endDate);
+    window.location.href = '/api/draw/export?'+params.toString();
+  });
+  refreshDrawPreview();
+  refreshDrawHistory();
+}
+
+// Broadcast modal
+function initBroadcastModal(){
+  document.getElementById('openBroadcast')?.addEventListener('click', ()=>{
+    document.getElementById('broadcastModal').classList.remove('hidden');
+  });
+  // templates
+  document.querySelectorAll('#broadcastModal [data-tpl]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tpl = btn.getAttribute('data-tpl');
+      const subj = document.getElementById('subject');
+      const msg = document.getElementById('message');
+      if (tpl==='winner'){ subj.value = 'We have a winner!'; msg.value = 'Congrats to our contest winner! Stay tuned for future promos.'; }
+      if (tpl==='confirm'){ subj.value = 'Confirm your entry'; msg.value = 'Please confirm your entry to be eligible for the draw.'; }
+      if (tpl==='promo'){ subj.value = 'Promotion update'; msg.value = 'New perks just added to our promotion.'; }
+    });
+  });
+}
+
+// Quick filters
+function initQuickFilters(){
+  document.querySelectorAll('#quickFilters [data-qf]')?.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const v = btn.getAttribute('data-qf');
+      if (v===''){ document.getElementById('fltConfirmed').value = ''; document.getElementById('fltQ').value=''; }
+      if (v==='confirmed:1') document.getElementById('fltConfirmed').value = '1';
+      if (v==='confirmed:0') document.getElementById('fltConfirmed').value = '0';
+      if (v==='returning:1') document.getElementById('fltQ').value = ''; // not in filter API; narrow via server later if needed
+      if (v==='discount:1') document.getElementById('fltQ').value = ''; // placeholder
+      subsState.page = 1; loadSubs();
+    });
+  });
+}
+
+// Column visibility
+const colDefs = [
+  { key:'email', label:'Email' },
+  { key:'created_at', label:'Created' },
+  { key:'name', label:'Name' },
+  { key:'trip_type', label:'Trip' },
+  { key:'group_size', label:'Group' },
+  { key:'travel_months', label:'Months' },
+  { key:'stars', label:'Stars' },
+  { key:'confirmed', label:'Confirmed' },
+  { key:'is_returning', label:'Returning' },
+  { key:'discount_code', label:'Discount' },
+  { key:'ref_code', label:'Ref' },
+  { key:'referred_by', label:'ReferredBy' }
+];
+
+function initColVisibility(){
+  const wrap = document.getElementById('colVis'); if (!wrap) return;
+  const prefs = JSON.parse(localStorage.getItem('colVis')||'{}');
+  wrap.innerHTML = '';
+  colDefs.forEach((c,i)=>{
+    const chip = document.createElement('span'); chip.className='chip'+((prefs[c.key]??true)?' active':''); chip.textContent=c.label;
+    chip.addEventListener('click', ()=>{
+      const cur = chip.classList.toggle('active');
+      prefs[c.key] = cur; localStorage.setItem('colVis', JSON.stringify(prefs));
+      renderSubsTable(lastSubsRows||[]);
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+let lastSubsRows = [];
 

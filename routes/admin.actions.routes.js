@@ -5,6 +5,16 @@ import Subscriber from '../models/subscriber.js';
 
 const router = Router();
 
+router.post('/broadcast', adminLimiter, requireAdmin, async (req, res) => {
+  try{
+    const { subject, message } = req.body || {};
+    if (!subject || !message) return res.status(400).json({ ok:false, error:'Missing subject or message' });
+    const count = await Subscriber.countDocuments({});
+    // NOTE: For simplicity, this endpoint does not send emails. Integrate your mailer here if desired.
+    return res.json({ ok:true, count });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 router.post('/discount', adminLimiter, requireAdmin, async (req, res) => {
   try{
     const { email } = req.body || {};

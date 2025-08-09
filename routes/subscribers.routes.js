@@ -30,6 +30,16 @@ router.get('/', adminLimiter, requireAdmin, async (req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Get by id
+router.get('/:id', adminLimiter, requireAdmin, async (req, res) => {
+  try{
+    const { id } = req.params;
+    const row = await Subscriber.findById(id).lean();
+    if (!row) return res.status(404).json({ ok:false, error:'Not found' });
+    return res.json({ ok:true, row });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 // Update a single subscriber
 router.put('/:id', adminLimiter, requireAdmin, async (req, res) => {
   try{
