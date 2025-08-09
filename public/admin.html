@@ -6,23 +6,56 @@
     <title>Admin Broadcast</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
-    <main class="container admin">
-      <h1>Admin Dashboard</h1>
+  <body class="admin-theme dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Dashboard</span></div>
+        <nav>
+          <a href="/">Site</a>
+          <a href="/admin.html" aria-current="page">Dashboard</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+    <main class="container wide admin">
+      <div id="loadingBar" class="loading hidden" aria-live="polite" aria-busy="true">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading…</div>
+      </div>
+      <div class="admin-header">
+        <div>
+          <div class="breadcrumbs small text-secondary">Home / Admin</div>
+          <h1 class="page-title">Admin Dashboard</h1>
+        </div>
+        <div id="adminActions" class="actions"></div>
+      </div>
       <section id="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0 20px">
         <div class="card"><div class="card-body"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div></div>
         <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div></div>
         <div class="card"><div class="card-body"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div></div>
         <div class="card"><div class="card-body"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div></div>
       </section>
-      <section id="chart" style="margin-bottom:20px">
+      <section id="chart" style="margin-bottom:20px;display:grid;grid-template-columns:1.6fr .8fr;gap:12px">
         <div class="card"><div class="card-body">
-          <div class="small text-secondary">By Trip Type</div>
-          <div id="tripBars" style="display:flex;gap:10px;align-items:flex-end;height:120px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="small text-secondary">Subscribers</div>
+            </div>
+            <div class="small text-secondary">Report By: Monthly</div>
+          </div>
+          <div id="tripBars" style="display:flex;gap:10px;align-items:flex-end;height:120px;margin-bottom:12px"></div>
+          <div>
+            <div class="small text-secondary">Signups</div>
+            <svg id="signupsChart" viewBox="0 0 600 140" preserveAspectRatio="none" style="width:100%;height:140px"></svg>
+          </div>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:16px">By Country</h3><div class="small text-secondary">Report By: Monthly</div></div>
+          <div id="countryBars"></div>
         </div></div>
       </section>
-      <h2>Broadcast a message</h2>
-      <form id="broadcastForm" class="signup-form">
+      <div class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast a message</h2></div><div class="section-body">
+      <form id="broadcastForm" class="signup-form" style="margin:0">
         <div class="field">
           <label for="subject">Subject</label>
           <input id="subject" name="subject" type="text" required />
@@ -31,151 +64,32 @@
           <label for="message">Message</label>
           <textarea id="message" name="message" rows="6" required></textarea>
         </div>
-        <div class="field">
-          <label for="adminKey">Admin key</label>
-          <input id="adminKey" name="adminKey" type="password" required />
-        </div>
+        
         <button type="submit" class="cta submit">Send</button>
         <p id="adminMessage" class="form-message" role="status"></p>
       </form>
-    </main>
-    <script type="module">
-      const form = document.getElementById('broadcastForm');
-      const out = document.getElementById('adminMessage');
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        out.textContent = 'Sending...';
-        const subject = document.getElementById('subject').value.trim();
-        const message = document.getElementById('message').value.trim();
-        const adminKey = document.getElementById('adminKey').value.trim();
-        try {
-          const res = await fetch('/api/broadcast', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify({ subject, message }),
-          });
-          const data = await res.json();
-          if (data.ok) {
-            out.textContent = `Sent to ${data.count} subscribers.`;
-          } else {
-            out.textContent = data.error || 'Failed to send.';
-          }
-        } catch (err) {
-          out.textContent = 'Network error.';
-        }
-      });
-
-      // Export entrants (CSV)
-      const exportBtn = document.createElement('button');
-      exportBtn.textContent = 'Export CSV';
-      exportBtn.className = 'cta';
-      exportBtn.style.marginTop = '16px';
-      form.insertAdjacentElement('afterend', exportBtn);
-      exportBtn.addEventListener('click', async () => {
-        const adminKey = document.getElementById('adminKey').value.trim();
-        const res = await fetch('/api/export', { headers: { 'x-admin-key': adminKey } });
-        if (!res.ok) { out.textContent = 'Export failed.'; return; }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'entrants.csv'; a.click();
-        URL.revokeObjectURL(url);
-      });
-
-      // Pick winner
-      const pickBtn = document.createElement('button');
-      pickBtn.textContent = 'Pick Winner';
-      pickBtn.className = 'cta';
-      pickBtn.style.marginLeft = '8px';
-      exportBtn.insertAdjacentElement('afterend', pickBtn);
-      pickBtn.addEventListener('click', async () => {
-        const adminKey = document.getElementById('adminKey').value.trim();
-        const res = await fetch('/api/pick-winner', { method: 'POST', headers: { 'x-admin-key': adminKey } });
-        const data = await res.json();
-        if (data.ok) out.textContent = `Winner: ${data.winnerEmail} (from ${data.totalEntrants} confirmed entrants)`;
-        else out.textContent = data.error || 'Failed to pick winner.';
-      });
-
-      // Admin table to browse subscribers
-      const table = document.createElement('div');
-      table.style.marginTop = '24px';
-      table.innerHTML = `
-        <h2>Subscribers</h2>
-        <div class="field-row">
-          <div class="field"><label>Trip type</label>
-            <select id="fltTrip"><option value="">All</option><option value="family">Family</option><option value="golf">Golf</option><option value="work">Work</option><option value="friends">Friends</option></select>
+      </div></div>
+      <section id="promotions" style="margin-top:24px">
+        <h2>Promotions</h2>
+        <div id="promoRows" class="promo-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
+        <form id="promoForm" class="signup-form" style="margin-top:12px">
+          <div class="field-row">
+            <div class="field"><label>Title</label><input id="promoTitle" required /></div>
+            <div class="field"><label>Code</label><input id="promoCode" /></div>
           </div>
-          <div class="field"><label>Search</label><input id="fltQ" placeholder="email or name" /></div>
-          <div class="field"><label>Confirmed</label><select id="fltConfirmed"><option value="">Any</option><option value="1">Yes</option><option value="0">No</option></select></div>
-          <div class="field"><label>Min group</label><input id="fltMinGroup" type="number" min="1" /></div>
-        </div>
-        <button class="cta" id="btnLoad">Load</button>
-        <div id="rows" style="margin-top:12px"></div>
-        <div style="margin-top:12px">
-          <input id="emailDiscount" placeholder="email for discount" />
-          <button class="cta" id="btnDiscount">Issue discount</button>
-        </div>
-      `;
-      document.body.appendChild(table);
-
-      async function loadSubs() {
-        const adminKey = document.getElementById('adminKey').value.trim();
-        const params = new URLSearchParams();
-        const trip = document.getElementById('fltTrip').value; if (trip) params.set('tripType', trip);
-        const q = document.getElementById('fltQ').value.trim(); if (q) params.set('q', q);
-        const conf = document.getElementById('fltConfirmed').value; if (conf !== '') params.set('confirmed', conf);
-        const mg = document.getElementById('fltMinGroup').value; if (mg) params.set('minGroupSize', mg);
-        const res = await fetch('/api/subscribers?' + params.toString(), { headers: { 'x-admin-key': adminKey } });
-        const data = await res.json();
-        const rows = document.getElementById('rows');
-        if (!data.ok) { rows.textContent = data.error || 'Failed'; return; }
-        rows.innerHTML = '<div style="overflow:auto"><table><thead><tr><th>Email</th><th>Name</th><th>Trip</th><th>Group</th><th>Months</th><th>Confirmed</th><th>Returning</th><th>Discount</th><th>Ref</th><th>ReferredBy</th></tr></thead><tbody></tbody></table></div>';
-        const tbody = rows.querySelector('tbody');
-        data.rows.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${r.email}</td><td>${(r.first_name||'')+' '+(r.last_name||'')}</td><td>${r.trip_type||''}</td><td>${r.group_size||''}</td><td>${r.travel_months||''}</td><td>${r.confirmed?'Yes':'No'}</td><td>${r.is_returning?'Yes':'No'}</td><td>${r.discount_code||''}</td><td>${r.ref_code||''}</td><td>${r.referred_by||''}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
-      document.getElementById('btnLoad').addEventListener('click', loadSubs);
-
-      document.getElementById('btnDiscount').addEventListener('click', async () => {
-        const adminKey = document.getElementById('adminKey').value.trim();
-        const email = document.getElementById('emailDiscount').value.trim();
-        const res = await fetch('/api/discount', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey }, body: JSON.stringify({ email }) });
-        const data = await res.json();
-        if (data.ok) out.textContent = `Issued code ${data.discountCode} to ${data.email}`;
-        else out.textContent = data.error || 'Failed to issue code';
-      });
-
-      // Load stats for dashboard cards and bars
-      async function loadStats() {
-        const adminKey = document.getElementById('adminKey').value.trim();
-        if (!adminKey) return;
-        const res = await fetch('/api/admin-stats', { headers: { 'x-admin-key': adminKey } });
-        const data = await res.json();
-        if (!data.ok) return;
-        document.getElementById('statTotal').textContent = data.totals.total;
-        document.getElementById('statConfirmed').textContent = data.totals.confirmed;
-        document.getElementById('statStars').textContent = data.totals.totalStars;
-        document.getElementById('statReferred').textContent = data.totals.referred;
-        const bars = document.getElementById('tripBars');
-        bars.innerHTML = '';
-        const max = Math.max(1, ...data.byTrip.map(x=>x.count));
-        data.byTrip.forEach(x => {
-          const col = document.createElement('div');
-          col.style.height = (x.count/max*100)+'%';
-          col.style.width = '36px';
-          col.style.background = 'linear-gradient(180deg, var(--primary), #8ab4ff)';
-          col.style.borderRadius = '8px 8px 0 0';
-          col.title = `${x.key}: ${x.count}`;
-          bars.appendChild(col);
-        });
-      }
-
-      // Auto-load stats shortly after page load
-      setTimeout(loadStats, 300);
-    </script>
+          <div class="field-row">
+            <div class="field"><label>Start</label><input id="promoStart" type="date" /></div>
+            <div class="field"><label>End</label><input id="promoEnd" type="date" /></div>
+            <div class="field"><label>Draw</label><input id="promoDraw" type="date" /></div>
+          </div>
+          <div class="field"><label>Notes</label><input id="promoNotes" /></div>
+          <label><input type="checkbox" id="promoActive" checked /> Active</label>
+          <button class="cta" type="submit">Add Promotion</button>
+          <p id="promoMsg" class="form-message"></p>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/admin.js"></script>
   </body>
   </html>
 

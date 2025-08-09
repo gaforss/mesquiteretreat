@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container" style="padding:40px 0; max-width:420px">
+      <h1>Admin Login</h1>
+      <form id="loginForm" class="signup-form">
+        <div class="field"><label>Username</label><input id="username" required /></div>
+        <div class="field"><label>Password</label><input id="password" type="password" required /></div>
+        <button class="cta" type="submit">Login</button>
+        <p id="msg" class="form-message" role="status"></p>
+      </form>
+    </main>
+    <script type="module" src="/login.js"></script>
+  </body>
+  </html>
