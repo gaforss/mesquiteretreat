@@ -24,36 +24,37 @@ form.addEventListener('submit', async (e) => {
 });
 
 // Export entrants (CSV)
+// Header actions
 const exportBtn = document.createElement('button');
 exportBtn.textContent = 'Export CSV';
-exportBtn.className = 'cta';
-exportBtn.style.marginTop = '16px';
-form.insertAdjacentElement('afterend', exportBtn);
+exportBtn.className = 'cta secondary';
+document.getElementById('adminActions').appendChild(exportBtn);
 exportBtn.addEventListener('click', async () => {
   const res = await fetch('/api/export', { credentials: 'include' });
-  if (!res.ok) { out.textContent = 'Export failed.'; return; }
+  if (!res.ok) { toast('Export failed.', true); return; }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'entrants.csv'; a.click();
   URL.revokeObjectURL(url);
+  toast('Export started.');
 });
 
 // Pick winner
 const pickBtn = document.createElement('button');
 pickBtn.textContent = 'Pick Winner';
 pickBtn.className = 'cta';
-pickBtn.style.marginLeft = '8px';
-exportBtn.insertAdjacentElement('afterend', pickBtn);
+document.getElementById('adminActions').appendChild(pickBtn);
 pickBtn.addEventListener('click', async () => {
   const res = await fetch('/api/pick-winner', { method: 'POST', credentials: 'include' });
   const data = await res.json();
-  if (data.ok) out.textContent = `Winner: ${data.winnerEmail} (from ${data.totalEntrants} confirmed entrants)`;
-  else out.textContent = data.error || 'Failed to pick winner.';
+  if (data.ok) toast(`Winner: ${data.winnerEmail} (from ${data.totalEntrants} confirmed entrants)`);
+  else toast(data.error || 'Failed to pick winner.', true);
 });
 
 // Admin table to browse subscribers (modern table w/ sorting + pagination)
 const subsSection = document.createElement('section');
+subsSection.id = 'subscribers';
 subsSection.style.marginTop = '24px';
 subsSection.innerHTML = `
   <h2>Subscribers</h2>
@@ -81,8 +82,8 @@ subsSection.innerHTML = `
     <button class="cta" id="btnDiscount">Issue discount</button>
   </div>
 `;
-// Keep layout width aligned with the page container
-document.querySelector('main')?.appendChild(subsSection);
+// Insert into admin content area
+document.querySelector('.content')?.appendChild(subsSection);
 
 const subsState = { page: 1, pageSize: 25, sort: 'created_at', dir: 'desc', total: 0, totalPages: 0 };
 
@@ -179,19 +180,31 @@ document.getElementById('btnDiscount').addEventListener('click', async () => {
   const email = document.getElementById('emailDiscount').value.trim();
   const res = await fetch('/api/discount', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }), credentials: 'include' });
   const data = await res.json();
-  if (data.ok) out.textContent = `Issued code ${data.discountCode} to ${data.email}`;
-  else out.textContent = data.error || 'Failed to issue code';
+  if (data.ok) toast(`Issued code ${data.discountCode} to ${data.email}`);
+  else toast(data.error || 'Failed to issue code', true);
 });
+
+// Toast helper
+function toast(message, isError=false){
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('hidden');
+  el.style.borderColor = isError ? 'rgba(255,77,79,.6)' : 'rgba(255,255,255,.12)';
+  el.style.boxShadow = isError ? '0 10px 30px rgba(255,77,79,.25)' : '0 10px 30px rgba(0,0,0,.4)';
+  clearTimeout(window.__toastTimeout);
+  window.__toastTimeout = setTimeout(()=>{ el.classList.add('hidden'); }, 2600);
+}
 
 // Load stats for dashboard cards and bars
 async function loadStats() {
   const res = await fetch('/api/admin-stats', { credentials: 'include' });
   const data = await res.json();
   if (!data.ok) return;
-  document.getElementById('statTotal').textContent = data.totals.total;
-  document.getElementById('statConfirmed').textContent = data.totals.confirmed;
-  document.getElementById('statStars').textContent = data.totals.totalStars;
-  document.getElementById('statReferred').textContent = data.totals.referred;
+  document.getElementById('statTotal').textContent = data.totals.total.toLocaleString();
+  document.getElementById('statConfirmed').textContent = data.totals.confirmed.toLocaleString();
+  document.getElementById('statStars').textContent = data.totals.totalStars.toLocaleString();
+  document.getElementById('statReferred').textContent = data.totals.referred.toLocaleString();
   const bars = document.getElementById('tripBars');
   bars.innerHTML = '';
   const max = Math.max(1, ...data.byTrip.map(x=>x.count));
@@ -219,7 +232,7 @@ async function loadStats() {
       arr.forEach(([cc,count])=>{
         const row = document.createElement('div'); row.style.margin='10px 0';
         const label = document.createElement('div'); label.textContent = cc; label.style.fontWeight='600';
-        const bar = document.createElement('div'); bar.style.height='8px'; bar.style.borderRadius='999px'; bar.style.background='rgba(255,255,255,.08)';
+        const bar = document.createElement('div'); bar.style.height='8px'; bar.style.borderRadius='999px'; bar.style.background='rgba(255,255,255,.08)'; bar.style.overflow='hidden';
         const fill = document.createElement('div'); fill.style.height='100%'; fill.style.width=(count/max*100)+'%'; fill.style.borderRadius='999px'; fill.style.background='linear-gradient(90deg, var(--primary), #8ab4ff)';
         bar.appendChild(fill);
         const meta = document.createElement('div'); meta.className='small text-secondary'; meta.textContent = count + ' subscribers';
@@ -276,6 +289,54 @@ document.getElementById('logout').addEventListener('click', async ()=>{
   location.href = '/login.html';
 });
 
+// Modal helpers
+function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden')); }
+document.querySelectorAll('[data-close-modal]').forEach(btn=>btn.addEventListener('click', closeModals));
+document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeModals(); });
+
+function promoEditOpen(p){
+  const m = document.getElementById('promoEditModal');
+  document.getElementById('promoEditId').value = p.id;
+  document.getElementById('promoEditTitleInput').value = p.title||'';
+  document.getElementById('promoEditCodeInput').value = p.code||'';
+  document.getElementById('promoEditStartInput').value = p.start_date||'';
+  document.getElementById('promoEditEndInput').value = p.end_date||'';
+  document.getElementById('promoEditDrawInput').value = p.draw_date||'';
+  document.getElementById('promoEditNotesInput').value = p.notes||'';
+  document.getElementById('promoEditActiveInput').checked = !!p.active;
+  m.classList.remove('hidden');
+}
+
+async function confirmModal(message){
+  return new Promise(resolve=>{
+    const m = document.getElementById('confirmModal');
+    document.getElementById('confirmMessage').textContent = message||'Are you sure?';
+    m.classList.remove('hidden');
+    const yes = document.getElementById('confirmYes');
+    const onYes = ()=>{ m.classList.add('hidden'); yes.removeEventListener('click', onYes); resolve(true); };
+    yes.addEventListener('click', onYes);
+    m.querySelectorAll('[data-close-modal]').forEach(b=>b.addEventListener('click', ()=>resolve(false), { once:true }));
+  });
+}
+
+document.getElementById('promoEditForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('promoEditId').value;
+  const title = document.getElementById('promoEditTitleInput').value.trim();
+  const code = document.getElementById('promoEditCodeInput').value.trim();
+  const start = document.getElementById('promoEditStartInput').value;
+  const end = document.getElementById('promoEditEndInput').value;
+  const draw = document.getElementById('promoEditDrawInput').value;
+  const notes = document.getElementById('promoEditNotesInput').value.trim();
+  const active = document.getElementById('promoEditActiveInput').checked;
+  const res = await fetch('/api/promotions/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, code, start_date: start||null, end_date: end||null, draw_date: draw||null, notes, active }), credentials:'include' });
+  const j = await res.json();
+  if (!j.ok){ toast(j.error||'Failed to update', true); return; }
+  toast('Promotion updated.');
+  closeModals();
+  loadPromotions();
+});
+
 // Promotions
 async function loadPromotions(){
   const res = await fetch('/api/promotions', { credentials: 'include' });
@@ -312,21 +373,30 @@ async function loadPromotions(){
   div.querySelectorAll('.promo-del').forEach(el=>{
     el.addEventListener('click', async ()=>{
       const id = el.getAttribute('data-id');
+      const ok = await confirmModal('Delete this promotion?');
+      if (!ok) return;
       await fetch('/api/promotions/'+id, { method:'DELETE', credentials:'include' });
+      toast('Promotion deleted.');
       loadPromotions();
     });
   });
   div.querySelectorAll('.promo-edit').forEach(el=>{
     el.addEventListener('click', async ()=>{
       const id = el.getAttribute('data-id');
-      const title = prompt('Title');
-      const code = prompt('Code');
-      const start = prompt('Start (YYYY-MM-DD)');
-      const end = prompt('End (YYYY-MM-DD)');
-      const draw = prompt('Draw (YYYY-MM-DD)');
-      const notes = prompt('Notes');
-      await fetch('/api/promotions/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, code, start_date: start||null, end_date: end||null, draw_date: draw||null, notes }), credentials:'include' });
-      loadPromotions();
+      // Load current row to prefill
+      const res = await fetch('/api/promotions', { credentials:'include' });
+      const j = await res.json();
+      const row = (j.rows||[]).find(r=>String(r._id)===String(id));
+      promoEditOpen({
+        id,
+        title: row?.title||'',
+        code: row?.code||'',
+        start_date: row?.start_date? new Date(row.start_date).toISOString().slice(0,10):'',
+        end_date: row?.end_date? new Date(row.end_date).toISOString().slice(0,10):'',
+        draw_date: row?.draw_date? new Date(row.draw_date).toISOString().slice(0,10):'',
+        notes: row?.notes||'',
+        active: !!row?.active
+      });
     });
   });
 }

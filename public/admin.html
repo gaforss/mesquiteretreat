@@ -18,77 +18,126 @@
       </div>
     </header>
     <main class="container wide admin">
-      <div id="loadingBar" class="loading hidden" aria-live="polite" aria-busy="true">
-        <div class="spinner"></div>
-        <div class="loading-text">Loading…</div>
-      </div>
-      <div class="admin-header">
-        <div>
-          <div class="breadcrumbs small text-secondary">Home / Admin</div>
-          <h1 class="page-title">Admin Dashboard</h1>
-        </div>
-        <div id="adminActions" class="actions"></div>
-      </div>
-      <section id="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0 20px">
-        <div class="card"><div class="card-body"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div></div>
-        <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div></div>
-        <div class="card"><div class="card-body"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div></div>
-        <div class="card"><div class="card-body"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div></div>
-      </section>
-      <section id="chart" style="margin-bottom:20px;display:grid;grid-template-columns:1.6fr .8fr;gap:12px">
-        <div class="card"><div class="card-body">
-          <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="admin-layout">
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Panel</span></div>
+          </div>
+          <nav class="side-nav">
+            <a href="/admin.html" class="active">Dashboard</a>
+            <a href="#subscribers">Subscribers</a>
+            <a href="#promotions">Promotions</a>
+            <a href="#broadcast">Broadcast</a>
+          </nav>
+        </aside>
+        <div class="content">
+          <div id="loadingBar" class="loading hidden" aria-live="polite" aria-busy="true">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading…</div>
+          </div>
+          <div class="admin-header">
             <div>
-              <div class="small text-secondary">Subscribers</div>
+              <div class="breadcrumbs small text-secondary">Home / Admin</div>
+              <h1 class="page-title">Admin Dashboard</h1>
             </div>
-            <div class="small text-secondary">Report By: Monthly</div>
+            <div id="adminActions" class="actions"></div>
           </div>
-          <div id="tripBars" style="display:flex;gap:10px;align-items:flex-end;height:120px;margin-bottom:12px"></div>
-          <div>
-            <div class="small text-secondary">Signups</div>
-            <svg id="signupsChart" viewBox="0 0 600 140" preserveAspectRatio="none" style="width:100%;height:140px"></svg>
-          </div>
-        </div></div>
-        <div class="card"><div class="card-body">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:16px">By Country</h3><div class="small text-secondary">Report By: Monthly</div></div>
-          <div id="countryBars"></div>
-        </div></div>
-      </section>
-      <div class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast a message</h2></div><div class="section-body">
-      <form id="broadcastForm" class="signup-form" style="margin:0">
-        <div class="field">
-          <label for="subject">Subject</label>
-          <input id="subject" name="subject" type="text" required />
+          <section id="cards" class="admin-kpis">
+            <div class="card"><div class="card-body"><div class="small text-secondary">Total</div><div id="statTotal" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Confirmed</div><div id="statConfirmed" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Stars</div><div id="statStars" class="h4 m-0">–</div></div></div>
+            <div class="card"><div class="card-body"><div class="small text-secondary">Referred</div><div id="statReferred" class="h4 m-0">–</div></div></div>
+          </section>
+          <section id="chart" class="chart-grid" style="margin-bottom:20px">
+            <div class="card"><div class="card-body">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div class="small text-secondary">Subscribers</div>
+                </div>
+                <div class="small text-secondary">Report By: Monthly</div>
+              </div>
+              <div id="tripBars" class="trip-bars"></div>
+              <div>
+                <div class="small text-secondary">Signups</div>
+                <svg id="signupsChart" viewBox="0 0 600 140" preserveAspectRatio="none" style="width:100%;height:140px"></svg>
+              </div>
+            </div></div>
+            <div class="card"><div class="card-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:16px">By Country</h3><div class="small text-secondary">Report By: Monthly</div></div>
+              <div id="countryBars"></div>
+            </div></div>
+          </section>
+          <section id="broadcast" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Broadcast a message</h2></div><div class="section-body">
+          <form id="broadcastForm" class="signup-form" style="margin:0">
+            <div class="field">
+              <label for="subject">Subject</label>
+              <input id="subject" name="subject" type="text" required />
+            </div>
+            <div class="field">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="6" required></textarea>
+            </div>
+            
+            <button type="submit" class="cta submit">Send</button>
+            <p id="adminMessage" class="form-message" role="status"></p>
+          </form>
+          </div></section>
+          <section id="promotions" style="margin-top:24px">
+            <h2>Promotions</h2>
+            <div id="promoRows" class="promo-grid"></div>
+            <form id="promoForm" class="signup-form" style="margin-top:12px">
+              <div class="field-row">
+                <div class="field"><label>Title</label><input id="promoTitle" required /></div>
+                <div class="field"><label>Code</label><input id="promoCode" /></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Start</label><input id="promoStart" type="date" /></div>
+                <div class="field"><label>End</label><input id="promoEnd" type="date" /></div>
+                <div class="field"><label>Draw</label><input id="promoDraw" type="date" /></div>
+              </div>
+              <div class="field"><label>Notes</label><input id="promoNotes" /></div>
+              <label><input type="checkbox" id="promoActive" checked /> Active</label>
+              <button class="cta" type="submit">Add Promotion</button>
+              <p id="promoMsg" class="form-message"></p>
+            </form>
+          </section>
         </div>
-        <div class="field">
-          <label for="message">Message</label>
-          <textarea id="message" name="message" rows="6" required></textarea>
-        </div>
-        
-        <button type="submit" class="cta submit">Send</button>
-        <p id="adminMessage" class="form-message" role="status"></p>
-      </form>
-      </div></div>
-      <section id="promotions" style="margin-top:24px">
-        <h2>Promotions</h2>
-        <div id="promoRows" class="promo-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
-        <form id="promoForm" class="signup-form" style="margin-top:12px">
-          <div class="field-row">
-            <div class="field"><label>Title</label><input id="promoTitle" required /></div>
-            <div class="field"><label>Code</label><input id="promoCode" /></div>
-          </div>
-          <div class="field-row">
-            <div class="field"><label>Start</label><input id="promoStart" type="date" /></div>
-            <div class="field"><label>End</label><input id="promoEnd" type="date" /></div>
-            <div class="field"><label>Draw</label><input id="promoDraw" type="date" /></div>
-          </div>
-          <div class="field"><label>Notes</label><input id="promoNotes" /></div>
-          <label><input type="checkbox" id="promoActive" checked /> Active</label>
-          <button class="cta" type="submit">Add Promotion</button>
-          <p id="promoMsg" class="form-message"></p>
-        </form>
-      </section>
+      </div>
     </main>
+    <!-- Toast -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <!-- Modals -->
+    <div id="promoEditModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="promoEditTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="promoEditTitle">Edit Promotion</h2>
+        <form id="promoEditForm">
+          <input type="hidden" id="promoEditId" />
+          <label>Title<input id="promoEditTitleInput" type="text" required /></label>
+          <label>Code<input id="promoEditCodeInput" type="text" /></label>
+          <label>Start<input id="promoEditStartInput" type="date" /></label>
+          <label>End<input id="promoEditEndInput" type="date" /></label>
+          <label>Draw<input id="promoEditDrawInput" type="date" /></label>
+          <label>Notes<input id="promoEditNotesInput" type="text" /></label>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="promoEditActiveInput" type="checkbox"/> Active</label>
+          <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
+            <button class="cta" type="submit">Save</button>
+            <button class="cta secondary" type="button" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="confirmTitle">Confirm</h2>
+        <p id="confirmMessage" class="text-secondary">Are you sure?</p>
+        <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
+          <button id="confirmYes" class="cta">Yes</button>
+          <button class="cta secondary" data-close-modal>No</button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/admin.js"></script>
   </body>
   </html>
