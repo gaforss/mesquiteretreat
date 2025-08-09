@@ -14,7 +14,7 @@
           <a href="/admin.html">Admin Dashboard</a>
           <a href="/admin-content.html">Edit Site Content</a>
           <a href="/admin-vendors.html" aria-current="page">Manage Vendors</a>
-          <a href="/newsletter.html" class="cta secondary">Newsletter</a>
+          <a href="/newsletter.html">Newsletter</a>
         </nav>
         <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
       </div>
@@ -31,7 +31,9 @@
           <section class="section-card">
             <div class="section-head"><h2 style="margin:0">Vendors</h2></div>
             <div class="section-body">
-              <div id="vendorsTable" class="table-wrap"></div>
+              <div class="table-scroll" style="max-height:480px; overflow:auto">
+                <div id="vendorsTable" class="table-wrap"></div>
+              </div>
             </div>
           </section>
           <section class="section-card">

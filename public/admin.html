@@ -14,7 +14,7 @@
           <a href="/admin.html" aria-current="page">Admin Dashboard</a>
           <a href="/admin-content.html">Edit Site Content</a>
           <a href="/admin-vendors.html">Manage Vendors</a>
-          <a href="/newsletter.html" class="cta secondary">Newsletter</a>
+          <a href="/newsletter.html">Newsletter</a>
         </nav>
         <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
       </div>
@@ -77,18 +77,103 @@
               <div id="countryBars" class="apex-chart" style="height:280px"></div>
             </div></div>
           </section>
-          <section id="draw" class="section-card" style="margin-bottom:16px"><div class="section-head"><h2 style="margin:0">Draw</h2><div class="actions"><button id="btnSimulate" class="cta secondary">Simulate</button><button id="btnPickWinner" class="cta">Pick Winner</button><a id="btnExportEligible" class="cta secondary" href="#">Export Eligible</a></div></div><div class="section-body">
-            <div class="filters-grid">
-              <div class="field"><label>Confirmed</label><select id="drawConfirmed"><option value="1" selected>Yes</option><option value="0">No</option><option value="">Any</option></select></div>
-              <div class="field"><label>Min stars</label><input id="drawMinStars" type="number" min="0" value="0"/></div>
-              <div class="field"><label>Returning only</label><select id="drawReturning"><option value="">Any</option><option value="1">Yes</option></select></div>
-              <div class="field"><label>Country</label><input id="drawCountry" placeholder="US"/></div>
-              <div class="field"><label>From</label><input id="drawFrom" type="date"/></div>
-              <div class="field"><label>To</label><input id="drawTo" type="date"/></div>
+          <section id="draw" class="section-card" style="margin-bottom:16px">
+            <div class="section-head">
+              <h2 style="margin:0">Draw</h2>
+              <div class="actions">
+                <button id="btnResetDraw" class="cta secondary" title="Reset filters">Reset</button>
+                <button id="btnSimulate" class="cta secondary" title="Simulate eligible count">Simulate</button>
+                <button id="btnPickWinner" class="cta" title="Pick a winner now">Pick Winner</button>
+                <a id="btnExportEligible" class="cta secondary" href="#" title="Export eligible entrants">Export Eligible</a>
+              </div>
             </div>
-            <div id="drawPreview" class="small text-secondary" style="margin-top:8px">—</div>
-            <div id="drawHistory" style="margin-top:12px"></div>
-          </div></section>
+            <div class="section-body">
+              <div class="filters-grid">
+                <div class="field">
+                  <label>Confirmed</label>
+                  <div id="drawConfirmedSeg" class="segmented" role="tablist" aria-label="Confirmed">
+                    <button class="seg active-primary" data-val="" aria-selected="true">Any</button>
+                    <button class="seg" data-val="1" aria-selected="false">Yes</button>
+                    <button class="seg" data-val="0" aria-selected="false">No</button>
+                  </div>
+                  <select id="drawConfirmed" style="display:none"><option value="" selected>Any</option><option value="1">Yes</option><option value="0">No</option></select>
+                </div>
+                <div class="field">
+                  <label>Min stars <span class="small text-secondary" id="drawMinStarsOut">0</span></label>
+                  <input id="drawMinStars" type="range" min="0" max="10" step="1" value="0"/>
+                </div>
+                <div class="field">
+                  <label>Returning only</label>
+                  <div id="drawReturningSeg" class="segmented" role="tablist" aria-label="Returning only">
+                    <button class="seg active-primary" data-val="" aria-selected="true">Any</button>
+                    <button class="seg" data-val="1" aria-selected="false">Yes</button>
+                  </div>
+                  <select id="drawReturning" style="display:none"><option value="" selected>Any</option><option value="1">Yes</option></select>
+                </div>
+                <div class="field">
+                  <label>Country</label>
+                  <select id="drawCountry">
+                    <option value="">Any</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="NZ">New Zealand</option>
+                    <option value="MX">Mexico</option>
+                    <option value="__custom">Custom…</option>
+                  </select>
+                  <div id="drawCountryCustomWrap" class="small" style="display:none; margin-top:6px">
+                    <label class="small text-secondary" style="display:block; margin-bottom:4px">Custom ISO code</label>
+                    <input id="drawCountryCustom" type="text" placeholder="US" maxlength="2" style="text-transform:uppercase"/>
+                  </div>
+                </div>
+                <div class="field col-span-2">
+                  <label>Date range</label>
+                  <div class="input-group date-range">
+                    <span class="icon" aria-hidden="true">📅</span>
+                    <input id="drawFrom" type="date" placeholder="From" />
+                    <span class="divider" aria-hidden="true"></span>
+                    <input id="drawTo" type="date" placeholder="To" />
+                  </div>
+                </div>
+              </div>
+              <div class="date-controls-row" style="margin-top:8px">
+                <div id="drawDatePresets" class="segmented" role="tablist" aria-label="Date range presets">
+                  <button class="seg active-primary" data-range="all" aria-selected="true">All time</button>
+                  <button class="seg" data-range="30" aria-selected="false">Last 30d</button>
+                  <button class="seg" data-range="month" aria-selected="false">This month</button>
+                  <button class="seg" data-range="ytd" aria-selected="false">YTD</button>
+                </div>
+                <div class="date-mode-inline">
+                  <span class="small text-secondary">By:</span>
+                  <div id="drawDateModeSeg" class="segmented seg-sm" role="tablist" aria-label="Date filter by">
+                    <button class="seg active-primary" data-mode="created" aria-selected="true">Signup</button>
+                    <button class="seg" data-mode="travel" aria-selected="false">Travel</button>
+                  </div>
+                </div>
+                <select id="drawDateMode" style="display:none"><option value="created" selected>created</option><option value="travel">travel</option></select>
+              </div>
+              <div class="fine-print" style="margin-top:8px">
+                <details>
+                  <summary>How to use</summary>
+                  <ul class="small text-secondary" style="margin:8px 0 0 16px">
+                    <li>Set filters to define who is eligible for this draw.</li>
+                    <li>Click <strong>Simulate</strong> to preview the number of eligible entrants.</li>
+                    <li>Click <strong>Pick Winner</strong> to select a random winner and log it in Recent winners.</li>
+                    <li>Use <strong>Export Eligible</strong> to download a CSV of all currently eligible entrants.</li>
+                    <li>If you just added entries and don't confirm them, set <strong>Confirmed</strong> to <em>Any</em>.</li>
+                  </ul>
+                </details>
+              </div>
+              <div id="drawPreview" class="draw-summary" style="margin-top:10px">
+                <span class="emoji">🎟️</span>
+                <span class="small text-secondary">Eligible</span>
+                <strong class="count">—</strong>
+              </div>
+              <div id="drawActiveFilters" class="small text-secondary" style="margin-top:6px">No filters (all time)</div>
+              <div id="drawHistory" style="margin-top:12px"></div>
+            </div>
+          </section>
           <section id="promotions" style="margin-top:16px">
             <h2>Promotions</h2>
             <div id="promoRows" class="promo-grid"></div>

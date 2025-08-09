@@ -1,4 +1,9 @@
 // Export entrants (CSV)
+// Disable ApexCharts animations globally for performance
+try{
+  window.Apex = window.Apex || {};
+  window.Apex.chart = Object.assign({}, window.Apex.chart||{}, { animations: { enabled: false } });
+}catch{}
 // Header actions
 const exportBtn = document.createElement('button');
 exportBtn.textContent = 'Export CSV';
@@ -46,7 +51,7 @@ function formatMonthYear(d){
 function renderSubsTable(rows){
   const container = document.getElementById('rows');
   const arrows = (key)=> subsState.sort===key ? (subsState.dir==='asc'?' ▲':' ▼') : '';
-  container.innerHTML = `<table><thead><tr>
+  container.innerHTML = `<table role="grid"><thead><tr>
     <th style="width:28px"><input type="checkbox" id="chkAll"/></th>
     <th data-sort="email">Email${arrows('email')}</th>
     <th data-sort="created_at">Created${arrows('created_at')}</th>
@@ -310,6 +315,7 @@ async function loadStats() {
           type: 'line', 
           height: 36, 
           sparkline: { enabled: true },
+          animations: { enabled: false },
           dropShadow: { enabled: true, top: 1, left: 0, blur: 4, color: '#fbbf24', opacity: 0.3 }
         },
         stroke: { width: 2.5, curve: 'smooth', lineCap: 'round' },
@@ -373,6 +379,7 @@ async function loadStats() {
           toolbar: { show: false }, 
           foreColor: '#e8eef7',
           background: 'transparent',
+          animations: { enabled: false },
           dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.15 }
         },
         theme: { 
@@ -453,6 +460,7 @@ async function loadStats() {
             toolbar: { show: false }, 
             foreColor: '#e8eef7',
             background: 'transparent',
+            animations: { enabled: false },
             dropShadow: { enabled: true, top: 2, left: 0, blur: 8, color: '#34d399', opacity: 0.2 }
           },
           theme: { 
@@ -542,6 +550,7 @@ async function loadStats() {
           toolbar: { show: false }, 
           foreColor: '#e8eef7',
           background: 'transparent',
+          animations: { enabled: false },
           dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.3 }
         },
         theme: { 
@@ -790,20 +799,94 @@ function gatherDrawCriteria(){
     confirmed: confirmedVal===''?undefined:(confirmedVal==='1'),
     minStars: Number(document.getElementById('drawMinStars').value)||0,
     returning: document.getElementById('drawReturning').value==='1',
-    countryCode: document.getElementById('drawCountry').value.trim()||undefined,
+    countryCode: (function(){
+      const sel = document.getElementById('drawCountry');
+      const v = (sel?.value||'').trim();
+      if (v==='__custom'){ const c = document.getElementById('drawCountryCustom').value.trim().toUpperCase(); return c||undefined; }
+      return v||undefined;
+    })(),
     startDate: document.getElementById('drawFrom').value||undefined,
     endDate: document.getElementById('drawTo').value||undefined,
+    dateMode: (function(){ const m = document.getElementById('drawDateMode'); return m?.value||'created'; })()
   };
+}
+
+function updateDrawActiveFilters(){
+  const c = gatherDrawCriteria();
+  const el = document.getElementById('drawActiveFilters'); if (!el) return;
+  const bits = [];
+  if (c.confirmed === true) bits.push('Confirmed: Yes');
+  else if (c.confirmed === false) bits.push('Confirmed: No');
+  if (c.minStars) bits.push(`Min stars: ${c.minStars}`);
+  if (c.returning) bits.push('Returning only');
+  if (c.countryCode) bits.push(`Country: ${c.countryCode}`);
+  const pretty = (iso)=>{
+    if (!iso) return '…';
+    const [y,m,d] = String(iso).split('-').map(Number);
+    const dt = new Date(y||1970, (m||1)-1, d||1);
+    try{ return dt.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }); }catch{ return iso; }
+  };
+  if (c.startDate || c.endDate) bits.push(`Date: ${pretty(c.startDate)} → ${pretty(c.endDate)}`);
+  el.textContent = bits.length ? bits.join(' · ') : 'No filters (all time)';
 }
 
 async function refreshDrawPreview(){
   const crit = gatherDrawCriteria();
   try{
+    const preview = document.getElementById('drawPreview');
+    const btn = document.getElementById('btnSimulate');
+    console.debug('[Draw] Simulate start', crit);
+    // ensure structure exists
+    if (preview && (!preview.querySelector('.small') || !preview.querySelector('.count'))){
+      preview.innerHTML = '<span class="emoji">🎟️</span><span class="small text-secondary">Eligible</span><strong class="count">—</strong>';
+    }
+    if (preview){
+      const sm = preview.querySelector('.small'); const ct = preview.querySelector('.count');
+      if (sm) sm.textContent = 'Loading…'; if (ct) ct.textContent = '—';
+      preview.setAttribute('aria-busy','true');
+    }
+    if (btn) btn.disabled = true;
     const r = await fetch('/api/draw/simulate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(crit), credentials:'include' });
     const j = await r.json();
-    if (!j.ok) { document.getElementById('drawPreview').textContent = j.error||'Failed'; return; }
-    document.getElementById('drawPreview').textContent = `${j.eligible_count} eligible`; 
-  }catch{ document.getElementById('drawPreview').textContent = 'Failed'; }
+    console.debug('[Draw] Simulate response', j);
+    if (!j.ok){
+      if (preview){
+        const sm = preview.querySelector('.small'); const ct = preview.querySelector('.count');
+        if (sm) sm.textContent = j.error||'Failed'; if (ct) ct.textContent = '—';
+        preview.removeAttribute('aria-busy');
+      }
+      if (btn) btn.disabled = false;
+      updateDrawActiveFilters();
+      return;
+    }
+    // Optional: log sample to help admin verify timeframe
+    if (Array.isArray(j.sample)){
+      console.debug('[Draw] Sample eligible (created_at):', j.sample.map(s=>({ email: s.email, created_at: s.created_at })).slice(0,5));
+    }
+    if (preview){
+      const sm = preview.querySelector('.small'); const ct = preview.querySelector('.count');
+      if (sm) sm.textContent = 'Eligible'; if (ct) ct.textContent = String(j.eligible_count);
+      preview.removeAttribute('aria-busy');
+    }
+    if (btn) btn.disabled = false;
+    updateDrawActiveFilters();
+  }catch(err){
+    console.error('[Draw] Simulate error', err);
+    const preview = document.getElementById('drawPreview');
+    const btn = document.getElementById('btnSimulate');
+    if (preview){
+      // rebuild if needed
+      if (!preview.querySelector('.small') || !preview.querySelector('.count')){
+        preview.innerHTML = '<span class="emoji">🎟️</span><span class="small text-secondary">Eligible</span><strong class="count">—</strong>';
+      }
+      const sm = preview.querySelector('.small'); const ct = preview.querySelector('.count');
+      if (sm) sm.textContent = 'Error'; if (ct) ct.textContent = '—';
+      preview.removeAttribute('aria-busy');
+    }
+    if (btn) btn.disabled = false;
+    toast('Failed to simulate', true);
+    updateDrawActiveFilters();
+  }
 }
 
 async function refreshDrawHistory(){
@@ -821,17 +904,113 @@ function initDraw(){
     const el = document.getElementById(id); el?.addEventListener('change', refreshDrawPreview);
     el?.addEventListener('input', refreshDrawPreview);
   });
+  // Country custom toggle
+  const countrySel = document.getElementById('drawCountry');
+  const customWrap = document.getElementById('drawCountryCustomWrap');
+  countrySel?.addEventListener('change', ()=>{
+    const isCustom = countrySel.value==='__custom';
+    if (customWrap) customWrap.style.display = isCustom ? 'block' : 'none';
+    refreshDrawPreview();
+  });
+  document.getElementById('drawCountryCustom')?.addEventListener('input', refreshDrawPreview);
+  // Segmented controls -> hidden selects
+  const confSeg = document.getElementById('drawConfirmedSeg');
+  confSeg?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.seg'); if (!btn) return;
+    console.debug('[Draw] Confirmed seg click', btn.getAttribute('data-val'));
+    confSeg.querySelectorAll('.seg').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    confSeg.querySelectorAll('.seg').forEach(b=>b.classList.toggle('active-primary', b===btn));
+    const val = btn.getAttribute('data-val')||'';
+    const sel = document.getElementById('drawConfirmed'); if (sel) sel.value = val;
+    refreshDrawPreview();
+  });
+  // Ensure initial confirmed state matches UI (Any)
+  const confirmedSelect = document.getElementById('drawConfirmed');
+  if (confirmedSelect) confirmedSelect.value = '';
+  const retSeg = document.getElementById('drawReturningSeg');
+  retSeg?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.seg'); if (!btn) return;
+    console.debug('[Draw] Returning seg click', btn.getAttribute('data-val'));
+    retSeg.querySelectorAll('.seg').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    retSeg.querySelectorAll('.seg').forEach(b=>b.classList.toggle('active-primary', b===btn));
+    const val = btn.getAttribute('data-val')||'';
+    const sel = document.getElementById('drawReturning'); if (sel) sel.value = val;
+    refreshDrawPreview();
+  });
+  // Stars output
+  const stars = document.getElementById('drawMinStars');
+  const starsOut = document.getElementById('drawMinStarsOut');
+  if (stars && starsOut){ starsOut.textContent = String(stars.value||0); stars.addEventListener('input', ()=>{ starsOut.textContent = String(stars.value||0); }); }
+  stars?.addEventListener('change', ()=>console.debug('[Draw] Min stars changed', stars.value));
+  // Date presets
+  const dateSeg = document.getElementById('drawDatePresets');
+  // Date mode segmented control
+  const dateModeSeg = document.getElementById('drawDateModeSeg');
+  dateModeSeg?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.seg'); if (!btn) return;
+    const mode = btn.getAttribute('data-mode')||'created';
+    console.debug('[Draw] Date mode', mode);
+    dateModeSeg.querySelectorAll('.seg').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    dateModeSeg.querySelectorAll('.seg').forEach(b=>b.classList.toggle('active-primary', b===btn));
+    const sel = document.getElementById('drawDateMode'); if (sel) sel.value = mode;
+    refreshDrawPreview();
+  });
+  dateSeg?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.seg'); if (!btn) return;
+    console.debug('[Draw] Date preset', btn.getAttribute('data-range'));
+    dateSeg.querySelectorAll('.seg').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    dateSeg.querySelectorAll('.seg').forEach(b=>b.classList.toggle('active-primary', b===btn));
+    const range = btn.getAttribute('data-range');
+    const from = document.getElementById('drawFrom');
+    const to = document.getElementById('drawTo');
+    const today = new Date();
+    const fmt = (d)=>{ const z = d.getTimezoneOffset(); const local = new Date(d.getTime() - z*60000); return local.toISOString().slice(0,10); };
+    if (range==='all'){ from.value = ''; to.value = ''; }
+    if (range==='30'){ const d = new Date(today); d.setDate(d.getDate()-30); from.value = fmt(d); to.value = fmt(today); }
+    if (range==='month'){ const start = new Date(today.getFullYear(), today.getMonth(), 1); from.value = fmt(start); to.value = fmt(today); }
+    if (range==='ytd'){ const start = new Date(today.getFullYear(), 0, 1); from.value = fmt(start); to.value = fmt(today); }
+    updateDrawActiveFilters();
+    refreshDrawPreview();
+  });
+  // Reset
+  document.getElementById('btnResetDraw')?.addEventListener('click', ()=>{
+    console.debug('[Draw] Reset filters');
+    // reset selects/inputs
+    const selC = document.getElementById('drawConfirmed'); if (selC) selC.value = '';
+    const segC = document.getElementById('drawConfirmedSeg');
+    segC?.querySelectorAll('.seg').forEach((b,i)=>{ const isActive = (b.getAttribute('data-val')||'')===''; b.setAttribute('aria-selected', isActive?'true':'false'); b.classList.toggle('active-primary', isActive); });
+    const selR = document.getElementById('drawReturning'); if (selR) selR.value = '';
+    const segR = document.getElementById('drawReturningSeg');
+    segR?.querySelectorAll('.seg').forEach((b)=>{ const isActive = (b.getAttribute('data-val')||'')===''; b.setAttribute('aria-selected', isActive?'true':'false'); b.classList.toggle('active-primary', isActive); });
+    const stars = document.getElementById('drawMinStars'); if (stars){ stars.value = '0'; document.getElementById('drawMinStarsOut').textContent = '0'; }
+    const ctry = document.getElementById('drawCountry'); if (ctry) ctry.value = '';
+    const from = document.getElementById('drawFrom'); if (from) from.value = '';
+    const to = document.getElementById('drawTo'); if (to) to.value = '';
+    const dateSeg = document.getElementById('drawDatePresets');
+    dateSeg?.querySelectorAll('.seg').forEach((b)=>{ const isActive = b.getAttribute('data-range')==='all'; b.setAttribute('aria-selected', isActive?'true':'false'); b.classList.toggle('active-primary', isActive); });
+    const dateModeSeg = document.getElementById('drawDateModeSeg');
+    const dateModeSel = document.getElementById('drawDateMode'); if (dateModeSel) dateModeSel.value = 'created';
+    dateModeSeg?.querySelectorAll('.seg').forEach((b)=>{ const isActive = b.getAttribute('data-mode')==='created'; b.setAttribute('aria-selected', isActive?'true':'false'); b.classList.toggle('active-primary', isActive); });
+    refreshDrawPreview();
+  });
   document.getElementById('btnSimulate')?.addEventListener('click', refreshDrawPreview);
   document.getElementById('btnPickWinner')?.addEventListener('click', async ()=>{
+    console.debug('[Draw] Pick winner clicked');
     const crit = gatherDrawCriteria();
     const r = await fetch('/api/draw', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(crit), credentials:'include' });
     const j = await r.json();
+    console.debug('[Draw] Pick winner response', j);
     if (!j.ok) { toast(j.error||'Failed to pick', true); return; }
     toast(`Winner: ${j.winnerEmail}`);
     refreshDrawHistory();
   });
   document.getElementById('btnExportEligible')?.addEventListener('click', (e)=>{
     e.preventDefault();
+    console.debug('[Draw] Export click');
     const c = gatherDrawCriteria();
     const params = new URLSearchParams();
     if (c.confirmed!==undefined) params.set('confirmed', c.confirmed?'1':'0');
@@ -840,6 +1019,7 @@ function initDraw(){
     if (c.countryCode) params.set('countryCode', c.countryCode);
     if (c.startDate) params.set('startDate', c.startDate);
     if (c.endDate) params.set('endDate', c.endDate);
+    if (c.dateMode && c.dateMode!=='created') params.set('dateMode', c.dateMode);
     window.location.href = '/api/draw/export?'+params.toString();
   });
   refreshDrawPreview();

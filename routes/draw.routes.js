@@ -13,9 +13,32 @@ function buildFilter(q){
   if (q.returning === true) f.is_returning = true;
   if (q.countryCode) f.country_code = String(q.countryCode).toUpperCase();
   if (q.startDate || q.endDate){
-    f.created_at = {};
-    if (q.startDate) f.created_at.$gte = new Date(q.startDate);
-    if (q.endDate) { const d = new Date(q.endDate); d.setHours(23,59,59,999); f.created_at.$lte = d; }
+    const mode = (q.dateMode||'created');
+    if (mode==='travel'){
+      // travel_months is a free-text string. We approximate by testing if the string contains any month short name/year within range.
+      // Build array of tokens like "Jan 2025", "Feb 2025"...
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const start = q.startDate ? new Date(q.startDate) : null;
+      const end = q.endDate ? new Date(q.endDate) : null;
+      const tokens = [];
+      const iter = new Date(start||new Date('1970-01-01'));
+      const last = new Date(end||new Date());
+      last.setDate(1);
+      iter.setDate(1);
+      let guard = 0;
+      while (iter <= last && guard < 240){ // up to 20 years guard
+        tokens.push(`${months[iter.getMonth()]} ${iter.getFullYear()}`);
+        iter.setMonth(iter.getMonth()+1);
+        guard += 1;
+      }
+      if (tokens.length){
+        f.travel_months = { $regex: `(${tokens.map(t=>t.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')).join('|')})`, $options: 'i' };
+      }
+    } else {
+      f.created_at = {};
+      if (q.startDate) f.created_at.$gte = new Date(q.startDate);
+      if (q.endDate) { const d = new Date(q.endDate); d.setHours(23,59,59,999); f.created_at.$lte = d; }
+    }
   }
   return f;
 }
@@ -24,7 +47,7 @@ router.post('/simulate', adminLimiter, requireAdmin, async (req, res) => {
   try{
     const filter = buildFilter(req.body||{});
     const eligible_count = await Subscriber.countDocuments(filter);
-    const sample = await Subscriber.find(filter).sort({ created_at: -1 }).limit(10).select({ email:1, first_name:1, last_name:1, stars:1, confirmed:1 }).lean();
+    const sample = await Subscriber.find(filter).sort({ created_at: -1 }).limit(10).select({ email:1, first_name:1, last_name:1, stars:1, confirmed:1, created_at:1 }).lean();
     return res.json({ ok:true, eligible_count, sample });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
@@ -58,6 +81,7 @@ router.get('/export', adminLimiter, requireAdmin, async (req, res) => {
       countryCode: q.countryCode,
       startDate: q.startDate,
       endDate: q.endDate,
+      dateMode: q.dateMode || 'created'
     });
     const rows = await Subscriber.find(filter).lean();
     const header = ['email','first_name','last_name','stars','confirmed','is_returning','discount_code','created_at'];
