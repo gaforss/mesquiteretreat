@@ -20,9 +20,12 @@ async function loadContests() {
     if (data.ok) {
       displayContests(data.contests);
       populateContestDropdowns(data.contests);
+    } else {
+      showToast('Failed to load contests: ' + (data.error || 'Unknown error'), 'error');
     }
   } catch (error) {
     console.error('Error loading contests:', error);
+    showToast('Network error loading contests', 'error');
   }
 }
 
@@ -245,8 +248,17 @@ async function handleFetchInstagram(event) {
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
   
+  const submitBtn = document.getElementById('fetchSubmitBtn');
+  const btnText = submitBtn.querySelector('.btn-text');
+  const btnLoading = submitBtn.querySelector('.btn-loading');
   const messageEl = document.getElementById('fetchMessage');
-  messageEl.textContent = 'Fetching Instagram photos...';
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  btnText.style.display = 'none';
+  btnLoading.style.display = 'inline';
+  
+  messageEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>🔍 Fetching Instagram photos...</p></div>';
   messageEl.className = 'form-message loading';
   
   try {
@@ -261,7 +273,7 @@ async function handleFetchInstagram(event) {
     const data = await response.json();
     
     if (data.ok) {
-      messageEl.textContent = data.message || 'Instagram photos fetched successfully!';
+      messageEl.innerHTML = `<div class="success-message">✅ ${data.message || 'Instagram photos fetched successfully!'}</div>`;
       messageEl.className = 'form-message success';
       
       // Reload moderation photos
@@ -269,18 +281,23 @@ async function handleFetchInstagram(event) {
       
       // Clear form after delay
       setTimeout(() => {
-        messageEl.textContent = '';
-      }, 3000);
+        messageEl.innerHTML = '';
+      }, 5000);
       
     } else {
-      messageEl.textContent = data.error || 'Failed to fetch Instagram photos';
+      messageEl.innerHTML = `<div class="error-message">❌ ${data.error || 'Failed to fetch Instagram photos'}</div>`;
       messageEl.className = 'form-message error';
     }
     
   } catch (error) {
     console.error('Error fetching Instagram photos:', error);
-    messageEl.textContent = 'Network error. Please try again.';
+    messageEl.innerHTML = '<div class="error-message">❌ Network error. Please try again.</div>';
     messageEl.className = 'form-message error';
+  } finally {
+    // Reset button state
+    submitBtn.disabled = false;
+    btnText.style.display = 'inline';
+    btnLoading.style.display = 'none';
   }
 }
 
@@ -423,11 +440,21 @@ window.activateContest = async function(contestId) {
 // Show toast message
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
-  toast.textContent = message;
+  
+  // Add icons based on type
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span class="toast-message">${message}</span>`;
   toast.className = `toast ${type}`;
   toast.classList.remove('hidden');
   
+  // Auto-hide after 4 seconds
   setTimeout(() => {
     toast.classList.add('hidden');
-  }, 3000);
+  }, 4000);
 } 

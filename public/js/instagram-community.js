@@ -134,9 +134,9 @@ function displayInstagramPhotos(photos, clearExisting = true) {
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
         <p class="text-secondary">No Instagram photos found yet.</p>
         <p class="text-secondary">Be the first to share using our hashtags!</p>
-        <a href="https://instagram.com/mesquiteretreat" target="_blank" rel="noopener" class="btn-custom mt-3">
-          📸 Follow on Instagram
-        </a>
+                 <a href="https://instagram.com/themesquiteretreat.Scottsdale" target="_blank" rel="noopener" class="btn-custom mt-3">
+           📸 Follow @themesquiteretreat.Scottsdale
+         </a>
       </div>
     `;
     return;

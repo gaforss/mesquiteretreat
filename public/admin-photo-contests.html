@@ -293,6 +293,131 @@
         font-weight: bold;
       }
       
+      .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+      }
+      
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,.1);
+        border-top: 3px solid #ffb703;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .success-message {
+        background: rgba(87,213,154,.1);
+        border: 1px solid rgba(87,213,154,.3);
+        color: #57d59a;
+        padding: 16px;
+        border-radius: 12px;
+        margin: 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .error-message {
+        background: rgba(255,107,107,.1);
+        border: 1px solid rgba(255,107,107,.3);
+        color: #ff6b6b;
+        padding: 16px;
+        border-radius: 12px;
+        margin: 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+        margin: 40px 0;
+      }
+      
+      .field-hint {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 4px;
+        font-style: italic;
+      }
+      
+      .btn-loading {
+        display: none;
+      }
+      
+      .cta:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      
+      .cta:disabled .btn-text {
+        display: none;
+      }
+      
+      .cta:disabled .btn-loading {
+        display: inline;
+      }
+      
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0,0,0,.9);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 400px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .toast:not(.hidden) {
+        transform: translateX(0);
+      }
+      
+      .toast.success {
+        border-left: 4px solid #57d59a;
+      }
+      
+      .toast.error {
+        border-left: 4px solid #ff6b6b;
+      }
+      
+      .toast.warning {
+        border-left: 4px solid #ffd166;
+      }
+      
+      .toast.info {
+        border-left: 4px solid #4dabf7;
+      }
+      
+      .toast-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+      
+      .toast-message {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+      
       @media (max-width: 768px) {
         .form-grid {
           grid-template-columns: 1fr;
@@ -332,12 +457,12 @@
         <div class="content">
           <div class="admin-header">
             <div>
-              <div class="breadcrumbs small text-secondary">Home / Admin / Photo Contests & Instagram</div>
-              <h1 class="page-title">Photo Contests & Instagram Management</h1>
-              <p class="text-secondary">Create contests, fetch Instagram photos by hashtag, and moderate content</p>
+              <div class="breadcrumbs small text-secondary">🏠 Home / 👨‍💼 Admin / 📸 Photo Contests & Instagram</div>
+              <h1 class="page-title">📸 Photo Contests & Instagram Management</h1>
+              <p class="text-secondary">Create engaging contests, fetch Instagram photos by hashtag, and moderate content with ease</p>
             </div>
             <div class="actions">
-              <button id="createContestBtn" class="cta">Create New Contest</button>
+              <button id="createContestBtn" class="cta">✨ Create New Contest</button>
             </div>
           </div>
 
@@ -345,7 +470,10 @@
           <section class="instagram-config-section">
             <h2>📱 Instagram API Configuration</h2>
             <div id="configStatus">
-              <p class="text-secondary">Loading configuration status...</p>
+              <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p class="text-secondary">Checking Instagram API configuration...</p>
+              </div>
             </div>
             
             <div id="setupInstructions" class="setup-instructions" style="display: none;">
@@ -368,6 +496,8 @@ INSTAGRAM_REDIRECT_URI=https://mesquiteretreat.com/auth/instagram/callback</pre>
             </div>
           </section>
 
+          <div class="section-divider"></div>
+
           <!-- Instagram Fetch Section -->
           <section class="instagram-fetch-section">
             <h2>📱 Fetch Instagram Photos</h2>
@@ -375,22 +505,29 @@ INSTAGRAM_REDIRECT_URI=https://mesquiteretreat.com/auth/instagram/callback</pre>
             
             <form id="fetchInstagramForm" class="fetch-form">
               <div class="field">
-                <label for="fetchHashtag">Hashtag to fetch *</label>
+                <label for="fetchHashtag">🔍 Hashtag to fetch *</label>
                 <input id="fetchHashtag" name="hashtag" type="text" required placeholder="MesquiteRetreat" />
+                <small class="field-hint">Enter hashtag without the # symbol</small>
               </div>
               
               <div class="field">
-                <label for="fetchContest">Assign to contest (optional)</label>
+                <label for="fetchContest">📋 Assign to contest (optional)</label>
                 <select id="fetchContest" name="contest_id">
                   <option value="">No contest assignment</option>
                 </select>
+                <small class="field-hint">Photos will be added to the selected contest automatically</small>
               </div>
               
-              <button type="submit" class="cta">🔍 Fetch Photos</button>
+              <button type="submit" class="cta" id="fetchSubmitBtn">
+                <span class="btn-text">🔍 Fetch Photos</span>
+                <span class="btn-loading" style="display: none;">⏳ Fetching...</span>
+              </button>
             </form>
             
-            <p id="fetchMessage" class="form-message"></p>
+            <div id="fetchMessage" class="form-message"></div>
           </section>
+
+          <div class="section-divider"></div>
 
           <!-- Create Contest Form -->
           <section id="contestForm" class="contest-form" style="display: none;">
