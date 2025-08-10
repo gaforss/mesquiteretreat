@@ -298,5 +298,37 @@ app.use('/api/products', productsRouter); // /products/*
 
 
 const port = Number(process.env.PORT || 3000);
-app.listen(port, ()=> logInfo(`Server running on http://localhost:${port}`));
+app.listen(port, async () => {
+  logInfo(`Server running on http://localhost:${port}`);
+
+  // Keep-alive pinger to prevent free hosting from idling
+  try {
+    const isProdLike = process.env.NODE_ENV === 'production' || process.env.RENDER;
+    if (isProdLike) {
+      const intervalMs = 14 * 60 * 1000; // 14 minutes
+      const baseUrl = (process.env.RENDER_EXTERNAL_URL || process.env.SITE_URL || `http://localhost:${port}`).replace(/\/$/, '');
+      const makePingUrl = () => `${baseUrl}/api/health?ping=server&ts=${Date.now()}`;
+
+      // Prefer global fetch (Node 18+), else fall back to undici
+      const fetchFn = global.fetch || (await import('node:undici')).fetch;
+
+      const keepAlive = async () => {
+        try {
+          const url = makePingUrl();
+          await fetchFn(url, { method: 'GET', cache: 'no-store' });
+          logInfo('Keep-alive ping ok', { url });
+        } catch (err) {
+          logWarn('Keep-alive ping failed', { message: err?.message });
+        }
+      };
+
+      // Initial ping and schedule
+      keepAlive();
+      setInterval(keepAlive, intervalMs);
+      logInfo('Keep-alive pinger started', { intervalMs, baseUrl });
+    }
+  } catch (err) {
+    logWarn('Failed to start keep-alive pinger', { message: err?.message });
+  }
+});
 
