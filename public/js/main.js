@@ -229,17 +229,7 @@ form?.addEventListener('submit', async (e) => {
         }
         
         form.reset();
-      // Prompt bonus tasks modal after successful signup (change CTA to Close)
-      if (entryModal){
-        entryModal.classList.remove('hidden');
-        const gotoBtn = entryModal.querySelector('#gotoSignup');
-        if (gotoBtn){
-          gotoBtn.textContent = 'Close';
-          gotoBtn.onclick = ()=> entryModal.classList.add('hidden');
-        }
-        const sub = entryModal.querySelector('.mh-sub');
-        if (sub){ sub.textContent = 'Increase your chances of winning by doing the following:'; }
-      }
+      // Do not reopen the entry modal after successful signup
       // Show share block
       const myRef = localStorage.getItem('myRefCode');
       const shareUrl = `${location.origin}${location.pathname}?ref=${encodeURIComponent(myRef||'')}`;
@@ -269,7 +259,8 @@ form?.addEventListener('submit', async (e) => {
             alert('Invite text copied');
           }
         };
-    if (btnBoost) btnBoost.onclick = ()=>{ entryModal?.classList.remove('hidden'); };
+        // Keep boost tasks accessible only if user opts in
+        if (btnBoost) btnBoost.onclick = ()=>{ entryModal?.classList.remove('hidden'); };
       }
     } else {
       out.textContent = data.error || 'Something went wrong.';
