@@ -285,7 +285,7 @@ async function handleFetchInstagram(event) {
 }
 
 // Moderate Instagram photo
-async function moderateInstagramPhoto(photoId, status) {
+window.moderateInstagramPhoto = async function(photoId, status) {
   try {
     const response = await fetch(`/api/instagram/photos/${photoId}/moderate`, {
       method: 'PUT',
@@ -311,7 +311,7 @@ async function moderateInstagramPhoto(photoId, status) {
 }
 
 // Delete Instagram photo
-async function deleteInstagramPhoto(photoId) {
+window.deleteInstagramPhoto = async function(photoId) {
   if (!confirm('Are you sure you want to delete this Instagram photo? This action cannot be undone.')) {
     return;
   }
@@ -337,13 +337,13 @@ async function deleteInstagramPhoto(photoId) {
 }
 
 // Edit contest
-function editContest(contestId) {
+window.editContest = function(contestId) {
   // This would open an edit modal or redirect to edit page
   showToast('Edit functionality coming soon!', 'info');
 }
 
 // Delete contest
-async function deleteContest(contestId) {
+window.deleteContest = async function(contestId) {
   if (!confirm('Are you sure you want to delete this contest? This action cannot be undone.')) {
     return;
   }
@@ -369,7 +369,7 @@ async function deleteContest(contestId) {
 }
 
 // Pause contest
-async function pauseContest(contestId) {
+window.pauseContest = async function(contestId) {
   try {
     const response = await fetch(`/api/photo-contests/${contestId}`, {
       method: 'PUT',
@@ -395,7 +395,7 @@ async function pauseContest(contestId) {
 }
 
 // Activate contest
-async function activateContest(contestId) {
+window.activateContest = async function(contestId) {
   try {
     const response = await fetch(`/api/photo-contests/${contestId}`, {
       method: 'PUT',
