@@ -57,7 +57,6 @@ async function loadSiteContent(){
             ${(c.show_top_percent_pill||topHl)?`<span class=\"ab-pill ab-top\">🥇 Top 5% of homes</span>`:''}
           </div>
           <div class="ab-lines">
-            ${c.badge_description?`<div class=\"ab-line ab-desc\">${c.badge_description}</div>`:''}
             <div class="ab-line ab-meta"><span class="stars">${'★'.repeat(Math.round(Number(c.rating_value||5)))}</span> ${rating} · ${count} reviews</div>
             ${c.host_line?`<div class=\"ab-line ab-host\">${c.host_line}</div>`:''}
           </div>

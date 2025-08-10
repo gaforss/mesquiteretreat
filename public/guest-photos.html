@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram Community | The Mesquite Retreat on Oak</title>
+    <meta name="description" content="See what our guests are sharing on Instagram! Follow our hashtags and join the Mesquite Retreat community.">
+    <link rel="canonical" href="https://mesquiteretreat.com/guest-photos.html">
+    <meta property="og:title" content="Instagram Community | Mesquite Retreat">
+    <meta property="og:description" content="Discover guest photos and enter hashtag contests for amazing prizes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mesquiteretreat.com/guest-photos.html">
+    <meta property="og:image" content="https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/63811802-34d9-4987-8bd7-7395421b7648.jpeg">
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Instagram Community Page Styles */
+      .photos-hero {
+        background: radial-gradient(1200px 500px at 20% -10%, rgba(255,183,3,.12), transparent 60%),
+                    radial-gradient(900px 400px at 90% 0%, rgba(138,180,255,.08), transparent 60%),
+                    var(--bg);
+        padding: 80px 0 40px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+      }
+      
+      .photos-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--text) 0%, #ffb703 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .photos-hero .lead {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+        color: var(--muted);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .contest-banner {
+        background: linear-gradient(135deg, rgba(255,183,3,.15), rgba(138,180,255,.15));
+        border: 1px solid rgba(255,183,3,.25);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .contest-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,183,3,.1)"/><circle cx="75" cy="75" r="1" fill="rgba(138,180,255,.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,183,3,.15)"/><circle cx="10" cy="60" r="0.5" fill="rgba(138,180,255,.15)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+        pointer-events: none;
+      }
+      
+      .contest-banner h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+        position: relative;
+        z-index: 1;
+      }
+      
+      .contest-banner .hashtag {
+        background: linear-gradient(135deg, #ffb703, #ffd166);
+        color: #111;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: inline-block;
+        margin: 10px 0;
+        box-shadow: 0 4px 12px rgba(255,183,3,.25);
+      }
+      
+      .instagram-instructions {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+        text-align: center;
+      }
+      
+      .instagram-instructions h3 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: var(--text);
+      }
+      
+      .instruction-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+      
+      .instruction-step {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+      }
+      
+      .step-number {
+        background: linear-gradient(135deg, #ffb703, #ffd166);
+        color: #111;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin: 0 auto 16px;
+      }
+      
+      .step-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+      
+      .step-description {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+      
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 40px 0;
+      }
+      
+      .photo-card {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+      }
+      
+      .photo-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0,0,0,.3);
+      }
+      
+      .photo-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        background: linear-gradient(45deg, rgba(255,183,3,.1), rgba(138,180,255,.1));
+      }
+      
+      .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.7) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        align-items: flex-end;
+        padding: 20px;
+      }
+      
+      .photo-card:hover .photo-overlay {
+        opacity: 1;
+      }
+      
+      .photo-info {
+        color: white;
+        width: 100%;
+      }
+      
+      .photo-caption {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+      }
+      
+      .photo-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+      
+      .photo-likes {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      
+      .photo-hashtags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      
+      .hashtag-chip {
+        background: rgba(255,183,3,.2);
+        color: #ffd166;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+      
+      .instagram-feed {
+        background: linear-gradient(135deg, rgba(255,183,3,.08), rgba(138,180,255,.08));
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+      }
+      
+      .instagram-feed h3 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 1.5rem;
+        color: var(--text);
+      }
+      
+      .instagram-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      
+      .instagram-item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s ease;
+      }
+      
+      .instagram-item:hover {
+        transform: scale(1.05);
+      }
+      
+      .instagram-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .filters-section {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin: 30px 0;
+        justify-content: center;
+      }
+      
+      .filter-btn {
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.16);
+        color: var(--text);
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+      
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: linear-gradient(135deg, #ffb703, #ffd166);
+        color: #111;
+        border-color: rgba(255,183,3,.3);
+      }
+      
+      .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 40px 0;
+      }
+      
+      .stat-card {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+      
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+      
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffb703;
+        margin-bottom: 10px;
+      }
+      
+      .stat-label {
+        color: var(--muted);
+        font-size: 1rem;
+      }
+      
+      .hashtag-section {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+        text-align: center;
+      }
+      
+      .hashtag-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .hashtag-card {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+      
+      .hashtag-card:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,.08);
+      }
+      
+      .hashtag-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #ffb703;
+        margin-bottom: 8px;
+      }
+      
+      .hashtag-count {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      
+      @media (max-width: 768px) {
+        .photos-hero h1 {
+          font-size: 2rem;
+        }
+        
+        .photo-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .instagram-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filters-section {
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        .instruction-steps {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="dark">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/index.html">
+          <span class="logo">⟡</span>
+          <span class="name" id="propertyName">The Mesquite Retreat on Oak</span>
+        </a>
+        <button class="menu-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+        <nav id="siteNav">
+          <a href="/scottsdale-experience.html">Experience Scottsdale</a>
+          <a href="/vendor-network.html">Our Partners</a>
+          <a href="/guest-photos.html" aria-current="page">Instagram Community</a>
+          <a href="/vendor-login.html">Supplier Login</a>
+          <a href="/index.html#signup">Contest</a>
+          <a class="pill" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book on Airbnb</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="photos-hero">
+        <div class="container">
+          <h1>📸 Instagram Community</h1>
+          <p class="lead">See what our guests are sharing on Instagram! Follow our hashtags, enter contests, and join the Mesquite Retreat community.</p>
+          <div class="d-flex flex-wrap gap-3 justify-content-center">
+            <a href="https://instagram.com/mesquiteretreat" target="_blank" rel="noopener" class="btn-custom">📱 Follow on Instagram</a>
+            <button id="viewContestsBtn" class="btn-custom" style="background: linear-gradient(135deg,#8ab4ff,#bcd3ff); box-shadow: 0 10px 24px rgba(138,180,255,.28);">🏆 View Contests</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Contest Banner -->
+      <section id="activeContestBanner" class="contest-banner" style="display: none;">
+        <div class="container">
+          <h3>🎉 Active Instagram Contest</h3>
+          <p class="lead">Share your best Mesquite Retreat moment on Instagram for a chance to win amazing prizes!</p>
+          <div class="hashtag" id="contestHashtag">#MesquiteRetreat</div>
+          <p id="contestDescription">Capture the magic of your stay and share with our community</p>
+          <div id="contestPrizes" class="mt-3">
+            <strong>🏆 Prizes:</strong> Free night stay, exclusive vendor discounts, and more!
+          </div>
+        </div>
+      </section>
+
+      <!-- How to Participate -->
+      <section class="container">
+        <div class="instagram-instructions">
+          <h3>📱 How to Participate</h3>
+          <p class="lead">Share your Mesquite Retreat experience on Instagram and automatically enter our contests!</p>
+          
+          <div class="instruction-steps">
+            <div class="instruction-step">
+              <div class="step-number">1</div>
+              <div class="step-title">Take Photos</div>
+              <div class="step-description">Capture your favorite moments during your stay at Mesquite Retreat</div>
+            </div>
+            
+            <div class="instruction-step">
+              <div class="step-number">2</div>
+              <div class="step-title">Add Hashtags</div>
+              <div class="step-description">Include our contest hashtags in your Instagram post caption</div>
+            </div>
+            
+            <div class="instruction-step">
+              <div class="step-number">3</div>
+              <div class="step-title">Post & Win</div>
+              <div class="step-description">Your photo will automatically appear here and be eligible for prizes</div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 30px;">
+            <a href="https://instagram.com/mesquiteretreat" target="_blank" rel="noopener" class="btn-custom">
+              📸 Follow @mesquiteretreat
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Section -->
+      <section class="container">
+        <div class="stats-section" id="statsSection">
+          <div class="stat-card">
+            <div class="stat-number" id="totalPhotos">0</div>
+            <div class="stat-label">Photos Shared</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="totalLikes">0</div>
+            <div class="stat-label">Total Likes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="activeContests">0</div>
+            <div class="stat-label">Active Contests</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="communityMembers">0</div>
+            <div class="stat-label">Community Members</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Popular Hashtags -->
+      <section class="container">
+        <div class="hashtag-section">
+          <h3>🏷️ Popular Hashtags</h3>
+          <p class="lead">Use these hashtags in your Instagram posts to join our community</p>
+          
+          <div class="hashtag-grid" id="hashtagGrid">
+            <!-- Hashtags will be loaded here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="container">
+        <div class="filters-section" id="filtersSection">
+          <button class="filter-btn active" data-filter="all">All Photos</button>
+          <button class="filter-btn" data-filter="pool">Pool & Hot Tub</button>
+          <button class="filter-btn" data-filter="garden">Garden & Patio</button>
+          <button class="filter-btn" data-filter="living">Living Areas</button>
+          <button class="filter-btn" data-filter="food">Food & Dining</button>
+          <button class="filter-btn" data-filter="sunset">Sunsets</button>
+        </div>
+      </section>
+
+      <!-- Photo Grid -->
+      <section class="container">
+        <div class="photo-grid" id="photoGrid">
+          <!-- Instagram photos will be loaded here -->
+        </div>
+        <div id="loadMoreBtn" class="text-center" style="margin: 40px 0; display: none;">
+          <button class="btn-custom">Load More Photos</button>
+        </div>
+      </section>
+
+      <!-- Instagram Feed Integration -->
+      <section class="container">
+        <div class="instagram-feed">
+          <h3>📱 Latest from Instagram</h3>
+          <p class="text-center text-secondary mb-4">Real-time updates from our Instagram community</p>
+          <div class="instagram-grid" id="instagramGrid">
+            <!-- Instagram photos will be loaded here -->
+          </div>
+          <div class="text-center mt-4">
+            <a href="https://instagram.com/mesquiteretreat" target="_blank" rel="noopener" class="btn-custom">
+              📸 Follow on Instagram
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Photo Detail Modal -->
+    <div id="photoDetailModal" class="modal hidden">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <div id="photoDetailContent">
+          <!-- Photo details will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© <span id="year"></span> The Mesquite Retreat on Oak. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="/js/nav.js"></script>
+    <script type="module" src="/js/instagram-community.js"></script>
+  </body>
+</html> 

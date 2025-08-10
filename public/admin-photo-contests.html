@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Photo Contests & Instagram Admin | The Mesquite Retreat on Oak</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .contest-card {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+      }
+      
+      .contest-card:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,.08);
+      }
+      
+      .contest-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+      
+      .contest-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text);
+      }
+      
+      .contest-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      
+      .status-active {
+        background: rgba(87,213,154,.2);
+        color: #57d59a;
+        border: 1px solid rgba(87,213,154,.3);
+      }
+      
+      .status-draft {
+        background: rgba(255,193,7,.2);
+        color: #ffd166;
+        border: 1px solid rgba(255,193,7,.3);
+      }
+      
+      .status-ended {
+        background: rgba(255,107,107,.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(255,107,107,.3);
+      }
+      
+      .contest-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+        margin: 16px 0;
+      }
+      
+      .stat-item {
+        text-align: center;
+        padding: 12px;
+        background: rgba(255,255,255,.04);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.08);
+      }
+      
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffb703;
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      
+      .photo-item {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      }
+      
+      .photo-item:hover {
+        transform: translateY(-2px);
+      }
+      
+      .photo-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+      
+      .photo-info {
+        padding: 12px;
+      }
+      
+      .photo-caption {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        color: var(--text);
+        line-height: 1.4;
+      }
+      
+      .photo-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      
+      .photo-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .btn-approve {
+        background: rgba(87,213,154,.2);
+        color: #57d59a;
+        border: 1px solid rgba(87,213,154,.3);
+      }
+      
+      .btn-approve:hover {
+        background: rgba(87,213,154,.3);
+      }
+      
+      .btn-reject {
+        background: rgba(255,107,107,.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(255,107,107,.3);
+      }
+      
+      .btn-reject:hover {
+        background: rgba(255,107,107,.3);
+      }
+      
+      .btn-feature {
+        background: rgba(255,193,7,.2);
+        color: #ffd166;
+        border: 1px solid rgba(255,193,7,.3);
+      }
+      
+      .btn-feature:hover {
+        background: rgba(255,193,7,.3);
+      }
+      
+      .contest-form {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      
+      .instagram-fetch-section {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .fetch-form {
+        display: flex;
+        gap: 16px;
+        align-items: end;
+        flex-wrap: wrap;
+      }
+      
+      .fetch-form .field {
+        flex: 1;
+        min-width: 200px;
+      }
+      
+      .instagram-config-section {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .config-status {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      
+      .config-item {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+      }
+      
+      .config-item.success {
+        border-color: rgba(87,213,154,.3);
+        background: rgba(87,213,154,.1);
+      }
+      
+      .config-item.error {
+        border-color: rgba(255,107,107,.3);
+        background: rgba(255,107,107,.1);
+      }
+      
+      .config-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+      }
+      
+      .config-label {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+      
+      .config-value {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      
+      .setup-instructions {
+        background: rgba(255,193,7,.1);
+        border: 1px solid rgba(255,193,7,.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      
+      .setup-instructions h4 {
+        color: #ffd166;
+        margin-bottom: 16px;
+      }
+      
+      .setup-steps {
+        list-style: none;
+        padding: 0;
+      }
+      
+      .setup-steps li {
+        margin-bottom: 12px;
+        padding-left: 24px;
+        position: relative;
+      }
+      
+      .setup-steps li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #ffd166;
+        font-weight: bold;
+      }
+      
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .contest-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .fetch-form {
+          flex-direction: column;
+        }
+        
+        .config-status {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Photo Contests & Instagram</span></div>
+        <nav>
+          <a href="/admin.html">Admin Dashboard</a>
+          <a href="/admin-content.html">Edit Site Content</a>
+          <a href="/admin-vendors.html">Manage Vendors</a>
+          <a href="/admin-photo-contests.html" aria-current="page">Photo Contests</a>
+          <a href="/newsletter.html">Newsletter</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+
+    <main class="container wide admin">
+      <div class="admin-layout no-sidebar">
+        <div class="content">
+          <div class="admin-header">
+            <div>
+              <div class="breadcrumbs small text-secondary">Home / Admin / Photo Contests & Instagram</div>
+              <h1 class="page-title">Photo Contests & Instagram Management</h1>
+              <p class="text-secondary">Create contests, fetch Instagram photos by hashtag, and moderate content</p>
+            </div>
+            <div class="actions">
+              <button id="createContestBtn" class="cta">Create New Contest</button>
+            </div>
+          </div>
+
+          <!-- Instagram API Configuration Status -->
+          <section class="instagram-config-section">
+            <h2>📱 Instagram API Configuration</h2>
+            <div id="configStatus">
+              <p class="text-secondary">Loading configuration status...</p>
+            </div>
+            
+            <div id="setupInstructions" class="setup-instructions" style="display: none;">
+              <h4>🔧 Instagram API Setup Required</h4>
+              <p>To fetch real Instagram photos, you need to set up Instagram API credentials:</p>
+              <ol class="setup-steps">
+                <li>Create a Facebook App at <a href="https://developers.facebook.com" target="_blank">developers.facebook.com</a></li>
+                <li>Add Instagram Basic Display product to your app</li>
+                <li>Configure Instagram Basic Display settings</li>
+                <li>Add your environment variables to .env file:
+                  <pre style="background: rgba(0,0,0,.3); padding: 12px; border-radius: 8px; margin-top: 8px; font-size: 0.8rem;">
+INSTAGRAM_APP_ID=your_app_id
+INSTAGRAM_APP_SECRET=your_app_secret
+INSTAGRAM_ACCESS_TOKEN=your_access_token
+INSTAGRAM_REDIRECT_URI=https://mesquiteretreat.com/auth/instagram/callback</pre>
+                </li>
+                <li>Restart your server after adding the environment variables</li>
+              </ol>
+              <p><strong>Note:</strong> For hashtag search functionality, you'll need a Business or Creator Instagram account connected to a Facebook Page.</p>
+            </div>
+          </section>
+
+          <!-- Instagram Fetch Section -->
+          <section class="instagram-fetch-section">
+            <h2>📱 Fetch Instagram Photos</h2>
+            <p class="text-secondary">Fetch photos from Instagram using hashtags and automatically add them to contests</p>
+            
+            <form id="fetchInstagramForm" class="fetch-form">
+              <div class="field">
+                <label for="fetchHashtag">Hashtag to fetch *</label>
+                <input id="fetchHashtag" name="hashtag" type="text" required placeholder="MesquiteRetreat" />
+              </div>
+              
+              <div class="field">
+                <label for="fetchContest">Assign to contest (optional)</label>
+                <select id="fetchContest" name="contest_id">
+                  <option value="">No contest assignment</option>
+                </select>
+              </div>
+              
+              <button type="submit" class="cta">🔍 Fetch Photos</button>
+            </form>
+            
+            <p id="fetchMessage" class="form-message"></p>
+          </section>
+
+          <!-- Create Contest Form -->
+          <section id="contestForm" class="contest-form" style="display: none;">
+            <h2>Create New Photo Contest</h2>
+            <form id="newContestForm" class="signup-form">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="contestName">Contest Name *</label>
+                  <input id="contestName" name="name" type="text" required placeholder="Summer Pool Contest" />
+                </div>
+                
+                <div class="field">
+                  <label for="contestHashtag">Primary Hashtag *</label>
+                  <input id="contestHashtag" name="hashtag" type="text" required placeholder="MesquiteSummer" />
+                </div>
+                
+                <div class="field">
+                  <label for="contestStart">Start Date *</label>
+                  <input id="contestStart" name="start_date" type="date" required />
+                </div>
+                
+                <div class="field">
+                  <label for="contestEnd">End Date *</label>
+                  <input id="contestEnd" name="end_date" type="date" required />
+                </div>
+              </div>
+              
+              <div class="field">
+                <label for="contestDescription">Description</label>
+                <textarea id="contestDescription" name="description" rows="3" placeholder="Describe the contest theme and requirements..."></textarea>
+              </div>
+              
+              <div class="field">
+                <label for="contestRules">Rules (one per line)</label>
+                <textarea id="contestRules" name="rules" rows="4" placeholder="• Photos must be taken at Mesquite Retreat&#10;• Must include the contest hashtag&#10;• One entry per guest"></textarea>
+              </div>
+              
+              <div class="field">
+                <label for="contestPrizes">Prizes (JSON format)</label>
+                <textarea id="contestPrizes" name="prizes" rows="6" placeholder='[{"rank": 1, "title": "1st Place", "description": "Free 2-night stay", "value": 500, "type": "free_night"}, {"rank": 2, "title": "Runner Up", "description": "50% off next stay", "value": 250, "type": "discount"}]'></textarea>
+              </div>
+              
+              <div class="field-row">
+                <div class="field">
+                  <label for="contestMaxEntries">Max Entries Per Guest</label>
+                  <input id="contestMaxEntries" name="max_entries_per_guest" type="number" min="1" max="10" value="1" />
+                </div>
+                
+                <div class="field">
+                  <label for="contestStatus">Status</label>
+                  <select id="contestStatus" name="status">
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="field">
+                <label class="checkbox-inline">
+                  <input id="contestFeatured" name="is_featured" type="checkbox" />
+                  <span>Feature this contest on the homepage</span>
+                </label>
+              </div>
+              
+              <div class="form-actions">
+                <button type="submit" class="cta">Create Contest</button>
+                <button type="button" id="cancelContestBtn" class="cta secondary">Cancel</button>
+              </div>
+              
+              <p id="contestMessage" class="form-message"></p>
+            </form>
+          </section>
+
+          <!-- Active Contests -->
+          <section id="activeContests">
+            <h2>Active Contests</h2>
+            <div id="contestsList">
+              <!-- Contests will be loaded here -->
+            </div>
+          </section>
+
+          <!-- Instagram Photo Moderation -->
+          <section id="instagramModeration">
+            <h2>Instagram Photo Moderation</h2>
+            <div class="filters-grid">
+              <div class="field">
+                <label>Status</label>
+                <select id="photoStatusFilter">
+                  <option value="pending">Pending Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="featured">Featured</option>
+                </select>
+              </div>
+              
+              <div class="field">
+                <label>Contest</label>
+                <select id="contestFilter">
+                  <option value="">All Contests</option>
+                </select>
+              </div>
+              
+              <div class="field">
+                <label>Location</label>
+                <select id="locationFilter">
+                  <option value="">All Locations</option>
+                  <option value="pool">Pool & Hot Tub</option>
+                  <option value="garden">Garden & Patio</option>
+                  <option value="living">Living Room</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="bedroom">Bedroom</option>
+                  <option value="putting">Putting Green</option>
+                  <option value="sunset">Sunset View</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="photo-grid" id="moderationGrid">
+              <!-- Instagram photos for moderation will be loaded here -->
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- Photo Detail Modal -->
+    <div id="photoDetailModal" class="modal hidden">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2>Instagram Photo Details</h2>
+        <div id="photoDetailContent">
+          <!-- Photo details will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/nav.js"></script>
+    <script type="module" src="/js/admin-photo-contests.js"></script>
+  </body>
+</html> 

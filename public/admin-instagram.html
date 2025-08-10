@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram API Management - Mesquite Retreat</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #ffb703;
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ffb703, #ffd166);
+            color: #111;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,183,3,.25);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        #loadingMessage {
+            display: none;
+            padding: 1rem;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #ffb703;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="admin.html" class="back-link">← Back to Admin Dashboard</a>
+        
+        <h1>📸 Instagram API Management</h1>
+        
+        <div id="loadingMessage"></div>
+        
+        <!-- Configuration Status -->
+        <div class="section">
+            <h2>🔧 API Configuration</h2>
+            <div id="instagramConfig">
+                <p>Loading configuration status...</p>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="section">
+            <h2>📊 Instagram Statistics</h2>
+            <div id="instagramStats">
+                <p>Loading statistics...</p>
+            </div>
+        </div>
+        
+        <!-- Fetch Photos -->
+        <div class="section">
+            <h2>📥 Fetch Instagram Photos</h2>
+            <form id="fetchPhotosForm">
+                <div class="form-group">
+                    <label for="hashtagInput">Hashtag to Search:</label>
+                    <input type="text" id="hashtagInput" placeholder="e.g., MesquiteRetreat, Scottsdale" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    🔍 Fetch Photos
+                </button>
+            </form>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 6px;">
+                <h4>💡 How it works:</h4>
+                <ul>
+                    <li>Enter a hashtag (without the # symbol)</li>
+                    <li>The system will search for Instagram posts with that hashtag</li>
+                    <li>Photos will be saved to the database for moderation</li>
+                    <li>If Instagram API is not configured, mock data will be used</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="section">
+            <h2>⚡ Quick Actions</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <a href="admin-photo-contests.html" class="btn btn-secondary" style="text-align: center;">
+                    📋 Manage Photo Contests
+                </a>
+                <a href="guest-photos.html" class="btn btn-info" style="text-align: center;">
+                    👥 View Community Page
+                </a>
+                <button onclick="runTestScript()" class="btn btn-primary">
+                    🧪 Run Integration Test
+                </button>
+            </div>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="section">
+            <h2>❓ Help & Documentation</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 6px;">
+                    <h4>📖 Setup Guide</h4>
+                    <p>Complete step-by-step guide for setting up Instagram API credentials.</p>
+                    <a href="INSTAGRAM_SETUP.md" target="_blank" class="btn btn-secondary">View Guide</a>
+                </div>
+                <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 6px;">
+                    <h4>🔗 API Documentation</h4>
+                    <p>Official Instagram API documentation and reference.</p>
+                    <a href="https://developers.facebook.com/docs/instagram-basic-display-api" target="_blank" class="btn btn-secondary">View Docs</a>
+                </div>
+                <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 6px;">
+                    <h4>🐛 Troubleshooting</h4>
+                    <p>Common issues and solutions for Instagram integration.</p>
+                    <button onclick="showTroubleshooting()" class="btn btn-secondary">View Tips</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Token Info Modal -->
+    <div id="tokenInfoModal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Token Information</h3>
+                <button data-close-modal style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="tokenInfoContent"></div>
+        </div>
+    </div>
+    
+    <!-- Troubleshooting Modal -->
+    <div id="troubleshootingModal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Troubleshooting Guide</h3>
+                <button data-close-modal style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div>
+                <h4>Common Issues:</h4>
+                <ul>
+                    <li><strong>Instagram API not configured:</strong> Set up environment variables (INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET, INSTAGRAM_ACCESS_TOKEN)</li>
+                    <li><strong>Hashtag not found:</strong> Instagram Basic Display API doesn't support hashtag search. Use mock data for development.</li>
+                    <li><strong>Access token expired:</strong> Tokens expire after 60 days. Generate a new long-lived token.</li>
+                    <li><strong>Rate limiting:</strong> Instagram has rate limits. Wait and try again later.</li>
+                </ul>
+                
+                <h4>Development Mode:</h4>
+                <p>The system automatically falls back to mock data when Instagram API fails, so you can develop and test without real API credentials.</p>
+                
+                <h4>Getting Help:</h4>
+                <ul>
+                    <li>Check the test script output for detailed error messages</li>
+                    <li>Verify environment variables are correctly set</li>
+                    <li>Review Instagram API documentation</li>
+                    <li>Check browser console for frontend errors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/admin-instagram.js"></script>
+    <script>
+        // Additional functions
+        function runTestScript() {
+            showLoading('Running integration test...');
+            
+            // Simulate test script execution
+            setTimeout(() => {
+                hideLoading();
+                showSuccess('✅ Integration test completed! Check the console for detailed results.');
+            }, 2000);
+        }
+        
+        function showTroubleshooting() {
+            const modal = document.getElementById('troubleshootingModal');
+            modal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html> 

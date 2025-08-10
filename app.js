@@ -23,6 +23,7 @@ import newsletterRouter from './routes/newsletter.routes.js';
 import { subscribeLimiter } from './middleware/rateLimiters.js';
 import vendorsRouter from './routes/vendors.routes.js';
 import vendorPublicRouter from './routes/vendors.public.routes.js';
+import instagramRouter from './routes/instagram.routes.js';
 import Vendor from './models/vendor.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -279,6 +280,7 @@ app.use('/api', vendorPublicRouter); // /public/track
 app.use('/api/draw', drawRouter);
 app.use('/api', siteContentRouter); // /site-content
 app.use('/api/newsletter', newsletterRouter); // /newsletter/*
+app.use('/api/instagram', instagramRouter); // /instagram/*
 
 
 const port = Number(process.env.PORT || 3000);
