@@ -5,6 +5,7 @@ import Vendor from '../models/vendor.js';
 import VendorClick from '../models/vendorClick.js';
 import VendorOffering from '../models/vendorOffering.js';
 import VendorCommission from '../models/vendorCommission.js';
+import LeadCommission from '../models/leadCommission.js';
 import ServiceRequest from '../models/serviceRequest.js';
 import { getCookieOpts, requireAdmin, signVendorToken, requireVendor } from '../middleware/auth.js';
 import Subscriber from '../models/subscriber.js';
@@ -223,6 +224,37 @@ router.get('/commissions', requireVendor, async (req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Vendor lead commission requests (what platform earns from vendor)
+router.get('/lead-commission-requests', requireVendor, async (req, res) => {
+  try{
+    const vendor = await Vendor.findById(req.vendor?.id).select({ vendor_code:1 }).lean();
+    const { page = 1, pageSize = 20, status } = req.query;
+    const skip = (Number(page) - 1) * Number(pageSize);
+    
+    const match = { vendor_code: vendor.vendor_code };
+    if (status && status !== 'all') {
+      match.status = status;
+    }
+    
+    const rows = await LeadCommission.find(match)
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(Number(pageSize))
+      .lean();
+      
+    const total = await LeadCommission.countDocuments(match);
+    
+    return res.json({ 
+      ok: true, 
+      rows, 
+      total, 
+      page: Number(page), 
+      pageSize: Number(pageSize),
+      totalPages: Math.ceil(total / Number(pageSize))
+    });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 // Vendor stats (self)
 router.get('/stats', requireVendor, async (req, res) => {
   try{
@@ -248,11 +280,26 @@ router.get('/stats', requireVendor, async (req, res) => {
     
     const commissionData = commissionStats[0] || { total_earned: 0, total_pending: 0, total_paid: 0, total_transactions: 0 };
     
+    // Get lead commission stats (YOU earn from vendors)
+    const leadCommissionStats = await LeadCommission.aggregate([
+      { $match: { vendor_code: code } },
+      { $group: {
+        _id: null,
+        total_earned: { $sum: '$commission_amount' },
+        total_pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$commission_amount', 0] } },
+        total_approved: { $sum: { $cond: [{ $eq: ['$status', 'approved'] }, '$commission_amount', 0] } },
+        total_paid: { $sum: { $cond: [{ $eq: ['$status', 'paid'] }, '$commission_amount', 0] } },
+        total_leads: { $sum: 1 }
+      }}
+    ]);
+    const leadCommissionData = leadCommissionStats[0] || { total_earned: 0, total_pending: 0, total_approved: 0, total_paid: 0, total_leads: 0 };
+    
     return res.json({ 
       ok: true, 
       totals: { clicks, total, confirmed, last7d: week }, 
       offerings,
-      commissions: commissionData
+      commissions: commissionData,
+      leadCommissions: leadCommissionData
     });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
@@ -290,10 +337,25 @@ router.get('/with-stats', requireAdmin, async (_req, res) => {
       
       const commissionData = commissionStats[0] || { total_earned: 0, total_pending: 0, total_paid: 0, total_transactions: 0 };
       
+      // Get lead commission stats (YOU earn from vendors)
+      const leadCommissionStats = await LeadCommission.aggregate([
+        { $match: { vendor_code: code } },
+        { $group: {
+          _id: null,
+          total_earned: { $sum: '$commission_amount' },
+          total_pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$commission_amount', 0] } },
+          total_approved: { $sum: { $cond: [{ $eq: ['$status', 'approved'] }, '$commission_amount', 0] } },
+          total_paid: { $sum: { $cond: [{ $eq: ['$status', 'paid'] }, '$commission_amount', 0] } },
+          total_leads: { $sum: 1 }
+        }}
+      ]);
+      const leadCommissionData = leadCommissionStats[0] || { total_earned: 0, total_pending: 0, total_approved: 0, total_paid: 0, total_leads: 0 };
+      
       results.push({ 
         ...v, 
         stats: { clicks, total, confirmed },
-        commissions: commissionData
+        commissions: commissionData,
+        leadCommissions: leadCommissionData
       });
     }
     return res.json({ ok:true, rows: results });
@@ -424,6 +486,159 @@ router.put('/commissions/:commissionId', requireAdmin, async (req, res) => {
     const commission = await VendorCommission.findById(commissionId).lean();
     
     return res.json({ ok: true, commission });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+// Lead Commission Management (YOU earn from vendors)
+router.get('/lead-commissions', requireAdmin, async (req, res) => {
+  try{
+    const { page = 1, pageSize = 20, status, vendor_code } = req.query;
+    const skip = (Number(page) - 1) * Number(pageSize);
+    
+    const match = {};
+    if (status && status !== 'all') {
+      match.status = status;
+    }
+    if (vendor_code) {
+      match.vendor_code = vendor_code.toUpperCase();
+    }
+    
+    const rows = await LeadCommission.find(match)
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(Number(pageSize))
+      .lean();
+      
+    const total = await LeadCommission.countDocuments(match);
+    
+    return res.json({ 
+      ok: true, 
+      rows, 
+      total, 
+      page: Number(page), 
+      pageSize: Number(pageSize),
+      totalPages: Math.ceil(total / Number(pageSize))
+    });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.post('/lead-commissions', requireAdmin, async (req, res) => {
+  try{
+    const { 
+      vendor_id, vendor_code, vendor_email, vendor_name,
+      subscriber_id, subscriber_email, lead_type, commission_type,
+      commission_amount, commission_percent, lead_price, transaction_amount,
+      admin_notes 
+    } = req.body;
+    
+    if (!vendor_id || !vendor_code || !vendor_email || !commission_amount) {
+      return res.status(400).json({ ok: false, error: 'Missing required fields' });
+    }
+    
+    const leadCommission = await LeadCommission.create({
+      vendor_id: String(vendor_id),
+      vendor_code: String(vendor_code).toUpperCase(),
+      vendor_email: String(vendor_email).toLowerCase(),
+      vendor_name: vendor_name || '',
+      subscriber_id: subscriber_id || null,
+      subscriber_email: subscriber_email || '',
+      lead_type: lead_type || 'click',
+      commission_type: commission_type || 'lead',
+      commission_amount: Number(commission_amount),
+      commission_percent: commission_percent ? Number(commission_percent) : null,
+      lead_price: lead_price ? Number(lead_price) : null,
+      transaction_amount: transaction_amount ? Number(transaction_amount) : null,
+      admin_notes: admin_notes || '',
+      email_sent: false
+    });
+    
+    // Send email to vendor for approval (optional - commission still created if email fails)
+    try {
+      const emailResult = await sendEmail({
+        to: vendor_email,
+        subject: 'New Lead Commission Request - Mesquite Retreat',
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">New Lead Commission Request</h1>
+            </div>
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 12px 12px;">
+              <p>Hello ${vendor_name || 'there'},</p>
+              <p>We have sent a new lead to your business and are requesting commission payment.</p>
+              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+                <h3 style="margin: 0 0 10px; color: #333;">Lead Details:</h3>
+                <p><strong>Lead Type:</strong> ${lead_type}</p>
+                <p><strong>Commission Amount:</strong> $${commission_amount.toFixed(2)}</p>
+                ${admin_notes ? `<p><strong>Notes:</strong> ${admin_notes}</p>` : ''}
+              </div>
+              <p>Please log into your vendor dashboard to review and approve or reject this commission request.</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.SITE_URL || 'http://localhost:3000'}/vendor.html" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+              </div>
+              <p>If you have any questions, please contact us.</p>
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+              <p style="font-size: 12px; color: #666;">
+                Mesquite Retreat Partner Network<br>
+                This is an automated message, please do not reply.
+              </p>
+            </div>
+          </div>
+        `,
+        tag: 'lead-commission-request'
+      });
+      
+      if (emailResult.success) {
+        await LeadCommission.updateOne(
+          { _id: leadCommission._id },
+          { $set: { email_sent: true, email_sent_date: new Date() } }
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send lead commission email:', emailError);
+      // Don't fail the commission creation if email fails
+    }
+    
+    return res.json({ ok: true, leadCommission });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+// Vendor approval endpoint
+router.post('/lead-commissions/:id/approve', async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { vendor_response, vendor_response_notes } = req.body;
+    
+    if (!vendor_response || !['approved', 'rejected'].includes(vendor_response)) {
+      return res.status(400).json({ ok: false, error: 'Invalid response' });
+    }
+    
+    const updates = {
+      vendor_response,
+      vendor_response_date: new Date(),
+      vendor_response_notes: vendor_response_notes || '',
+      status: vendor_response === 'approved' ? 'approved' : 'rejected'
+    };
+    
+    await LeadCommission.updateOne({ _id: id }, { $set: updates });
+    const leadCommission = await LeadCommission.findById(id).lean();
+    
+    return res.json({ ok: true, leadCommission });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+// Delete lead commission endpoint
+router.delete('/lead-commissions/:id', requireAdmin, async (req, res) => {
+  try{
+    const { id } = req.params;
+    
+    const leadCommission = await LeadCommission.findById(id);
+    if (!leadCommission) {
+      return res.status(404).json({ ok: false, error: 'Commission not found' });
+    }
+    
+    await LeadCommission.deleteOne({ _id: id });
+    
+    return res.json({ ok: true, message: 'Commission deleted successfully' });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 

@@ -28,8 +28,9 @@ async function loadVendors(){
     const tbody = wrap.querySelector('tbody');
     rows.forEach(v=>{
       const tr = document.createElement('tr');
-      const totalEarned = v.commissions?.total_earned || 0;
-      const totalPending = v.commissions?.total_pending || 0;
+      // Use lead commission data (YOU earn from vendors) instead of vendor commission data
+      const totalEarned = v.leadCommissions?.total_earned || 0;
+      const totalPending = v.leadCommissions?.total_pending || 0;
       tr.innerHTML = `<td><span class="code">${v.email}</span></td>
         <td>${v.name||''}</td>
         <td>${v.company||''}</td>
@@ -42,7 +43,6 @@ async function loadVendors(){
         <td>$${totalPending.toFixed(2)}</td>
         <td>
           <button class="cta secondary" data-ven-toggle="${v._id}">${v.status==='active'?'Suspend':'Activate'}</button>
-          <button class="cta secondary" data-ven-commissions="${v._id}" style="margin-left:6px">Commissions</button>
           <button class="cta danger" data-ven-del="${v._id}" style="margin-left:6px">Delete</button>
         </td>`;
       tbody.appendChild(tr);
@@ -69,60 +69,52 @@ async function loadVendors(){
       });
     });
     
-    // Commission management
-    wrap.querySelectorAll('[data-ven-commissions]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const id = btn.getAttribute('data-ven-commissions');
-        const row = rows.find(r=>String(r._id)===String(id));
-        if (!row) return;
-        openCommissionManagement(id, row);
-      });
-    });
   }catch{}
 }
 
-// Commission management
-let currentVendorId = null;
-let currentVendorData = null;
-
-async function openCommissionManagement(vendorId, vendorData) {
-  currentVendorId = vendorId;
-  currentVendorData = vendorData;
-  
-  document.getElementById('commissionSection').style.display = '';
-  document.getElementById('commissionSection').scrollIntoView({ behavior: 'smooth' });
-  
-  await loadCommissions();
-}
-
 async function loadCommissions() {
-  if (!currentVendorId) return;
-  
   try {
-    const r = await fetch(`/api/vendors/${currentVendorId}/commissions`, { credentials: 'include' });
+    const vendorFilter = document.getElementById('commissionVendorFilter').value;
+    const statusFilter = document.getElementById('commissionStatusFilter').value;
+    
+    let url = '/api/vendors/lead-commissions';
+    const params = new URLSearchParams();
+    if (vendorFilter) params.set('vendor_code', vendorFilter);
+    if (statusFilter) params.set('status', statusFilter);
+    if (params.toString()) url += '?' + params.toString();
+    
+    const r = await fetch(url, { credentials: 'include' });
     const j = await r.json();
     const wrap = document.getElementById('commissionTable');
     if (!j.ok) { wrap.textContent = j.error || 'Failed to load commissions'; return; }
     
     const rows = j.rows || [];
+    if (rows.length === 0) {
+      wrap.innerHTML = '<p class="text-secondary">No commission requests found.</p>';
+      return;
+    }
+    
     wrap.innerHTML = `<table><thead><tr>
-      <th>Date</th><th>Offering</th><th>Type</th><th>Amount</th><th>Status</th><th>Notes</th><th>Actions</th>
+      <th>Date</th><th>Vendor</th><th>Lead Type</th><th>Commission Amount</th><th>Status</th><th>Vendor Response</th><th>Notes</th><th>Actions</th>
     </tr></thead><tbody></tbody></table>`;
     
     const tbody = wrap.querySelector('tbody');
     rows.forEach(c => {
       const tr = document.createElement('tr');
       const date = new Date(c.created_at).toLocaleDateString();
-      const statusClass = c.status === 'paid' ? 'success' : c.status === 'pending' ? 'warning' : 'secondary';
+      const statusClass = c.status === 'paid' ? 'success' : c.status === 'approved' ? 'success' : c.status === 'pending' ? 'warning' : 'danger';
+      const responseClass = c.vendor_response === 'approved' ? 'success' : c.vendor_response === 'rejected' ? 'danger' : 'secondary';
+      
       tr.innerHTML = `<td>${date}</td>
-        <td>${c.offering_title || '—'}</td>
-        <td>${c.commission_type}</td>
-        <td>$${c.commission_amount.toFixed(2)}</td>
+        <td>${c.vendor_name || c.vendor_email}</td>
+        <td>${c.lead_type}</td>
+        <td class="commission-amount">$${c.commission_amount.toFixed(2)}</td>
         <td><span class="chip ${statusClass}">${c.status}</span></td>
-        <td>${c.notes || '—'}</td>
+        <td><span class="chip ${responseClass}">${c.vendor_response || 'pending'}</span></td>
+        <td>${c.admin_notes || '—'}</td>
         <td>
-          <button class="cta secondary" data-comm-edit="${c._id}">Edit</button>
           <button class="cta secondary" data-comm-status="${c._id}" data-current-status="${c.status}">${c.status === 'pending' ? 'Mark Paid' : c.status === 'paid' ? 'Mark Pending' : 'Mark Paid'}</button>
+          <button class="cta danger" data-comm-delete="${c._id}" style="margin-left:6px">Delete</button>
         </td>`;
       tbody.appendChild(tr);
     });
@@ -134,7 +126,7 @@ async function loadCommissions() {
         const currentStatus = btn.getAttribute('data-current-status');
         const newStatus = currentStatus === 'pending' ? 'paid' : 'pending';
         
-        await fetch(`/api/vendors/commissions/${id}`, {
+        await fetch(`/api/vendors/lead-commissions/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus }),
@@ -146,27 +138,30 @@ async function loadCommissions() {
       });
     });
     
-    // Edit commission functionality
-    wrap.querySelectorAll('[data-comm-edit]').forEach(btn => {
+    // Delete commission functionality
+    wrap.querySelectorAll('[data-comm-delete]').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-comm-edit');
-        const row = rows.find(r => String(r._id) === String(id));
-        if (!row) return;
+        const id = btn.getAttribute('data-comm-delete');
+        if (!confirm('Are you sure you want to delete this commission?')) return;
         
-        // Populate modal with existing data
-        document.getElementById('commissionAmount').value = row.commission_amount || '';
-        document.getElementById('commissionType').value = row.commission_type || 'percentage';
-        document.getElementById('commissionPercent').value = row.commission_percent || '';
-        document.getElementById('transactionAmount').value = row.transaction_amount || '';
-        document.getElementById('leadPrice').value = row.lead_price || '';
-        document.getElementById('serviceFee').value = row.service_fee || '';
-        document.getElementById('offeringTitle').value = row.offering_title || '';
-        document.getElementById('commissionNotes').value = row.notes || '';
-        
-        // Store the commission ID for editing
-        document.getElementById('commissionModal').dataset.editId = id;
-        document.getElementById('commissionModal').querySelector('h3').textContent = 'Edit Commission';
-        document.getElementById('commissionModal').classList.remove('hidden');
+        try {
+          const r = await fetch(`/api/vendors/lead-commissions/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          
+          const j = await r.json();
+          if (!j.ok) {
+            toast(j.error || 'Failed to delete commission', true);
+            return;
+          }
+          
+          toast('Commission deleted successfully');
+          loadCommissions();
+          loadVendors(); // Refresh vendor list to update totals
+        } catch (err) {
+          toast('Failed to delete commission', true);
+        }
       });
     });
     
@@ -192,102 +187,120 @@ document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
 });
 
 // Commission form
-document.getElementById('addCommissionBtn')?.addEventListener('click', () => {
+document.getElementById('addCommissionBtn')?.addEventListener('click', async () => {
   document.getElementById('commissionModal').classList.remove('hidden');
+  await loadVendorDropdown();
 });
 
-// Dynamic form behavior based on commission type
-document.getElementById('commissionType')?.addEventListener('change', (e) => {
-  const type = e.target.value;
-  const amountField = document.getElementById('commissionAmount');
-  const percentField = document.getElementById('commissionPercent');
-  const leadPriceField = document.getElementById('leadPrice');
-  
-  // Reset fields
-  amountField.value = '';
-  percentField.value = '';
-  leadPriceField.value = '';
-  
-  if (type === 'percentage') {
-    amountField.placeholder = 'Leave empty for percentage-based';
-    percentField.placeholder = 'e.g. 15 for 15%';
-    leadPriceField.style.display = 'none';
-    leadPriceField.parentElement.style.display = 'none';
-  } else if (type === 'fixed') {
-    amountField.placeholder = 'Fixed dollar amount';
-    percentField.placeholder = 'Leave empty for fixed amount';
-    leadPriceField.style.display = 'none';
-    leadPriceField.parentElement.style.display = 'none';
-  } else if (type === 'lead') {
-    amountField.placeholder = 'Fixed dollar amount per lead';
-    percentField.placeholder = 'Leave empty for lead-based';
-    leadPriceField.style.display = 'block';
-    leadPriceField.parentElement.style.display = 'block';
+// Commission filters
+document.getElementById('commissionVendorFilter')?.addEventListener('change', loadCommissions);
+document.getElementById('commissionStatusFilter')?.addEventListener('change', loadCommissions);
+document.getElementById('refreshCommissions')?.addEventListener('click', loadCommissions);
+
+// Load vendor dropdown for commission filter
+async function loadCommissionVendorFilter() {
+  try {
+    const r = await fetch('/api/vendors', { credentials: 'include' });
+    const j = await r.json();
+    if (!j.ok) return;
+    
+    const vendorFilter = document.getElementById('commissionVendorFilter');
+    if (!vendorFilter) return;
+    
+    // Clear existing options except the first one
+    vendorFilter.innerHTML = '<option value="">All vendors</option>';
+    
+    // Add vendor options
+    j.rows.forEach(vendor => {
+      const option = document.createElement('option');
+      option.value = vendor.vendor_code;
+      option.textContent = `${vendor.name || vendor.company || vendor.email} (${vendor.vendor_code})`;
+      vendorFilter.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error loading vendor filter:', err);
   }
-});
+}
+
+// Load vendor dropdown
+async function loadVendorDropdown() {
+  try {
+    const r = await fetch('/api/vendors', { credentials: 'include' });
+    const j = await r.json();
+    if (!j.ok) return;
+    
+    const vendorSelect = document.getElementById('vendorSelect');
+    
+    // Clear existing options except the first one
+    vendorSelect.innerHTML = '<option value="">Select a vendor...</option>';
+    
+    // Add vendor options
+    j.rows.forEach(vendor => {
+      const option = document.createElement('option');
+      option.value = JSON.stringify({
+        id: vendor._id,
+        code: vendor.vendor_code,
+        email: vendor.email,
+        name: vendor.name || vendor.company || vendor.email
+      });
+      option.textContent = `${vendor.name || vendor.company || vendor.email} (${vendor.vendor_code})`;
+      vendorSelect.appendChild(option);
+    });
+    
+  } catch (err) {
+    console.error('Error loading vendors:', err);
+  }
+}
 
 document.getElementById('commissionForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!currentVendorId) return;
   
-  const commissionAmountInput = document.getElementById('commissionAmount').value;
-  const commissionAmount = commissionAmountInput ? Number(commissionAmountInput) : 0;
-  const commissionType = document.getElementById('commissionType').value;
-  const commissionPercentInput = document.getElementById('commissionPercent').value;
-  const commissionPercent = commissionPercentInput ? Number(commissionPercentInput) : null;
-  const transactionAmount = document.getElementById('transactionAmount').value ? Number(document.getElementById('transactionAmount').value) : null;
-  const leadPrice = document.getElementById('leadPrice').value ? Number(document.getElementById('leadPrice').value) : null;
-  const serviceFee = document.getElementById('serviceFee').value ? Number(document.getElementById('serviceFee').value) : null;
-  const offeringTitle = document.getElementById('offeringTitle').value.trim();
-  const notes = document.getElementById('commissionNotes').value.trim();
+  const vendorSelect = document.getElementById('vendorSelect');
+  const leadType = document.getElementById('leadType').value;
+  const commissionAmount = Number(document.getElementById('commissionAmount').value);
+  const subscriberEmail = document.getElementById('subscriberEmail').value.trim();
+  const adminNotes = document.getElementById('commissionNotes').value.trim();
   
-  // Validate that either commission amount or percentage is provided
-  if (commissionAmount <= 0 && (!commissionPercent || commissionPercent <= 0)) {
-    toast('Please provide either a commission amount or percentage', true);
+  if (!vendorSelect.value || !commissionAmount || commissionAmount <= 0) {
+    toast('Please select a vendor and provide a valid commission amount', true);
     return;
   }
   
-  const editId = document.getElementById('commissionModal').dataset.editId;
-  const isEditing = !!editId;
+  const vendorData = JSON.parse(vendorSelect.value);
   
   try {
-    const url = isEditing 
-      ? `/api/vendors/commissions/${editId}`
-      : `/api/vendors/${currentVendorId}/commissions`;
-    
-    const method = isEditing ? 'PUT' : 'POST';
-    
-    const r = await fetch(url, {
-      method: method,
+    const r = await fetch('/api/vendors/lead-commissions', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        vendor_id: vendorData.id,
+        vendor_code: vendorData.code,
+        vendor_email: vendorData.email,
+        vendor_name: vendorData.name,
+        lead_type: leadType,
         commission_amount: commissionAmount,
-        commission_type: commissionType,
-        commission_percent: commissionPercent,
-        transaction_amount: transactionAmount,
-        lead_price: leadPrice,
-        service_fee: serviceFee,
-        offering_title: offeringTitle,
-        notes
+        commission_type: 'lead', // Default to lead type
+        subscriber_email: subscriberEmail,
+        admin_notes: adminNotes
       }),
       credentials: 'include'
     });
     
     const j = await r.json();
     if (!j.ok) {
-      toast(j.error || `Failed to ${isEditing ? 'update' : 'add'} commission`, true);
+      toast(j.error || 'Failed to add commission', true);
       return;
     }
     
-    toast(`Commission ${isEditing ? 'updated' : 'added'} successfully`);
+    toast('Commission request sent successfully');
     document.getElementById('commissionModal').classList.add('hidden');
     document.getElementById('commissionForm').reset();
-    delete document.getElementById('commissionModal').dataset.editId;
-    document.getElementById('commissionModal').querySelector('h3').textContent = 'Add Commission';
+    
+    // Refresh commissions and vendor list
     loadCommissions();
-    loadVendors(); // Refresh vendor list to update totals
+    loadVendors();
   } catch (err) {
-    toast(`Failed to ${isEditing ? 'update' : 'add'} commission`, true);
+    toast('Failed to add commission', true);
   }
 });
 
@@ -300,7 +313,7 @@ document.querySelectorAll('[data-close-modal]').forEach(btn => {
       if (m.id === 'commissionModal') {
         m.querySelector('form').reset();
         delete m.dataset.editId;
-        m.querySelector('h3').textContent = 'Add Commission';
+        m.querySelector('h3').textContent = 'Add Commission Request';
       }
     });
   });
@@ -314,7 +327,7 @@ document.addEventListener('keydown', (e) => {
       if (m.id === 'commissionModal') {
         m.querySelector('form').reset();
         delete m.dataset.editId;
-        m.querySelector('h3').textContent = 'Add Commission';
+        m.querySelector('h3').textContent = 'Add Commission Request';
       }
     });
   }
@@ -329,5 +342,7 @@ document.getElementById('logout')?.addEventListener('click', async ()=>{
 (async function init(){
   await ensureAdmin();
   loadVendors();
+  loadCommissions();
+  loadCommissionVendorFilter();
 })();
 

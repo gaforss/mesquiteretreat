@@ -157,36 +157,108 @@ function renderOfferings(rows){
 
 async function loadCommissionHistory() {
   try {
-    const r = await fetch('/api/vendors/commissions', { credentials: 'include' });
+    const r = await fetch('/api/vendors/lead-commission-requests', { credentials: 'include' });
     const j = await r.json();
     const wrap = document.getElementById('commissionTable');
-    if (!j.ok) { wrap.textContent = j.error || 'Failed to load commission history'; return; }
+    if (!j.ok) { wrap.textContent = j.error || 'Failed to load commission requests'; return; }
     
     const rows = j.rows || [];
     if (rows.length === 0) {
-      wrap.innerHTML = '<p class="text-secondary">No commission history yet.</p>';
+      wrap.innerHTML = '<p class="text-secondary">No commission requests yet.</p>';
       return;
     }
     
     wrap.innerHTML = `<table><thead><tr>
-      <th>Date</th><th>Offering</th><th>Type</th><th>Amount</th><th>Status</th><th>Notes</th>
+      <th>Date</th><th>Lead Type</th><th>Amount</th><th>Status</th><th>Your Response</th><th>Notes</th><th>Actions</th>
     </tr></thead><tbody></tbody></table>`;
     
     const tbody = wrap.querySelector('tbody');
     rows.forEach(c => {
       const tr = document.createElement('tr');
       const date = new Date(c.created_at).toLocaleDateString();
-      const statusClass = c.status === 'paid' ? 'success' : c.status === 'pending' ? 'warning' : 'secondary';
+      const statusClass = c.status === 'paid' ? 'success' : c.status === 'approved' ? 'success' : c.status === 'pending' ? 'warning' : 'danger';
+      const responseClass = c.vendor_response === 'approved' ? 'success' : c.vendor_response === 'rejected' ? 'danger' : 'secondary';
+      
       tr.innerHTML = `<td>${date}</td>
-        <td>${c.offering_title || '—'}</td>
-        <td>${c.commission_type}</td>
-        <td>$${c.commission_amount.toFixed(2)}</td>
+        <td>${c.lead_type}</td>
+        <td class="commission-amount">$${c.commission_amount.toFixed(2)}</td>
         <td><span class="chip ${statusClass}">${c.status}</span></td>
-        <td>${c.notes || '—'}</td>`;
+        <td><span class="chip ${responseClass}">${c.vendor_response || 'pending'}</span></td>
+        <td>${c.admin_notes || '—'}</td>
+        <td>
+          ${c.vendor_response === 'pending' ? `
+            <button class="cta secondary" data-approve="${c._id}" style="margin-right:6px">Approve</button>
+            <button class="cta danger" data-reject="${c._id}">Reject</button>
+          ` : `
+            <span class="text-secondary">${c.vendor_response === 'approved' ? 'Approved' : 'Rejected'}</span>
+          `}
+        </td>`;
       tbody.appendChild(tr);
     });
+    
+    // Bind approval/rejection actions
+    wrap.querySelectorAll('[data-approve]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-approve');
+        if (!confirm('Are you sure you want to approve this commission request?')) return;
+        
+        try {
+          const r = await fetch(`/api/vendors/lead-commissions/${id}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              vendor_response: 'approved',
+              vendor_response_notes: 'Approved by vendor'
+            }),
+            credentials: 'include'
+          });
+          
+          const j = await r.json();
+          if (!j.ok) {
+            alert(j.error || 'Failed to approve commission request');
+            return;
+          }
+          
+          alert('Commission request approved successfully!');
+          loadCommissionHistory();
+        } catch (err) {
+          alert('Failed to approve commission request');
+        }
+      });
+    });
+    
+    wrap.querySelectorAll('[data-reject]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-reject');
+        const reason = prompt('Please provide a reason for rejecting this commission request:');
+        if (reason === null) return; // User cancelled
+        
+        try {
+          const r = await fetch(`/api/vendors/lead-commissions/${id}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              vendor_response: 'rejected',
+              vendor_response_notes: reason || 'Rejected by vendor'
+            }),
+            credentials: 'include'
+          });
+          
+          const j = await r.json();
+          if (!j.ok) {
+            alert(j.error || 'Failed to reject commission request');
+            return;
+          }
+          
+          alert('Commission request rejected successfully!');
+          loadCommissionHistory();
+        } catch (err) {
+          alert('Failed to reject commission request');
+        }
+      });
+    });
   } catch (err) {
-    console.error('Error loading commission history:', err);
+    console.error('Error loading commission requests:', err);
   }
 }
 

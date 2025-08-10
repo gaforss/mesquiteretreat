@@ -62,7 +62,7 @@ function getDefaultContent(){
       'Free parking', 'Single‑level home', 'Prime location - minutes to Old Town, Fashion Square & golf'
     ],
     good_to_know: [
-      'No animals due to severe allergies (Airbnb policy exemption).',
+      'No animals, including service and emotional support animals due to severe allergies (Airbnb policy exemption approved due to severe allergies of owners son).',
       'Pool heat available for $75/night or $400/week (request 72h before check‑in).',
       'Pool use & safety waiver required before check‑in.',
       'No parties or events. Quiet, residential area.',
