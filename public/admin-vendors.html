@@ -36,6 +36,16 @@
               </div>
             </div>
           </section>
+          
+          <section class="section-card" id="commissionSection" style="display:none">
+            <div class="section-head">
+              <h2 style="margin:0">Commission Management</h2>
+              <button id="addCommissionBtn" class="cta secondary">Add Commission</button>
+            </div>
+            <div class="section-body">
+              <div id="commissionTable" class="table-wrap"></div>
+            </div>
+          </section>
           <section class="section-card">
             <div class="section-head"><h2 style="margin:0">Add Vendor</h2></div>
             <div class="section-body">
@@ -60,6 +70,65 @@
       </div>
     </main>
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    
+    <!-- Commission Modal -->
+    <div id="commissionModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add Commission</h3>
+          <button data-close-modal>&times;</button>
+        </div>
+        <form id="commissionForm">
+          <div class="field-row">
+            <div class="field">
+              <label>Commission Type
+                <select id="commissionType">
+                  <option value="percentage">Percentage-based</option>
+                  <option value="fixed">Fixed Amount</option>
+                  <option value="lead">Lead-based</option>
+                </select>
+              </label>
+            </div>
+            <div class="field">
+              <label>Commission Amount (choose one)
+                <input id="commissionAmount" type="number" step="0.01" min="0" placeholder="Fixed dollar amount"/>
+              </label>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Commission Percentage (choose one)
+                <input id="commissionPercent" type="number" min="0" max="100" step="1" placeholder="e.g. 15 for 15%"/>
+              </label>
+            </div>
+            <div class="field">
+              <label>Transaction Amount
+                <input id="transactionAmount" type="number" step="0.01" min="0" placeholder="Total sale amount"/>
+              </label>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Lead Price (if lead type)<input id="leadPrice" type="number" step="0.01" min="0"/></label>
+            </div>
+            <div class="field">
+              <label>Service Fee<input id="serviceFee" type="number" step="0.01" min="0"/></label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Offering Title<input id="offeringTitle" placeholder="Service or product name"/></label>
+          </div>
+          <div class="field">
+            <label>Notes<textarea id="commissionNotes" placeholder="Additional notes about this commission"></textarea></label>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="cta" type="submit">Add Commission</button>
+            <button type="button" class="cta secondary" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
     <script src="/js/nav.js"></script>
     <script type="module" src="/js/admin-vendors.js"></script>
   </body>

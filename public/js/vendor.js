@@ -38,8 +38,17 @@ async function ensureVendor(){
       document.getElementById('kpiEntries').textContent = j.totals.total.toLocaleString();
       document.getElementById('kpiConfirmed').textContent = j.totals.confirmed.toLocaleString();
       document.getElementById('kpi7d').textContent = j.totals.last7d.toLocaleString();
+      
+      // Commission stats
+      const totalEarned = j.commissions?.total_earned || 0;
+      const totalPending = j.commissions?.total_pending || 0;
+      document.getElementById('kpiEarned').textContent = `$${totalEarned.toFixed(2)}`;
+      document.getElementById('kpiPending').textContent = `$${totalPending.toFixed(2)}`;
+      
       const offeringSection = document.getElementById('offeringsSection'); if (offeringSection) offeringSection.style.display = '';
+      const commissionSection = document.getElementById('commissionSection'); if (commissionSection) commissionSection.style.display = '';
       renderOfferings(j.offerings||[]);
+      loadCommissionHistory();
     }
   }catch{}
 
@@ -144,5 +153,40 @@ function renderOfferings(rows){
       const j = await r.json(); if (j.ok) renderOfferings(j.rows||[]);
     });
   });
+}
+
+async function loadCommissionHistory() {
+  try {
+    const r = await fetch('/api/vendors/commissions', { credentials: 'include' });
+    const j = await r.json();
+    const wrap = document.getElementById('commissionTable');
+    if (!j.ok) { wrap.textContent = j.error || 'Failed to load commission history'; return; }
+    
+    const rows = j.rows || [];
+    if (rows.length === 0) {
+      wrap.innerHTML = '<p class="text-secondary">No commission history yet.</p>';
+      return;
+    }
+    
+    wrap.innerHTML = `<table><thead><tr>
+      <th>Date</th><th>Offering</th><th>Type</th><th>Amount</th><th>Status</th><th>Notes</th>
+    </tr></thead><tbody></tbody></table>`;
+    
+    const tbody = wrap.querySelector('tbody');
+    rows.forEach(c => {
+      const tr = document.createElement('tr');
+      const date = new Date(c.created_at).toLocaleDateString();
+      const statusClass = c.status === 'paid' ? 'success' : c.status === 'pending' ? 'warning' : 'secondary';
+      tr.innerHTML = `<td>${date}</td>
+        <td>${c.offering_title || '—'}</td>
+        <td>${c.commission_type}</td>
+        <td>$${c.commission_amount.toFixed(2)}</td>
+        <td><span class="chip ${statusClass}">${c.status}</span></td>
+        <td>${c.notes || '—'}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error loading commission history:', err);
+  }
 }
 

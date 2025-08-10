@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import Vendor from '../models/vendor.js';
 import VendorClick from '../models/vendorClick.js';
 import VendorOffering from '../models/vendorOffering.js';
+import VendorCommission from '../models/vendorCommission.js';
 import ServiceRequest from '../models/serviceRequest.js';
 import { getCookieOpts, requireAdmin, signVendorToken, requireVendor } from '../middleware/auth.js';
 import Subscriber from '../models/subscriber.js';
@@ -191,6 +192,37 @@ router.delete('/offerings/:id', requireVendor, async (req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Vendor commission history
+router.get('/commissions', requireVendor, async (req, res) => {
+  try{
+    const vendor = await Vendor.findById(req.vendor?.id).select({ vendor_code:1 }).lean();
+    const { page = 1, pageSize = 20, status } = req.query;
+    const skip = (Number(page) - 1) * Number(pageSize);
+    
+    const match = { vendor_code: vendor.vendor_code };
+    if (status && status !== 'all') {
+      match.status = status;
+    }
+    
+    const rows = await VendorCommission.find(match)
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(Number(pageSize))
+      .lean();
+      
+    const total = await VendorCommission.countDocuments(match);
+    
+    return res.json({ 
+      ok: true, 
+      rows, 
+      total, 
+      page: Number(page), 
+      pageSize: Number(pageSize),
+      totalPages: Math.ceil(total / Number(pageSize))
+    });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 // Vendor stats (self)
 router.get('/stats', requireVendor, async (req, res) => {
   try{
@@ -201,7 +233,27 @@ router.get('/stats', requireVendor, async (req, res) => {
     const week = await Subscriber.countDocuments({ vendor_code: code, created_at: { $gte: since } });
     const clicks = await VendorClick.countDocuments({ vendor_code: code });
     const offerings = await VendorOffering.find({ vendor_code: code }).sort({ created_at: -1 }).lean();
-    return res.json({ ok:true, totals: { clicks, total, confirmed, last7d: week }, offerings });
+    
+    // Commission stats
+    const commissionStats = await VendorCommission.aggregate([
+      { $match: { vendor_code: code } },
+      { $group: {
+        _id: null,
+        total_earned: { $sum: '$commission_amount' },
+        total_pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$commission_amount', 0] } },
+        total_paid: { $sum: { $cond: [{ $eq: ['$status', 'paid'] }, '$commission_amount', 0] } },
+        total_transactions: { $sum: 1 }
+      }}
+    ]);
+    
+    const commissionData = commissionStats[0] || { total_earned: 0, total_pending: 0, total_paid: 0, total_transactions: 0 };
+    
+    return res.json({ 
+      ok: true, 
+      totals: { clicks, total, confirmed, last7d: week }, 
+      offerings,
+      commissions: commissionData
+    });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
@@ -223,7 +275,26 @@ router.get('/with-stats', requireAdmin, async (_req, res) => {
       const clicks = await VendorClick.countDocuments({ vendor_code: code });
       const total = await Subscriber.countDocuments({ vendor_code: code });
       const confirmed = await Subscriber.countDocuments({ vendor_code: code, confirmed: true });
-      results.push({ ...v, stats: { clicks, total, confirmed } });
+      
+      // Commission stats
+      const commissionStats = await VendorCommission.aggregate([
+        { $match: { vendor_code: code } },
+        { $group: {
+          _id: null,
+          total_earned: { $sum: '$commission_amount' },
+          total_pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$commission_amount', 0] } },
+          total_paid: { $sum: { $cond: [{ $eq: ['$status', 'paid'] }, '$commission_amount', 0] } },
+          total_transactions: { $sum: 1 }
+        }}
+      ]);
+      
+      const commissionData = commissionStats[0] || { total_earned: 0, total_pending: 0, total_paid: 0, total_transactions: 0 };
+      
+      results.push({ 
+        ...v, 
+        stats: { clicks, total, confirmed },
+        commissions: commissionData
+      });
     }
     return res.json({ ok:true, rows: results });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
@@ -257,6 +328,102 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     await Vendor.deleteOne({ _id: id });
     return res.json({ ok:true });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+// Admin: commission management
+router.get('/:id/commissions', requireAdmin, async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { page = 1, pageSize = 20, status } = req.query;
+    const skip = (Number(page) - 1) * Number(pageSize);
+    
+    const vendor = await Vendor.findById(id).select({ vendor_code: 1 }).lean();
+    if (!vendor) return res.status(404).json({ ok: false, error: 'Vendor not found' });
+    
+    const match = { vendor_code: vendor.vendor_code };
+    if (status && status !== 'all') {
+      match.status = status;
+    }
+    
+    const rows = await VendorCommission.find(match)
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(Number(pageSize))
+      .lean();
+      
+    const total = await VendorCommission.countDocuments(match);
+    
+    return res.json({ 
+      ok: true, 
+      rows, 
+      total, 
+      page: Number(page), 
+      pageSize: Number(pageSize),
+      totalPages: Math.ceil(total / Number(pageSize))
+    });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.post('/:id/commissions', requireAdmin, async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { offering_id, offering_title, commission_type, commission_amount, commission_percent, lead_price, service_fee, transaction_amount, notes } = req.body;
+    
+    const vendor = await Vendor.findById(id).select({ vendor_code: 1 }).lean();
+    if (!vendor) return res.status(404).json({ ok: false, error: 'Vendor not found' });
+    
+    // Validate that either commission amount or percentage is provided
+    if ((!commission_amount || commission_amount <= 0) && (!commission_percent || commission_percent <= 0)) {
+      return res.status(400).json({ ok: false, error: 'Either commission amount or percentage is required and must be positive' });
+    }
+    
+    // Set commission_amount to 0 if not provided (for percentage-based commissions)
+    const finalCommissionAmount = commission_amount || 0;
+    
+    const commission = await VendorCommission.create({
+      vendor_id: String(id),
+      vendor_code: vendor.vendor_code,
+      offering_id: offering_id || null,
+      offering_title: offering_title || '',
+      commission_type: commission_type || 'percentage',
+      commission_amount: finalCommissionAmount,
+      commission_percent: commission_percent ? Number(commission_percent) : null,
+      lead_price: lead_price ? Number(lead_price) : null,
+      service_fee: service_fee ? Number(service_fee) : null,
+      transaction_amount: transaction_amount ? Number(transaction_amount) : null,
+      notes: notes || '',
+      source: 'manual'
+    });
+    
+    return res.json({ ok: true, commission });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
+router.put('/commissions/:commissionId', requireAdmin, async (req, res) => {
+  try{
+    const { commissionId } = req.params;
+    const { 
+      commission_amount, commission_type, commission_percent, 
+      transaction_amount, lead_price, service_fee, 
+      offering_title, notes, status 
+    } = req.body;
+    
+    const updates = {};
+    if (commission_amount !== undefined) updates.commission_amount = Number(commission_amount);
+    if (commission_type) updates.commission_type = commission_type;
+    if (commission_percent !== undefined) updates.commission_percent = commission_percent ? Number(commission_percent) : null;
+    if (transaction_amount !== undefined) updates.transaction_amount = transaction_amount ? Number(transaction_amount) : null;
+    if (lead_price !== undefined) updates.lead_price = lead_price ? Number(lead_price) : null;
+    if (service_fee !== undefined) updates.service_fee = service_fee ? Number(service_fee) : null;
+    if (offering_title !== undefined) updates.offering_title = offering_title;
+    if (notes !== undefined) updates.notes = notes;
+    if (status) updates.status = status;
+    
+    await VendorCommission.updateOne({ _id: commissionId }, { $set: updates });
+    const commission = await VendorCommission.findById(commissionId).lean();
+    
+    return res.json({ ok: true, commission });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
