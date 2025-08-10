@@ -126,15 +126,27 @@ async function loadCommissions() {
         const currentStatus = btn.getAttribute('data-current-status');
         const newStatus = currentStatus === 'pending' ? 'paid' : 'pending';
         
-        await fetch(`/api/vendors/lead-commissions/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus }),
-          credentials: 'include'
-        });
-        
-        toast('Status updated');
-        loadCommissions();
+        try {
+          const response = await fetch(`/api/vendors/lead-commissions/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus }),
+            credentials: 'include'
+          });
+          
+          const result = await response.json();
+          
+          if (!result.ok) {
+            toast(result.error || 'Failed to update status', true);
+            return;
+          }
+          
+          toast(`Status updated to ${newStatus}`);
+          loadCommissions();
+        } catch (error) {
+          console.error('Error updating commission status:', error);
+          toast('Failed to update status', true);
+        }
       });
     });
     

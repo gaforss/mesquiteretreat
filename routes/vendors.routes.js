@@ -602,6 +602,31 @@ router.post('/lead-commissions', requireAdmin, async (req, res) => {
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
+// Update lead commission endpoint
+router.put('/lead-commissions/:id', requireAdmin, async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { status, admin_notes } = req.body;
+    
+    const updates = {};
+    if (status && ['pending', 'approved', 'paid', 'rejected'].includes(status)) {
+      updates.status = status;
+    }
+    if (admin_notes !== undefined) {
+      updates.admin_notes = admin_notes;
+    }
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ ok: false, error: 'No valid updates provided' });
+    }
+    
+    await LeadCommission.updateOne({ _id: id }, { $set: updates });
+    const leadCommission = await LeadCommission.findById(id).lean();
+    
+    return res.json({ ok: true, leadCommission });
+  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+});
+
 // Vendor approval endpoint
 router.post('/lead-commissions/:id/approve', async (req, res) => {
   try{

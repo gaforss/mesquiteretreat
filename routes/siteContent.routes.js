@@ -28,10 +28,10 @@ function getDefaultContent(){
     book_url: 'https://www.airbnb.com/rooms/1310467447728284655',
     features: [
       { emoji: '🛁', title: '2 Modern Bathrooms', subtitle: 'Sparkling clean, fully stocked' },
+      { emoji: '⛳', title: 'Private Putting Green', subtitle: 'Backyard entertainment' },
       { emoji: '🍳', title: "Chef's Kitchen", subtitle: 'Stainless steel appliances, wine/coffee bar' },
       { emoji: '📺', title: 'Smart TVs & Fast Wi-Fi', subtitle: 'Chic decor throughout' },
       { emoji: '🔥', title: 'Heated Pool & Hot Tub', subtitle: 'Firepit lounge' },
-      { emoji: '⛳', title: 'Private Putting Green', subtitle: 'Backyard entertainment' },
       { emoji: '🍽️', title: 'Covered Patio', subtitle: 'Dining & BBQ area' }
     ],
     gallery: [
