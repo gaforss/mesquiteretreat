@@ -27,10 +27,12 @@ function getDefaultContent(){
     hero_image_url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/63811802-34d9-4987-8bd7-7395421b7648.jpeg',
     book_url: 'https://www.airbnb.com/rooms/1310467447728284655',
     features: [
-      { emoji: '🏊‍♂️', title: 'Heated pool', subtitle: '+ hot tub' },
-      { emoji: '⛳', title: 'Putting green', subtitle: 'Backyard fun' },
-      { emoji: '📍', title: 'Near Old Town', subtitle: 'Dining & shopping' },
-      { emoji: '🛏️', title: '3 bedrooms', subtitle: 'Sleeps 6' }
+      { emoji: '🛁', title: '2 Modern Bathrooms', subtitle: 'Sparkling clean, fully stocked' },
+      { emoji: '🍳', title: "Chef's Kitchen", subtitle: 'Stainless steel appliances, wine/coffee bar' },
+      { emoji: '📺', title: 'Smart TVs & Fast Wi-Fi', subtitle: 'Chic decor throughout' },
+      { emoji: '🔥', title: 'Heated Pool & Hot Tub', subtitle: 'Firepit lounge' },
+      { emoji: '⛳', title: 'Private Putting Green', subtitle: 'Backyard entertainment' },
+      { emoji: '🍽️', title: 'Covered Patio', subtitle: 'Dining & BBQ area' }
     ],
     gallery: [
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3fff9ca9-4d3d-4baa-b267-613fb1550be8.jpeg', alt: 'Modern living room with luxe finishes' },
@@ -48,7 +50,7 @@ function getDefaultContent(){
     amenities: [
       'Private pool (heat optional)', 'Hot tub', 'Fire pit lounge', '3‑hole putting green', 'Fully stocked kitchen',
       'Coffee & wine bar', 'Dedicated workspace', 'Fast Wi‑Fi', 'Washer & dryer', 'Patio with TV & BBQ grill',
-      'Free parking', 'Single‑level home'
+      'Free parking', 'Single‑level home', 'Prime location - minutes to Old Town, Fashion Square & golf'
     ],
     good_to_know: [
       'No animals due to severe allergies (Airbnb policy exemption).',
@@ -94,13 +96,9 @@ function getDefaultContent(){
 
 router.get('/site-content', async (_req, res) => {
   try{
-    // If DB is not connected, serve defaults without querying
-    if (mongoose.connection.readyState !== 1) {
-      return res.json({ ok:true, content: getDefaultContent() });
-    }
-    const doc = await SiteContent.findOne({ key: 'default' }).lean();
-    const merged = doc ? { ...getDefaultContent(), ...doc } : getDefaultContent();
-    return res.json({ ok:true, content: merged });
+    // TEMPORARILY FORCE DEFAULTS TO UPDATE FEATURES - IGNORE DATABASE
+    const defaults = getDefaultContent();
+    return res.json({ ok:true, content: defaults });
   }catch(err){
     // On error, still serve defaults to keep the public site functional
     return res.json({ ok:true, content: getDefaultContent() });

@@ -18,23 +18,23 @@ async function loadSiteContent(){
     const heroImg = document.querySelector('.hero-image img'); if (heroImg && c.hero_image_url) heroImg.src = c.hero_image_url;
     // Book links
     document.querySelectorAll('a.airbnb').forEach(a=>{ a.href = bookUrl; });
-    // Features
-    if (Array.isArray(c.features)){
-      const wrap = document.querySelector('.hero .features') || document.querySelector('.features'); if (wrap){
-        wrap.innerHTML = '';
-        c.features.forEach(f=>{
-          const div = document.createElement('div'); div.className='feature';
-          div.innerHTML = `
-            <div class="feat-text">
-              <div class="feat-title">${f.title||''}</div>
-              <div class="feat-sub">${f.subtitle||''}</div>
-            </div>
-            <div class="feat-icon"><span class="emoji">${f.emoji||''}</span></div>
-          `;
-          wrap.appendChild(div);
-        });
-      }
-    }
+    // Features - DISABLED TO KEEP 6 FEATURES FROM HTML
+    // if (Array.isArray(c.features)){
+    //   const wrap = document.querySelector('.hero .features') || document.querySelector('.features'); if (wrap){
+    //     wrap.innerHTML = '';
+    //     c.features.forEach(f=>{
+    //       const div = document.createElement('div'); div.className='feature';
+    //       div.innerHTML = `
+    //         <div class="feat-text">
+    //           <div class="feat-title">${f.title||''}</div>
+    //           <div class="feat-sub">${f.subtitle||''}</div>
+    //         </div>
+    //         <div class="feat-icon"><span class="emoji">${f.emoji||''}</span></div>
+    //       `;
+    //       wrap.appendChild(div);
+    //     });
+    //   }
+    // }
     // Badge overlay inside hero
     const heroEl = document.querySelector('.hero');
     if (heroEl){
