@@ -20,7 +20,7 @@ async function loadVendors(){
     const r = await fetch('/api/vendors/with-stats', { credentials:'include' });
     const j = await r.json();
     const wrap = document.getElementById('vendorsTable'); if (!wrap) return;
-    if (!j.ok){ wrap.textContent = j.error||'Failed to load vendors'; return; }
+    if (!j.ok){ wrap.textContent = j.error||'Failed to load partners'; return; }
     const rows = j.rows||[];
     wrap.innerHTML = `<table><thead><tr>
       <th>Email</th><th>Name</th><th>Company</th><th>Code</th><th>Status</th><th>Clicks</th><th>Entries</th><th>Confirmed</th><th>Total Earned</th><th>Pending</th><th>Actions</th>
@@ -62,7 +62,7 @@ async function loadVendors(){
     wrap.querySelectorAll('[data-ven-del]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         const id = btn.getAttribute('data-ven-del');
-        if (!confirm('Delete this vendor?')) return;
+        if (!confirm('Delete this partner?')) return;
         await fetch('/api/vendors/'+id, { method:'DELETE', credentials:'include' });
         toast('Deleted');
         loadVendors();
@@ -95,7 +95,7 @@ async function loadCommissions() {
     }
     
     wrap.innerHTML = `<table><thead><tr>
-      <th>Date</th><th>Vendor</th><th>Lead Type</th><th>Commission Amount</th><th>Status</th><th>Vendor Response</th><th>Notes</th><th>Actions</th>
+      <th>Date</th><th>Partner</th><th>Lead Type</th><th>Commission Amount</th><th>Status</th><th>Partner Response</th><th>Notes</th><th>Actions</th>
     </tr></thead><tbody></tbody></table>`;
     
     const tbody = wrap.querySelector('tbody');
@@ -227,7 +227,7 @@ async function loadCommissionVendorFilter() {
     if (!vendorFilter) return;
     
     // Clear existing options except the first one
-    vendorFilter.innerHTML = '<option value="">All vendors</option>';
+    vendorFilter.innerHTML = '<option value="">All partners</option>';
     
     // Add vendor options
     j.rows.forEach(vendor => {
@@ -251,7 +251,7 @@ async function loadVendorDropdown() {
     const vendorSelect = document.getElementById('vendorSelect');
     
     // Clear existing options except the first one
-    vendorSelect.innerHTML = '<option value="">Select a vendor...</option>';
+    vendorSelect.innerHTML = '<option value="">Select a partner...</option>';
     
     // Add vendor options
     j.rows.forEach(vendor => {
@@ -281,7 +281,7 @@ document.getElementById('commissionForm')?.addEventListener('submit', async (e) 
   const adminNotes = document.getElementById('commissionNotes').value.trim();
   
   if (!vendorSelect.value || !commissionAmount || commissionAmount <= 0) {
-    toast('Please select a vendor and provide a valid commission amount', true);
+    toast('Please select a partner and provide a valid commission amount', true);
     return;
   }
   

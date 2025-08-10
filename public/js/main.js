@@ -256,6 +256,19 @@ form?.addEventListener('submit', async (e) => {
           if (navigator.share){ try{ await navigator.share({ title: 'Win a stay at Mesquite Retreat', url: shareUrl }); } catch{} }
           else { navigator.clipboard.writeText(shareUrl); alert('Link copied'); }
         };
+        const btnInviteSMS = document.getElementById('btnInviteSMS');
+        if (btnInviteSMS) btnInviteSMS.onclick = ()=>{
+          try{
+            const text = encodeURIComponent('Join me in this giveaway for 2 free nights at Mesquite Retreat! Enter here: '+shareUrl);
+            // Compose SMS intent; on iOS use & body=, on Android use ?body=
+            const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const href = isiOS ? `sms:&body=${text}` : `sms:?body=${text}`;
+            window.location.href = href;
+          }catch{
+            navigator.clipboard.writeText(shareUrl);
+            alert('Invite text copied');
+          }
+        };
     if (btnBoost) btnBoost.onclick = ()=>{ entryModal?.classList.remove('hidden'); };
       }
     } else {
