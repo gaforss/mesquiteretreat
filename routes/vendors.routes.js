@@ -371,7 +371,16 @@ router.post('/', requireAdmin, async (req, res) => {
     const hash = await bcrypt.hash(initialPassword, 10);
     const row = await Vendor.create({ email: String(email).toLowerCase(), name: name||'', company: company||'', password_hash: hash, vendor_code: code, status: 'active', must_change_password: true });
     return res.json({ ok:true, row });
-  }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
+  }catch(err){
+    // Handle duplicate key errors cleanly
+    if (err && (err.code === 11000 || err.name === 'MongoServerError')){
+      const keys = Object.keys(err.keyPattern||{});
+      if (keys.includes('email')) return res.status(409).json({ ok:false, error:'A vendor with this email already exists' });
+      if (keys.includes('vendor_code')) return res.status(409).json({ ok:false, error:'Vendor code is already in use. Try a different code.' });
+      return res.status(409).json({ ok:false, error:'Duplicate value' });
+    }
+    return res.status(500).json({ ok:false, error:'Server error' });
+  }
 });
 
 router.put('/:id', requireAdmin, async (req, res) => {

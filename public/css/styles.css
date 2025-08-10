@@ -383,6 +383,83 @@ nav a[aria-current="page"] { opacity: 1; }
 .promo-main { line-height: 1.2; }
 .promo-sub { line-height: 1.15; opacity: .9; }
 
+/* Admin vendors: flow steps */
+.flow-steps {
+  counter-reset: step;
+  list-style: none;
+  margin: 0 0 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.flow-steps li {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: 10px 12px 10px 36px;
+  color: var(--text);
+}
+.flow-steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 18px; height: 18px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 800;
+  color: #111;
+  background: linear-gradient(135deg, var(--primary), #8ab4ff);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.2);
+}
+.flow-steps li strong { color: var(--text); }
+.flow-steps a { color: var(--primary); text-decoration: none; }
+.flow-steps a:hover { text-decoration: underline; }
+
+/* Collapsed flow summary */
+.flow-summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: var(--text);
+}
+.flow-details[open] > .flow-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+/* Quick flow chips */
+.flow-quick { 
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+  margin-bottom: 8px; 
+}
+.step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.step-chip .num {
+  display: inline-flex; align-items:center; justify-content:center;
+  width: 18px; height: 18px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), #8ab4ff);
+  color: #111; font-weight: 900; font-size: 12px;
+}
+
 /* Admin dashboard */
 .card { background: var(--card); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.24), 0 0 22px rgba(0,112,224,.12); }
 .card-body { padding: 14px; color: var(--text); }

@@ -182,7 +182,12 @@ async function loadCommissions() {
   }
 }
 
-// Add vendor form
+// Open add vendor modal
+document.getElementById('addVendorBtn')?.addEventListener('click', ()=>{
+  document.getElementById('vendorModal')?.classList.remove('hidden');
+});
+
+// Add vendor form (modal)
 document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const out = document.getElementById('vendorMsg'); out.textContent = 'Saving...';
@@ -194,7 +199,9 @@ document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
     const r = await fetch('/api/vendors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, name, company, vendor_code: vendor_code||undefined }), credentials:'include' });
     const j = await r.json();
     if (!j.ok){ out.textContent = j.error||'Failed'; return; }
-    out.textContent = 'Added'; (e.target).reset(); loadVendors();
+    out.textContent = 'Added'; (e.target).reset();
+    document.getElementById('vendorModal')?.classList.add('hidden');
+    loadVendors();
   }catch{ out.textContent = 'Failed'; }
 });
 

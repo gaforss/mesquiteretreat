@@ -30,8 +30,43 @@
               <h1 class="page-title">Manage Vendors</h1>
             </div>
           </div>
+          <section class="section-card" style="margin-bottom:12px">
+            <div class="section-head">
+              <h2 style="margin:0">How this works</h2>
+            </div>
+            <div class="section-body">
+              <div class="flow-quick" aria-label="Setup steps">
+                <span class="step-chip" title="Create a vendor record"><span class="num">1</span><span>Add vendor</span></span>
+                <span class="step-chip" title="Share login page with vendor"><span class="num">2</span><span>Share login</span></span>
+                <span class="step-chip" title="Create a commission request"><span class="num">3</span><span>Create request</span></span>
+                <span class="step-chip" title="Vendor approves or rejects"><span class="num">4</span><span>Vendor review</span></span>
+                <span class="step-chip" title="Mark approved requests as paid"><span class="num">5</span><span>Reconcile</span></span>
+              </div>
+              <details class="flow-details">
+                <summary class="flow-summary">Open full guide</summary>
+                <ol class="flow-steps">
+                  <li><strong>Add a vendor</strong> using the form below. You can set an optional <em>Vendor Code</em> (e.g. GOLFPRO). This will also be the vendor’s initial password.</li>
+                  <li><strong>Share access</strong> with the vendor: send them to <a href="/vendor-login.html" target="_blank">Vendor Login</a>. They’ll be prompted to change their password on first sign‑in.</li>
+                  <li><strong>Track activity</strong>: Vendors you add appear in the table. You can create <em>Commission Requests</em> (below) for clicks/leads/bookings you want them to confirm.</li>
+                  <li><strong>Vendor review</strong>: Vendors receive the request in their dashboard to <em>Approve</em> or <em>Reject</em> with notes.</li>
+                  <li><strong>Reconcile</strong>: After approval, mark the request as <em>Paid</em> from the Commissions section (coming soon) and keep the record for reporting.</li>
+                </ol>
+                <div class="promo-pill" style="margin-top:6px">
+                  <span class="emoji">🔗</span>
+                  <div class="promo-text">
+                    <span class="promo-main">Public vendor network page</span>
+                    <span class="promo-sub"><a href="/vendor-network.html" target="_blank">Open vendor-network.html</a> to preview how vendors discover you</span>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </section>
           <section class="section-card">
-            <div class="section-head"><h2 style="margin:0">Vendors</h2></div>
+            <div class="section-head"><h2 style="margin:0">Vendors</h2>
+              <div class="actions">
+                <button id="addVendorBtn" class="cta">Add Vendor</button>
+              </div>
+            </div>
             <div class="section-body">
               <div class="table-scroll" style="max-height:480px; overflow:auto">
                 <div id="vendorsTable" class="table-wrap"></div>
@@ -77,26 +112,7 @@
               <div id="commissionTable" class="table-wrap"></div>
             </div>
           </section>
-          <section class="section-card">
-            <div class="section-head"><h2 style="margin:0">Add Vendor</h2></div>
-            <div class="section-body">
-              <form id="vendorForm" class="signup-form">
-                <div class="field-row">
-                  <div class="field"><label>Email<input id="venEmail" type="email" required placeholder="vendor@example.com"/></label></div>
-                </div>
-                <div class="field-row">
-                  <div class="field"><label>Name<input id="venName" placeholder="Contact name"/></label></div>
-                  <div class="field"><label>Company<input id="venCompany" placeholder="Company (optional)"/></label></div>
-                </div>
-                <div class="field"><label>Vendor Code (optional)<input id="venCode" placeholder="CUSTOMCODE (A–Z, 0–9)"/></label></div>
-                <div style="display:flex; gap:8px; align-items:center">
-                  <button class="cta" type="submit">Add Vendor</button>
-                  <p id="vendorMsg" class="form-message"></p>
-                </div>
-              </form>
-              <p class="small text-secondary" style="margin-top:8px">Note: Initial password defaults to the vendor code. Vendors will be prompted to change their password from their dashboard.</p>
-            </div>
-          </section>
+          
         </div>
       </div>
     </main>
@@ -167,6 +183,30 @@
             </div>
           </form>
         </div>
+      </div>
+    </div>
+    
+    <!-- Add Vendor Modal -->
+    <div id="vendorModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="vendorModalTitle">
+      <div class="modal-card">
+        <button class="modal-close" data-close-modal>&times;</button>
+        <h2 id="vendorModalTitle">Add Vendor</h2>
+        <form id="vendorForm" class="signup-form">
+          <div class="field-row">
+            <div class="field"><label>Email<input id="venEmail" type="email" required placeholder="vendor@example.com"/></label></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Name<input id="venName" placeholder="Contact name"/></label></div>
+            <div class="field"><label>Company<input id="venCompany" placeholder="Company (optional)"/></label></div>
+          </div>
+          <div class="field"><label>Vendor Code (optional)<input id="venCode" placeholder="CUSTOMCODE (A–Z, 0–9)"/></label></div>
+          <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px">
+            <button type="submit" class="cta">Add Vendor</button>
+            <button type="button" class="cta secondary" data-close-modal>Cancel</button>
+          </div>
+          <p id="vendorMsg" class="form-message"></p>
+        </form>
+        <p class="small text-secondary" style="margin-top:8px">Note: Initial password defaults to the vendor code. Vendors will be prompted to change their password on first login.</p>
       </div>
     </div>
     
