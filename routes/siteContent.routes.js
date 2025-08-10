@@ -20,7 +20,7 @@ function getDefaultContent(){
     show_superhost_pill: true,
     show_top_percent_pill: true,
     highlights: [
-      { title: 'Top 5% of homes', description: 'This home is highly ranked based on ratings, reviews, and reliability.' },
+      { title: '🥇 Top 5% of homes', description: 'This home is highly ranked based on ratings, reviews, and reliability.' },
       { title: 'Exceptional check-in experience', description: 'Recent guests gave the check-in process a 5-star rating.' },
       { title: 'Peace and quiet', description: 'Guests say this home is in a quiet area.' }
     ],
@@ -43,9 +43,18 @@ function getDefaultContent(){
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/18b7447f-d610-4165-a2f2-6a5ee7792a3e.jpeg', alt: 'Guest bedroom with queen bed' }
     ],
     reviews: [
-      { name: 'Jennifer', text: 'The place was very cute and comfortable in a nice area... Would definitely stay here again and recommend to family and friends!!', stars: 5 },
-      { name: 'Natalia', text: 'Our family had a wonderful stay!... The backyard was amazing and provided many activities... beautifully clean.', stars: 5 },
-      { name: 'Brooks', text: 'We had a fantastic stay. Clean, comfortable, and well‑equipped... host was friendly and responsive.', stars: 5 },
+      { name: 'Larissa', text: 'This was an overall great stay! The whole space was beautifully decorated, clean, and calming. We loved all the activities like mini golf, corn hole, and some games in the living room. The pool was clean and perfect temperature. We were 10 minutes from Scottsdale Mall which had alot of things to do and a lot of fun food places to explore.', stars: 5 },
+      { name: 'Jennifer', text: 'The place was very cute and comfortable in a nice area. We had a couple very minor issues with the internet and a shorted fuse due to multiple hairdryers going, but host was extremely responsive, helpful, accommodating, and things were taken care of immediately. Inside and out was very clean and cared for. Hot tub and pool were in great shape and temps were perfect. Would definitely stay here again and recommend to family and friends!!', stars: 5 },
+      { name: 'Natalia', text: 'Our family had a wonderful stay! The house was awesome! The backyard was amazing and provided many activities for us to do all day! The house had everything it needed for us to be comfortable and it was beautifully clean. We would love to stay again.', stars: 5 },
+      { name: 'Terri', text: 'This is a great, lovely home in a perfect location! We had four adults in our party & everyone was very, very comfortable. The house was spotlessly clean & had everything we needed. The backyard is beautiful and the pool, hot tub and gas fire table were a huge plus. The pool heating fee is definitely worth it so don\'t hesitate to pay it! We were close to everything in Scottsdale and although we didn\'t use it, there\'s a trolley stop within easy walking distance of the house. The Travli representative was the most responsive host we\'ve ever, ever had, truly cared about our experience and comfort and was an absolute joy to work with. We thoroughly enjoyed our visit and would not hesitate to stay here again. Thank you Travli for a wonderful experience!', stars: 5 },
+      { name: 'Tiffany', text: 'This was a beautiful home and exactly as described! Clean and quiet! Easy to deal with and very accommodating! Would stay here again!', stars: 5 },
+      { name: 'Ryan', text: 'We had a great time. The house was in great shape and the pool was also well maintained.', stars: 5 },
+      { name: 'Brooks', text: 'We had a fantastic stay. it was everything we needed—clean, comfortable, and well-equipped with all the essentials. The location was convenient, and the host was friendly and responsive. We would highly recommend this place to anyone looking for a great stay. We\'d love to come back again!', stars: 5 },
+      { name: 'Fernando', text: 'This place is amazing. The location is perfect. Very close to a park we had a lot of fun riding the scooters there and is very close to old town Scottsdale and many other places we will definitely come back to continue exploring', stars: 5 },
+      { name: 'Carolyn And Rich', text: 'The place was clean and convenient.', stars: 5 },
+      { name: 'Bridget', text: 'Very responsive and friendly! They were very willing to help us with any problems that we encountered.', stars: 5 },
+      { name: 'Josh', text: 'The home was beautiful and clean. It was decorated beautifully and gives an at home feel. I would recommended for a nice quiet stay within 10 mins from Scottsdale.', stars: 5 },
+      { name: 'Amanda', text: 'Wonderful house and host', stars: 5 },
     ],
     amenities: [
       'Private pool (heat optional)', 'Hot tub', 'Fire pit lounge', '3‑hole putting green', 'Fully stocked kitchen',
@@ -96,12 +105,16 @@ function getDefaultContent(){
 
 router.get('/site-content', async (_req, res) => {
   try{
-    // TEMPORARILY FORCE DEFAULTS TO UPDATE FEATURES - IGNORE DATABASE
+    // FORCE DEFAULTS - IGNORE DATABASE COMPLETELY
     const defaults = getDefaultContent();
+    console.log('API returning reviews count:', defaults.reviews?.length || 0);
+    console.log('API reviews names:', defaults.reviews?.map(r => r.name).join(', '));
     return res.json({ ok:true, content: defaults });
   }catch(err){
-    // On error, still serve defaults to keep the public site functional
-    return res.json({ ok:true, content: getDefaultContent() });
+    console.error('API error:', err);
+    const fallback = getDefaultContent();
+    console.log('API fallback reviews count:', fallback.reviews?.length || 0);
+    return res.json({ ok:true, content: fallback });
   }
 });
 

@@ -326,11 +326,11 @@ nav a[aria-current="page"] { opacity: 1; }
 .reviews-scroll > * { flex: 0 0 auto; }
 .reviews-scroll::-webkit-scrollbar { height: 6px; }
 .reviews-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 6px; }
-.reviews-scroll .card { min-width: 280px; max-width: 340px; scroll-snap-align: start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); position: relative; overflow: hidden; }
+.reviews-scroll .card { min-width: 280px; max-width: 320px; scroll-snap-align: start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); position: relative; overflow: hidden; }
 .reviews-scroll .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), #8ab4ff); opacity: .8; }
-.reviews-scroll .card .card-text { color: var(--text); font-size: 16px; line-height: 1.6; }
+.reviews-scroll .card .card-text { color: var(--text); font-size: 15px; line-height: 1.5; }
 .reviews-scroll .card .text-secondary { color: var(--muted) !important; }
-.reviews-scroll .card .card-body { padding: 16px 16px 18px; }
+.reviews-scroll .card .card-body { padding: 12px 14px 14px; }
 #reviews .card-text::before { content: "“"; margin-right: 2px; color: var(--muted); font-size: 18px; }
 #reviews .card-text::after { content: "”"; margin-left: 1px; color: var(--muted); font-size: 18px; }
 .stars { color: #ffc107; letter-spacing: 1px; text-shadow: 0 0 6px rgba(255,193,7,.25); }

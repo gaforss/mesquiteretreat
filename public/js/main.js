@@ -54,7 +54,7 @@ async function loadSiteContent(){
               <span>${c.badge_title||'Guest favorite'}</span>
             </span>
             ${(c.show_superhost_pill||isSuperhost)?'<span class="ab-pill ab-superhost">SUPERHOST</span>':''}
-            ${(c.show_top_percent_pill||topHl)?`<span class=\"ab-pill ab-top\">Top 5% of homes</span>`:''}
+            ${(c.show_top_percent_pill||topHl)?`<span class=\"ab-pill ab-top\">🥇 Top 5% of homes</span>`:''}
           </div>
           <div class="ab-lines">
             ${c.badge_description?`<div class=\"ab-line ab-desc\">${c.badge_description}</div>`:''}
@@ -109,9 +109,12 @@ async function loadSiteContent(){
     if (Array.isArray(c.reviews)){
       const scroll = document.getElementById('reviewsScroll');
       if (scroll){
+        console.log('Loading reviews:', c.reviews.length, 'reviews found');
         scroll.innerHTML = '';
-        c.reviews.slice(0,8).forEach(rv=>{
+        c.reviews.slice(0,12).forEach(rv=>{
           const card = document.createElement('div'); card.className='card shadow-sm';
+          // Truncate long reviews to keep cards compact
+          const shortText = (rv.text||'').length > 120 ? (rv.text||'').substring(0, 120) + '...' : (rv.text||'');
           card.innerHTML = `
             <div class="review-avatar">
               <div class="avatar" aria-hidden="true">
@@ -119,13 +122,14 @@ async function loadSiteContent(){
               </div>
             </div>
             <div class="card-body">
-              <p class="card-text">${escapeHtml(rv.text||'')}</p>
+              <p class="card-text">${escapeHtml(shortText)}</p>
               <div class="small text-secondary">${escapeHtml(rv.name||'Guest')} — <span class="stars">${'★'.repeat(Math.max(1, Math.min(5, Number(rv.stars)||5)))}</span></div>
             </div>`;
           scroll.appendChild(card);
         });
         ensureReviewsOverflow(scroll);
         initReviewsScroller();
+        console.log('Reviews loaded, scrollWidth:', scroll.scrollWidth, 'clientWidth:', scroll.clientWidth);
       }
     }
   }catch{}
@@ -511,7 +515,7 @@ function ensureReviewsOverflow(scroller){
   try{
     const cards = scroller.querySelectorAll('.card');
     if (cards.length){
-      cards.forEach(c=>{ c.style.minWidth = '300px'; c.style.maxWidth = '340px'; c.style.scrollSnapAlign = 'start'; });
+      cards.forEach(c=>{ c.style.minWidth = '280px'; c.style.maxWidth = '320px'; c.style.scrollSnapAlign = 'start'; });
       scroller.style.display = 'flex';
       scroller.style.gap = '12px';
       scroller.style.overflowX = 'auto';
@@ -523,8 +527,8 @@ function ensureReviewsOverflow(scroller){
           if (!scroller.querySelector('[data-spacer="1"]')){
             const spacer = document.createElement('div');
             spacer.dataset.spacer = '1';
-            spacer.style.flex = '0 0 24px';
-            spacer.style.width = '24px';
+            spacer.style.flex = '0 0 100px';
+            spacer.style.width = '100px';
             spacer.style.height = '1px';
             spacer.style.pointerEvents = 'none';
             scroller.appendChild(spacer);
