@@ -95,10 +95,10 @@
       }
       
       .login-subtitle {
-        color: #a9b0bc;
+        color: #ffffff;
         font-size: 16px;
         margin: 0;
-        opacity: 0.8;
+        opacity: 0.9;
       }
       
       .login-form {
@@ -113,7 +113,7 @@
       
       .form-field label {
         display: block;
-        color: #a9b0bc;
+        color: #ffffff;
         font-size: 14px;
         font-weight: 600;
         margin-bottom: 8px;
@@ -126,11 +126,29 @@
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.12);
         border-radius: 12px;
-        color: #ffffff;
+        color: #ffffff !important;
         font-size: 16px;
         font-weight: 500;
         transition: all 0.2s ease;
         backdrop-filter: blur(10px);
+      }
+      
+      /* Override any global input styles */
+      .login-page input[type="text"],
+      .login-page input[type="email"],
+      .login-page input[type="password"],
+      .login-page input[type="tel"] {
+        color: #ffffff !important;
+      }
+      
+      /* Fix autofill/autocomplete text color */
+      .login-page input:-webkit-autofill,
+      .login-page input:-webkit-autofill:hover,
+      .login-page input:-webkit-autofill:focus,
+      .login-page input:-webkit-autofill:active {
+        -webkit-text-fill-color: #ffffff !important;
+        -webkit-box-shadow: 0 0 0 30px rgba(255,255,255,0.06) inset !important;
+        transition: background-color 5000s ease-in-out 0s;
       }
       
       .form-field input::placeholder {
@@ -218,10 +236,10 @@
       }
       
       .login-footer p {
-        color: #5f6b7a;
+        color: #ffffff;
         font-size: 12px;
         margin: 0;
-        opacity: 0.7;
+        opacity: 0.8;
       }
       
       .floating-shapes {

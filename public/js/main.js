@@ -145,9 +145,10 @@ form?.addEventListener('submit', async (e) => {
   out.textContent = 'Submitting...';
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
-  // Add consent and UTM + referral
+  // Add consent, newsletter, and UTM + referral
   const params = new URLSearchParams(location.search);
   payload.consentRules = document.getElementById('consentRules').checked;
+  payload.newsletter = document.getElementById('newsletter').checked;
   payload.utm = {
     source: params.get('utm_source') || undefined,
     medium: params.get('utm_medium') || undefined,
@@ -176,14 +177,24 @@ form?.addEventListener('submit', async (e) => {
     const vendor = params.get('vendor') || localStorage.getItem('vendorCode');
     if (vendor) payload.vendor = vendor.toUpperCase();
   }catch{}
-  // Normalize MMM YYYY months input
-  if (payload.travelMonths) {
-    payload.travelMonths = String(payload.travelMonths).split(',').map(s=>s.trim()).filter(Boolean).join(', ');
-  }
-  // IG tasks
+
+  // IG tasks and bonus stars
   const savedTasks = JSON.parse(localStorage.getItem('igTasks') || '{}');
   payload.igHandle = savedTasks.igHandle || undefined;
-  payload.stars = savedTasks.stars || 0;
+  
+  // Calculate bonus stars (Instagram bonus is handled server-side)
+  let bonusStars = Number(savedTasks.stars || 0);
+  
+  // Check if user came from Instagram (various UTM patterns)
+  const isFromInstagram = payload.utm?.source === 'ig' || payload.utm?.source === 'instagram' || payload.utm?.medium === 'social' || payload.utm?.campaign?.includes('instagram');
+  if (isFromInstagram && !savedTasks.instagramBonusAwarded) {
+    bonusStars += 1;
+    savedTasks.instagramBonusAwarded = true;
+    savedTasks.stars = bonusStars;
+    localStorage.setItem('igTasks', JSON.stringify(savedTasks));
+  }
+  
+  payload.stars = bonusStars;
   payload.tasks = savedTasks.tasks || {};
   try {
     const res = await fetch('/api/subscribe', {
@@ -192,19 +203,29 @@ form?.addEventListener('submit', async (e) => {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (data.ok) {
-      if (data.refCode) {
-        localStorage.setItem('myRefCode', data.refCode);
-      }
-      const needs = data.needsConfirm;
-      if (data.isReturning && data.discountCode) {
-        out.textContent = `Welcome back! Your returning guest code: ${data.discountCode}`;
-      } else {
-        out.textContent = needs 
-          ? 'Check your email to confirm your entry. If you do not see it, please check your Spam/Junk folder (and Promotions on Gmail).'
-          : 'You are already confirmed.';
-      }
-      form.reset();
+          if (data.ok) {
+        if (data.refCode) {
+          localStorage.setItem('myRefCode', data.refCode);
+        }
+        
+        // Show success modal
+        const successModal = document.getElementById('successModal');
+        if (successModal) {
+          successModal.classList.remove('hidden');
+          
+          // Close button functionality
+          const closeBtn = successModal.querySelector('#closeSuccessModal');
+          const closeSuccessBtn = successModal.querySelector('#closeSuccessBtn');
+          
+          const closeSuccessModal = () => {
+            successModal.classList.add('hidden');
+          };
+          
+          closeBtn?.addEventListener('click', closeSuccessModal);
+          closeSuccessBtn?.addEventListener('click', closeSuccessModal);
+        }
+        
+        form.reset();
       // Prompt bonus tasks modal after successful signup (change CTA to Close)
       if (entryModal){
         entryModal.classList.remove('hidden');
@@ -335,40 +356,28 @@ function initEntryModal(){
   const updateStars = () => {
     const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
     let stars = Number(saved.stars||0);
-    const tasks = saved.tasks||{};
+    
+    // Check if user came from Instagram (various UTM patterns)
+    const params = new URLSearchParams(location.search);
+    const isFromInstagram = params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram' || params.get('utm_medium') === 'social' || params.get('utm_campaign')?.includes('instagram');
+    
+    // Award 1 star for Instagram referral
+    if (isFromInstagram && !saved.instagramBonusAwarded) {
+      stars += 1;
+      saved.instagramBonusAwarded = true;
+      saved.stars = stars;
+      localStorage.setItem('igTasks', JSON.stringify(saved));
+    }
     
     modalStarsOut.textContent = `Bonus entries: ${stars}`;
     
-    // Update progress and chip states from saved tasks
-    const maxStars = 1+1+2+1; // remaining link tasks
+    // Update progress bar
+    const maxStars = 2; // Instagram bonus + referral bonus
     const pct = Math.min(100, Math.round((Math.min(stars, maxStars)/maxStars)*100));
     if (modalStarsFill) modalStarsFill.style.width = pct+'%';
     
-    entryModal.querySelectorAll('.task-chip').forEach(chip=>{
-      const key = chip.getAttribute('data-chip'); 
-      if (tasks[key]) chip.classList.add('active');
-    });
-    
-    return { stars, tasks };
+    return { stars, tasks: saved.tasks || {} };
   };
-  
-  // On outbound visit click, award points and mark task complete
-  entryModal.querySelectorAll('.visit-task').forEach(a=>{
-    a.addEventListener('click', ()=>{
-      const key = a.getAttribute('data-task');
-      const pts = Number(a.getAttribute('data-points')||0);
-      const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-      const tasks = saved.tasks||{}; 
-      const current = saved.stars||0;
-      
-      if (!tasks[key]){
-        tasks[key] = true;
-        const stars = current + pts;
-        localStorage.setItem('igTasks', JSON.stringify({ ...saved, tasks, stars }));
-        updateStars();
-      }
-    });
-  });
   
   // Auto-save IG handle on input
   modalIgHandle?.addEventListener('input', ()=>{
@@ -386,8 +395,8 @@ function initEntryModal(){
     const newsletter = modalNewsletter.checked;
     const consentRules = modalConsentRules.checked;
     
-    if (!email || !consentRules) {
-      modalFormMessage.textContent = 'Please provide your email and agree to the rules.';
+    if (!email || !consentRules || !newsletter) {
+      modalFormMessage.textContent = 'Please provide your email, subscribe to the newsletter, and agree to the rules.';
       modalFormMessage.className = 'form-message error';
       return;
     }
@@ -406,10 +415,10 @@ function initEntryModal(){
         lastName: '',
         tripType: '',
         groupSize: '',
-        travelMonths: '',
         phone: '',
         igHandle: modalIgHandle.value.trim() || '',
         stars: bonusEntries,
+        newsletter: newsletter,
         consentRules: consentRules
       };
       
@@ -424,16 +433,28 @@ function initEntryModal(){
       const result = await response.json();
       
       if (result.ok) {
-        modalFormMessage.textContent = 'Entry submitted successfully! Check your email for confirmation.';
-        modalFormMessage.className = 'form-message success';
+        // Close entry modal
+        entryModal.classList.add('hidden');
+        
+        // Show success modal
+        const successModal = document.getElementById('successModal');
+        if (successModal) {
+          successModal.classList.remove('hidden');
+          
+          // Close button functionality
+          const closeBtn = successModal.querySelector('#closeSuccessModal');
+          const closeSuccessBtn = successModal.querySelector('#closeSuccessBtn');
+          
+          const closeSuccessModal = () => {
+            successModal.classList.add('hidden');
+          };
+          
+          closeBtn?.addEventListener('click', closeSuccessModal);
+          closeSuccessBtn?.addEventListener('click', closeSuccessModal);
+        }
         
         // Clear form
         modalForm.reset();
-        
-        // Close modal after 3 seconds
-        setTimeout(() => {
-          entryModal.classList.add('hidden');
-        }, 3000);
         
       } else {
         modalFormMessage.textContent = result.error || 'Failed to submit entry. Please try again.';
@@ -628,34 +649,6 @@ if (navToggle && siteNav) {
   }catch{}
 })();
 
-// Travel months UX: add month picker to list
-(function travelMonthsPicker(){
-  const input = document.getElementById('travelMonths');
-  const month = document.getElementById('travelMonthPicker');
-  const add = document.getElementById('tmAdd');
-  const clear = document.getElementById('tmClear');
-  if (!input || !month || !add || !clear) return;
 
-  // Format YYYY-MM to MMM YYYY
-  function formatMonth(ym){
-    const [y,m] = ym.split('-');
-    try{
-      const d = new Date(Number(y), Number(m)-1, 1);
-      return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
-    }catch{return ym;}
-  }
-  function addMonth(){
-    const v = month.value; if (!v) return;
-    const fm = formatMonth(v);
-    const parts = String(input.value||'').split(',').map(s=>s.trim()).filter(Boolean);
-    if (!parts.includes(fm)) parts.push(fm);
-    input.value = parts.join(', ');
-    month.value = '';
-    input.dispatchEvent(new Event('input', { bubbles:true }));
-  }
-  add.addEventListener('click', addMonth);
-  month.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addMonth(); }});
-  clear.addEventListener('click', ()=>{ input.value=''; month.value=''; input.dispatchEvent(new Event('input',{bubbles:true})); });
-})();
 
 

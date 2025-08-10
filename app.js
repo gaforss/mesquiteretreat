@@ -149,13 +149,14 @@ function generateToken(){ return Buffer.from(`${Date.now()}-${Math.random()}`).t
 logInfo('Server starting',{siteUrl:process.env.SITE_URL,email:getEmailTransportInfo().transport,mongoUri:resolvedMongoUri?maskMongoUri(resolvedMongoUri):'none'});
 
 app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
-  const { email, firstName, lastName, phone, consentRules, utm, ref, tripType, groupSize, travelMonths, igHandle, stars, tasks, vendor: vendorCodeRaw } = req.body || {};
+  const { email, firstName, lastName, phone, consentRules, newsletter, utm, ref, tripType, groupSize, igHandle, stars, tasks, vendor: vendorCodeRaw } = req.body || {};
   if(!email || typeof email!=='string') return res.status(400).json({ok:false,error:'Email is required'});
   if(!consentRules) return res.status(400).json({ok:false,error:'Consent is required'});
+  if(!newsletter) return res.status(400).json({ok:false,error:'Newsletter subscription is required'});
   try{
     const normalizedEmail = email.trim().toLowerCase();
     // Check prior state to make referral credit idempotent
-    const existing = await Subscriber.findOne({ email: normalizedEmail }).select({ referred_by: 1 }).lean();
+    const existing = await Subscriber.findOne({ email: normalizedEmail }).select({ referred_by: 1, stars: 1 }).lean();
     const headersIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const ipAddress = Array.isArray(headersIp) ? headersIp[0] : String(headersIp).split(',')[0];
     // crude geo from Cloudflare headers or placeholders
@@ -174,7 +175,19 @@ app.post('/api/subscribe', subscribeLimiter, async (req,res)=>{
       const v = await Vendor.findOne({ vendor_code: String(vendorCodeRaw).toUpperCase(), status: 'active' }).select({ _id:1, vendor_code:1 }).lean();
       if (v){ vendor_code = v.vendor_code; vendor_id = String(v._id); source_type = 'vendor'; }
     }
-    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, travel_months:travelMonths||null, ig_handle:igHandle||null, stars: typeof stars==='number'?stars:(stars?Number(stars):0), tasks:tasks||null, ref_code: myRefCode, referred_by: referredByToSet, vendor_code, vendor_id, source_type, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
+    
+    // Calculate bonus stars
+    let bonusStars = typeof stars==='number'?stars:(stars?Number(stars):0);
+    
+    // Add Instagram referral bonus if user came from Instagram and hasn't been credited yet
+    const isFromInstagram = utm?.source === 'ig' || utm?.source === 'instagram' || utm?.medium === 'social' || utm?.campaign?.includes('instagram');
+    const hasInstagramBonus = existing?.stars && existing.stars > 0; // Simple check - could be more sophisticated
+    if (isFromInstagram && !hasInstagramBonus && !existing?.referred_by) {
+      bonusStars += 1;
+      logDebug('Instagram bonus awarded', { email: maskEmail(normalizedEmail), utm });
+    }
+    
+    await upsertSubscriberDoc(normalizedEmail, { email: normalizedEmail, first_name:firstName||null, last_name:lastName||null, phone:phone||null, consent:!!consentRules, consent_at:new Date(), consent_ip:ipAddress||null, utm:utm||null, ip:ipAddress||null, user_agent:userAgent||null, trip_type:tripType||null, group_size:groupSize?Number(groupSize):null, ig_handle:igHandle||null, stars: bonusStars, tasks:tasks||null, ref_code: myRefCode, referred_by: referredByToSet, vendor_code, vendor_id, source_type, confirmed:false, country_code: cfCountry||null, city: cfCity||null, region: cfRegion||null });
 
     // If a ref code was provided and this is the first time setting referred_by, credit the referrer with +1 star
     if (ref && !existing?.referred_by) {

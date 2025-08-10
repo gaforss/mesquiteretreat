@@ -140,49 +140,6 @@
         font-size: 12px;
       }
       
-      #entryModal .visit-task {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 6px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.12);
-        color: #e8eef7;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-      }
-      
-      #entryModal .visit-task:hover {
-        background: rgba(255,255,255,0.12);
-        border-color: rgba(255,255,255,0.18);
-      }
-      
-      #entryModal .task-chip {
-        display: inline-block;
-        margin-left: 6px;
-        padding: 2px 6px;
-        border-radius: 999px;
-        font-size: 11px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.14);
-        color: #5f6b7a;
-      }
-      
-      #entryModal .task-chip::before {
-        content: '☆ ';
-      }
-      
-      #entryModal .task-chip.active {
-        background: rgba(255,193,7,0.16);
-        border-color: rgba(255,193,7,0.35);
-        color: #ffd666;
-      }
-      
-      #entryModal .task-chip.active::before {
-        content: '★ ';
-      }
-      
       /* Progress bar */
       #entryModal .progress {
         height: 6px;
@@ -199,6 +156,43 @@
         width: 0%;
         transition: width 0.3s ease;
       }
+      
+      /* Fix dropdown text visibility in dark theme */
+      select {
+        background-color: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        color: #ffffff !important;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      
+      select:focus {
+        outline: none;
+        border-color: #ffc107 !important;
+        background-color: rgba(255,255,255,0.08) !important;
+        box-shadow: 0 0 0 2px rgba(255,193,7,0.1);
+      }
+      
+      select option {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        padding: 8px 12px;
+      }
+      
+      select option:hover {
+        background-color: #2a2a2a !important;
+      }
+      
+      /* Ensure placeholder text is visible */
+      select:invalid {
+        color: #5f6b7a !important;
+      }
+      
+      select option[value=""] {
+        color: #5f6b7a !important;
+      }
     </style>
   </head>
   <body>
@@ -209,7 +203,7 @@
             <span class="mh-icon">🎁</span>
             <div class="mh-text">
               <h2 class="mh-title">2 free nights giveaway</h2>
-              <p class="mh-sub">Enter now & boost your chances</p>
+              <p class="mh-sub">Enter now & earn bonus entries</p>
             </div>
           </div>
           <button id="closeModal" class="modal-close">×</button>
@@ -233,8 +227,8 @@
             
             <div class="field">
               <label class="checkbox-inline">
-                <input id="modalNewsletter" type="checkbox" />
-                <span>Subscribe to our newsletter for exclusive offers & updates</span>
+                <input id="modalNewsletter" type="checkbox" required />
+                <span>Subscribe to our newsletter for exclusive offers & updates (required for future contests)</span>
               </label>
             </div>
             
@@ -252,33 +246,20 @@
           <!-- Optional Boost Tasks -->
           <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
             <h4 style="margin: 0 0 12px; font-size: 16px; color: #a9b0bc;">🎯 Boost your chances (optional)</h4>
-            <p style="margin: 0 0 16px; font-size: 14px; color: #5f6b7a;">Complete these tasks to earn extra entries:</p>
+            <p style="margin: 0 0 16px; font-size: 14px; color: #5f6b7a;">Earn extra entries by:</p>
             
             <div class="tasks">
               <label class="task-row">
                 <span class="task-title">Instagram handle</span>
                 <input id="modalIgHandle" placeholder="@yourhandle" />
               </label>
-              <label class="task-row">
-                <span class="task-title">Follow @twolittlestolove</span>
-                <a href="https://www.instagram.com/twolittlestolove/" target="_blank" rel="noopener" class="visit-task" data-task="follow_twolittlestolove" data-points="1">Visit</a>
-                <span class="task-chip" data-chip="follow_twolittlestolove">+1</span>
-              </label>
-              <label class="task-row">
-                <span class="task-title">Follow @themesquiteretreat.scottsdale</span>
-                <a href="https://www.instagram.com/themesquiteretreat.scottsdale/" target="_blank" rel="noopener" class="visit-task" data-task="follow_themesquiteretreat" data-points="1">Visit</a>
-                <span class="task-chip" data-chip="follow_themesquiteretreat">+1</span>
-              </label>
-              <label class="task-row">
-                <span class="task-title">Share in your story</span>
-                <a href="https://www.instagram.com/stories/create/" target="_blank" rel="noopener" class="visit-task" data-task="share_story" data-points="2">Open IG</a>
-                <span class="task-chip" data-chip="share_story">+2</span>
-              </label>
-              <label class="task-row">
-                <span class="task-title">Tweet about the giveaway</span>
-                <a href="https://x.com/intent/tweet?text=I%20just%20entered%20to%20win%202%20free%20nights%20at%20The%20Mesquite%20Retreat%20on%20Oak!%20Join%20me%20%F0%9F%8F%83%E2%80%8D%E2%99%82%EF%B8%8F%20" target="_blank" rel="noopener" class="visit-task" data-task="tweet" data-points="1">Tweet</a>
-                <span class="task-chip" data-chip="tweet">+1</span>
-              </label>
+              <div class="task-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <span class="task-title">Earn bonus entries</span>
+                <div style="font-size: 13px; color: #5f6b7a; line-height: 1.4;">
+                  <div>• <strong>+1 star</strong> if you found us on Instagram (automatic)</div>
+                  <div>• <strong>+1 star</strong> for each friend who enters using your referral link</div>
+                </div>
+              </div>
             </div>
             
             <div class="progress" aria-hidden="true">
@@ -579,16 +560,7 @@
                   <input id="groupSize" name="groupSize" type="number" min="1" max="16" />
                 </div>
               </div>
-              <div class="field">
-                <label for="travelMonths">Desired travel months</label>
-                <div style="display:flex; gap:8px; flex-wrap:wrap">
-                  <input id="travelMonths" name="travelMonths" placeholder="Jan 2026, Feb 2026" aria-describedby="tmHelp" />
-                  <input id="travelMonthPicker" type="month" style="max-width:220px" />
-                  <button id="tmAdd" class="cta secondary" type="button">Add month</button>
-                  <button id="tmClear" class="cta secondary" type="button">Clear</button>
-                </div>
-                <p id="tmHelp" class="small text-secondary" style="margin:6px 0 0">Tip: pick a month and tap Add. You can add multiple months.</p>
-              </div>
+
               <div class="field">
                 <label for="email">Email</label>
                 <input id="email" name="email" type="email" required autocomplete="email" />
@@ -598,11 +570,14 @@
                 <input id="phone" name="phone" type="tel" autocomplete="tel" />
               </div>
               <div class="field" style="display:flex; align-items:center; gap:8px">
+                <label class="checkbox-inline"><input id="newsletter" name="newsletter" type="checkbox" required /> Subscribe to our newsletter for exclusive offers & updates (required for future contests)</label>
+              </div>
+              <div class="field" style="display:flex; align-items:center; gap:8px">
                 <label class="checkbox-inline"><input id="consentRules" type="checkbox" required /> I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</label>
               </div>
               <button type="submit" class="cta submit">Enter now</button>
               <p id="formMessage" class="form-message" role="status" aria-live="polite">Tip: After submitting, look for a confirmation email. If it’s not in your inbox, check Spam/Junk (and Promotions on Gmail).</p>
-              <p class="legal">No purchase necessary. 18+. US only. Void where prohibited. By entering, you agree to receive occasional emails; you can unsubscribe anytime.</p>
+              <p class="legal">No purchase necessary. 18+. US only. Void where prohibited. Newsletter subscription required for entry and future contests. You can unsubscribe anytime.</p>
             </form>
             <div id="shareAfter" class="details-card" style="display:none; margin-top:12px">
               <h3 style="margin:0 0 6px; font-size:18px">Boost your chances</h3>
@@ -611,7 +586,7 @@
                 <input id="shareLink" readonly />
                 <button id="btnCopyShare" class="cta secondary" type="button">Copy</button>
                 <button id="btnNativeShare" class="cta" type="button">Share</button>
-                <button id="btnBoostTasks" class="cta secondary" type="button">Complete bonus tasks (+stars)</button>
+                <button id="btnBoostTasks" class="cta secondary" type="button">View entry modal</button>
               </div>
             </div>
           </div>
@@ -623,8 +598,6 @@
     <div class="sticky-cta" aria-label="Quick actions">
       <a class="cta secondary" href="#signup">Enter giveaway</a>
       <a class="cta" href="https://www.airbnb.com/rooms/1310467447728284655" target="_blank" rel="noopener">Book</a>
-      <a class="cta secondary" href="https://wa.me/19165001902?text=Hello%20Mesquite%20Retreat%2C%20I%27m%20interested%20in%20booking" target="_blank" rel="noopener">WhatsApp</a>
-      <a class="cta secondary" href="sms:+19165001902?body=Hello%20Mesquite%20Retreat" rel="nofollow">Text</a>
     </div>
 
     <footer class="site-footer">
@@ -632,6 +605,29 @@
         <p>© <span id="year"></span> <span id="footerName">The Mesquite Retreat on Oak</span>. All rights reserved.</p>
       </div>
     </footer>
+
+    <!-- Success Popup Modal -->
+    <div id="successModal" class="modal hidden">
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <div class="mh-left">
+            <span class="mh-icon">🎉</span>
+            <div class="mh-text">
+              <h2 class="mh-title">Entry Submitted!</h2>
+              <p class="mh-sub">Your entry has been received. Good luck!</p>
+            </div>
+          </div>
+          <button id="closeSuccessModal" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="text-align: center; padding: 20px 0;">
+            <p style="margin: 0 0 16px; font-size: 16px; color: #e8eef7;">Thank you for entering our giveaway!</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #5f6b7a;">Check your email for confirmation. If you don't see it, please check your Spam/Junk folder.</p>
+            <button id="closeSuccessBtn" class="cta" style="width: 100%;">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

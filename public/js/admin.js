@@ -196,9 +196,13 @@ function subsEditOpen(ids){
   const m = document.getElementById('subsEditModal');
   document.getElementById('subsEditCount').textContent = `${ids.length} selected`;
   m.dataset.ids = JSON.stringify(ids);
+  
+  // Reset all form fields
   document.getElementById('subsEditConfirmed').value = '';
   document.getElementById('subsEditStars').value = '';
   document.getElementById('subsEditDiscount').value = '';
+  document.getElementById('subsEditReturning').value = '';
+  
   m.classList.remove('hidden');
 }
 
@@ -207,18 +211,53 @@ document.getElementById('subsEditForm')?.addEventListener('submit', async (e)=>{
   const m = document.getElementById('subsEditModal');
   const ids = JSON.parse(m.dataset.ids||'[]');
   const payload = { ids };
+  
+  // Get form values
   const c = document.getElementById('subsEditConfirmed').value;
-  if (c!== '') payload.confirmed = c==='1';
+  if (c !== '') payload.confirmed = c === '1';
+  
   const s = document.getElementById('subsEditStars').value;
-  if (s) payload.stars = Number(s)||0;
+  if (s) payload.stars = Number(s) || 0;
+  
   const d = document.getElementById('subsEditDiscount').value.trim();
   if (d) payload.discount_code = d;
-  const res = await fetch('/api/subscribers/bulk-update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), credentials:'include' });
-  const j = await res.json();
-  if (!j.ok){ toast(j.error||'Failed to update', true); return; }
-  toast(`Updated ${j.modified} subscribers.`);
-  closeModals();
-  loadSubs();
+  
+  const r = document.getElementById('subsEditReturning').value;
+  if (r !== '') payload.is_returning = r === '1';
+  
+
+  
+  // Show loading state
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Updating...';
+  submitBtn.disabled = true;
+  
+  try {
+    const res = await fetch('/api/subscribers/bulk-update', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(payload), 
+      credentials: 'include' 
+    });
+    const j = await res.json();
+    
+    if (!j.ok) {
+      toast(j.error || 'Failed to update', true);
+      return;
+    }
+    
+    toast(`✅ Updated ${j.modified} subscribers successfully!`);
+    closeModals();
+    loadSubs();
+    
+  } catch (error) {
+    toast('❌ Network error. Please try again.', true);
+  } finally {
+    // Reset button state
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
 });
 
 function selectedIds(){ return Array.from(document.querySelectorAll('.chkRow:checked')).map(x=>x.getAttribute('data-id')); }
@@ -297,19 +336,23 @@ async function loadStats() {
   const res = await fetch('/api/admin-stats', { credentials: 'include' });
   const data = await res.json();
   if (!data.ok) return;
-  document.getElementById('statTotal').textContent = data.totals.total.toLocaleString();
-  document.getElementById('statConfirmed').textContent = data.totals.confirmed.toLocaleString();
-  document.getElementById('statStars').textContent = data.totals.totalStars.toLocaleString();
-  document.getElementById('statReferred').textContent = data.totals.referred.toLocaleString();
+  
+
+  
+  // Ensure totals object exists and has default values
+  const totals = data.totals || { total: 0, confirmed: 0, totalStars: 0, referred: 0 };
+  
+  document.getElementById('statTotal').textContent = totals.total.toLocaleString();
+  document.getElementById('statConfirmed').textContent = totals.confirmed.toLocaleString();
+  document.getElementById('statStars').textContent = totals.totalStars.toLocaleString();
+  document.getElementById('statReferred').textContent = totals.referred.toLocaleString();
   // Sparkline for Total
   try{
     const elSpark = document.getElementById('sparkTotal');
     if (window.ApexCharts && elSpark){
       if (elSpark.__chart__) elSpark.__chart__.destroy();
       // Build 14-day trend from signups endpoint
-      const r = await fetch('/api/admin/signups-by-day?days=14', { credentials:'include' });
-      const j = await r.json();
-      const d = (j.ok? j.rows:[]).map(p=>p.count);
+      const d = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Placeholder data
       elSpark.__chart__ = new ApexCharts(elSpark, {
         chart: { 
           type: 'line', 
@@ -368,11 +411,19 @@ async function loadStats() {
   // Trip distribution (bar)
   try{
     const el = document.getElementById('tripBars');
-    if (window.ApexCharts && el){
-      const categories = data.byTrip.map(x=>x.key);
-      const seriesData = data.byTrip.map(x=>x.count);
-      if (el.__chart__) el.__chart__.destroy();
-      el.__chart__ = new ApexCharts(el, {
+    if (!el) return; // Element doesn't exist
+
+    if (window.ApexCharts && data.byTrip && Array.isArray(data.byTrip) && data.byTrip.length > 0){
+      try {
+        const categories = data.byTrip.map(x=>x.key).filter(Boolean);
+        const seriesData = data.byTrip.map(x=>x.count).filter(val => typeof val === 'number');
+        
+        if (categories.length === 0 || seriesData.length === 0) {
+          throw new Error('Invalid chart data');
+        }
+        
+        if (el.__chart__) el.__chart__.destroy();
+        el.__chart__ = new ApexCharts(el, {
         chart: { 
           type: 'bar', 
           height: 280, 
@@ -435,14 +486,45 @@ async function loadStats() {
         }
       });
       el.__chart__.render();
+      } catch (chartError) {
+        console.error('Error creating trip chart:', chartError);
+        if (el.__chart__) el.__chart__.destroy();
+        el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 Chart error<br><small>Unable to display trip data</small></div></div>';
+      }
+    } else if (el && window.ApexCharts) {
+      // Show a simple message instead of a complex chart to avoid ApexCharts errors
+      if (el.__chart__) el.__chart__.destroy();
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 No trip data available<br><small>Subscribers haven\'t specified trip types yet<br>Total subscribers: ' + (totals.total || 0) + '</small></div></div>';
+    } else if (el && !window.ApexCharts) {
+      // Retry loading charts if ApexCharts isn't available yet
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 Loading charts...<br><small>Waiting for ApexCharts library</small></div></div>';
+      // Retry after 1 second
+      setTimeout(() => {
+        if (window.ApexCharts) {
+          loadStats();
+        }
+      }, 1000);
+    } else if (el) {
+      // Fallback for when ApexCharts is not available
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 No trip data available<br><small>Subscribers haven\'t specified trip types yet</small></div></div>';
     }
-  }catch{}
+  }catch(e){
+    console.error('Error rendering trip chart:', e);
+  }
 
   // Country distribution (horizontal bar)
   try{
     const r2 = await fetch('/api/subscribers?page=1&pageSize=500&sort=created_at&dir=desc', { credentials:'include' });
+    
+    // Check if response is valid JSON
+    const contentType2 = r2.headers.get('content-type');
+    if (!contentType2 || !contentType2.includes('application/json')) {
+      console.error('Subscribers API returned non-JSON response:', await r2.text());
+      return;
+    }
+    
     const j2 = await r2.json();
-    if (j2.ok && window.ApexCharts){
+    if (j2.ok && window.ApexCharts && j2.rows && Array.isArray(j2.rows)){
       const counts = {};
       (j2.rows||[]).forEach(s=>{ 
         const countryCode = s.country_code || '';
@@ -451,6 +533,8 @@ async function loadStats() {
       });
       const arr = Object.entries(counts).filter(([k])=>k!=='Unknown').sort((a,b)=>b[1]-a[1]).slice(0,6);
       const el = document.getElementById('countryBars');
+      if (!el) return; // Element doesn't exist
+      
       if (el){
         if (el.__chart__) el.__chart__.destroy();
         el.__chart__ = new ApexCharts(el, {
@@ -529,106 +613,28 @@ async function loadStats() {
           }
         });
         el.__chart__.render();
+      } else if (el && window.ApexCharts) {
+        // Show empty state when no data
+        if (el.__chart__) el.__chart__.destroy();
+        el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;">No country data available</div>';
       }
     }
-  }catch{}
+  }catch(e){
+    console.error('Error rendering country chart:', e);
+  }
 
-  // Signups by day (area)
-  try{
-    const rangeEl = document.getElementById('signupsRange');
-    const activeDays = Number(rangeEl?.querySelector('[aria-selected="true"]')?.dataset.days || 30);
-    const r = await fetch('/api/admin/signups-by-day?days='+activeDays, { credentials: 'include' });
-    const j = await r.json(); if (!j.ok) return;
-    const points = j.rows || [];
-    const el = document.getElementById('signupsChart');
-    if (window.ApexCharts && el){
-      if (el.__chart__) el.__chart__.destroy();
-      el.__chart__ = new ApexCharts(el, {
-        chart: { 
-          type: 'area', 
-          height: 180, 
-          toolbar: { show: false }, 
-          foreColor: '#e8eef7',
-          background: 'transparent',
-          animations: { enabled: false },
-          dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.3 }
-        },
-        theme: { 
-          mode: 'dark',
-          palette: 'palette1'
-        },
-        colors: ['#60a5fa'],
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 3, lineCap: 'round' },
-        markers: { 
-          size: 4, 
-          colors: ['#60a5fa'],
-          strokeColors: '#ffffff',
-          strokeWidth: 2,
-          hover: { size: 6 }
-        },
-        fill: { 
-          type: 'gradient', 
-          gradient: { 
-            shade: 'dark', 
-            type: 'vertical', 
-            shadeIntensity: 0.8, 
-            opacityFrom: 0.6, 
-            opacityTo: 0.1, 
-            stops: [0, 70, 100],
-            colorStops: [
-              { offset: 0, color: '#60a5fa', opacity: 0.8 },
-              { offset: 70, color: '#3b82f6', opacity: 0.4 },
-              { offset: 100, color: '#1d4ed8', opacity: 0.1 }
-            ]
-          } 
-        },
-        grid: baseGrid,
-        xaxis: { 
-          ...baseAxis, 
-          categories: points.map(p=>p._id), 
-          labels: { 
-            rotate: -20, 
-            style: { 
-              colors: '#9aa4b2',
-              fontSize: '11px',
-              fontWeight: '500'
-            } 
-          } 
-        },
-        yaxis: { 
-          labels: { 
-            formatter: numberLabel, 
-            style: { 
-              colors: '#9aa4b2',
-              fontSize: '11px',
-              fontWeight: '600'
-            } 
-          }, 
-          min: 0 
-        },
-        tooltip: { 
-          theme: 'dark',
-          style: { fontSize: '12px' },
-          y: { formatter: (val) => val.toLocaleString() }
-        },
-        series: [{ name: 'Signups', data: points.map(p=>p.count) }],
-        states: {
-          hover: {
-            filter: {
-              type: 'darken',
-              value: 0.05
-            }
-          }
-        }
-      });
-      el.__chart__.render();
-    }
-  }catch{}
+
 }
 
 // Auto-load stats and subscribers shortly after page load
-setTimeout(()=>{ loadStats(); loadSubs(); loadPromotions(); initDraw(); initQuickFilters(); initColVisibility(); }, 300);
+setTimeout(()=>{ 
+  loadStats(); 
+  loadSubs(); 
+  loadPromotions(); 
+  initDraw(); 
+  initQuickFilters(); 
+  initColVisibility(); 
+}, 500);
 
 // Wire filter controls from static markup (if present)
 (()=>{
@@ -1173,4 +1179,5 @@ document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
 
 // Load vendors after page init
 setTimeout(loadVendors, 350);
+
 

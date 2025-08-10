@@ -81,7 +81,7 @@ async function handleLoginSubmit(e) {
     setMessage('Network error. Please check your connection and try again.', 'error');
     setLoadingState(false);
   }
-});
+}
 
 // Modal functions
 function showForgotPassword() {
@@ -155,7 +155,7 @@ async function handleForgotPasswordSubmit(e) {
     modalButton.textContent = 'Send Reset Link';
     modalButton.style.opacity = '1';
   }
-});
+}
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
