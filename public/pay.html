@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Payment - The Mesquite Retreat</title>
+    <meta name="description" content="Complete your payment for The Mesquite Retreat">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      .payment-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .invoice-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .invoice-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffc107;
+        margin-bottom: 10px;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .status-pending {
+        background: rgba(255,193,7,0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255,193,7,0.3);
+      }
+      .status-paid {
+        background: rgba(40,167,69,0.2);
+        color: #28a745;
+        border: 1px solid rgba(40,167,69,0.3);
+      }
+      .status-expired {
+        background: rgba(220,53,69,0.2);
+        color: #dc3545;
+        border: 1px solid rgba(220,53,69,0.3);
+      }
+      .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      .item-row:last-child {
+        border-bottom: none;
+      }
+      .total-row {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffc107;
+        padding: 20px 0;
+        border-top: 2px solid rgba(255,193,7,0.3);
+        margin-top: 20px;
+      }
+      .payment-methods {
+        margin: 30px 0;
+      }
+      .payment-method {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .payment-method:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,193,7,0.5);
+      }
+      .payment-method.selected {
+        background: rgba(255,193,7,0.1);
+        border-color: #ffc107;
+      }
+      .access-code {
+        background: rgba(40,167,69,0.1);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin: 30px 0;
+      }
+      .access-code-number {
+        font-size: 48px;
+        font-weight: 700;
+        color: #28a745;
+        letter-spacing: 8px;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+      }
+      .expiry-warning {
+        background: rgba(255,193,7,0.1);
+        border: 1px solid rgba(255,193,7,0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <div class="text-center py-4">
+            <a href="/" class="btn btn-outline-light mb-3">← Back to Home</a>
+            <h1 class="h2">Payment</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <div class="payment-card">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center">
+              <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3">Loading invoice...</p>
+            </div>
+
+            <!-- Invoice Details -->
+            <div id="invoiceDetails" class="d-none">
+              <div class="invoice-header">
+                <div class="invoice-number" id="invoiceNumber"></div>
+                <div class="status-badge" id="statusBadge"></div>
+              </div>
+
+              <!-- Customer Info -->
+              <div class="mb-4">
+                <h6>Customer Information</h6>
+                <p class="mb-1"><strong>Email:</strong> <span id="customerEmail"></span></p>
+                <p class="mb-1"><strong>Name:</strong> <span id="customerName"></span></p>
+                <p class="mb-0"><strong>Phone:</strong> <span id="customerPhone"></span></p>
+              </div>
+
+              <!-- Stay Info -->
+              <div class="mb-4" id="stayInfo">
+                <h6>Stay Information</h6>
+                <p class="mb-1"><strong>Check-in:</strong> <span id="checkInDate"></span></p>
+                <p class="mb-1"><strong>Check-out:</strong> <span id="checkOutDate"></span></p>
+                <p class="mb-0"><strong>Reservation ID:</strong> <span id="reservationId"></span></p>
+              </div>
+
+              <!-- Items -->
+              <div class="mb-4">
+                <h6>Items</h6>
+                <div id="itemsList"></div>
+                <div class="total-row">
+                  <div class="d-flex justify-content-between">
+                    <span>Total:</span>
+                    <span id="totalAmount"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expiry Warning -->
+              <div class="expiry-warning" id="expiryWarning">
+                <strong>⚠️ Invoice Expires:</strong> <span id="expiryDate"></span>
+                <br>
+                <small>Please complete payment before this date to secure your items.</small>
+              </div>
+
+              <!-- Payment Section -->
+              <div id="paymentSection" class="d-none">
+                <h6>Payment Method</h6>
+                <div class="payment-methods">
+                  <div class="payment-method" data-method="manual">
+                    <div class="d-flex align-items-center">
+                      <input type="radio" name="paymentMethod" value="manual" class="me-3" checked>
+                      <div>
+                        <strong>Manual Payment</strong>
+                        <br>
+                        <small>Pay via Venmo, Zelle, or other methods. We'll confirm manually.</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="payment-method" data-method="stripe">
+                    <div class="d-flex align-items-center">
+                      <input type="radio" name="paymentMethod" value="stripe" class="me-3">
+                      <div>
+                        <strong>Credit Card (Coming Soon)</strong>
+                        <br>
+                        <small>Secure online payment via Stripe</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn btn-warning w-100" id="payButton">
+                  Complete Payment
+                </button>
+              </div>
+
+              <!-- Access Code Section -->
+              <div id="accessCodeSection" class="d-none">
+                <div class="access-code">
+                  <h4>🔐 Your Access Code</h4>
+                  <div class="access-code-number" id="accessCode"></div>
+                  <p><strong>Access Instructions:</strong></p>
+                  <p id="accessInstructions"></p>
+                  <p><strong>Access expires:</strong> <span id="accessExpiry"></span></p>
+                </div>
+                
+                <div class="text-center">
+                  <p>Your items are available in the storage closet. Please return all items before checkout.</p>
+                  <a href="/" class="btn btn-outline-light">Return to Home</a>
+                </div>
+              </div>
+
+              <!-- Expired Section -->
+              <div id="expiredSection" class="d-none">
+                <div class="text-center">
+                  <h4>❌ Invoice Expired</h4>
+                  <p>This invoice has expired and can no longer be paid.</p>
+                  <p>Please create a new order if you'd like to purchase items.</p>
+                  <a href="/shop.html" class="btn btn-warning">Shop Now</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="d-none text-center">
+              <h4>❌ Invoice Not Found</h4>
+              <p>The invoice you're looking for doesn't exist or has been removed.</p>
+              <a href="/shop.html" class="btn btn-warning">Shop Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Processing Modal -->
+    <div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-white">
+          <div class="modal-body text-center">
+            <div class="spinner-border text-warning mb-3" role="status">
+              <span class="visually-hidden">Processing...</span>
+            </div>
+            <h5>Processing Payment</h5>
+            <p>Please wait while we process your payment...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/pay.js"></script>
+  </body>
+</html> 

@@ -1213,4 +1213,197 @@ document.getElementById('vendorForm')?.addEventListener('submit', async (e)=>{
 // Load vendors after page init
 setTimeout(loadVendors, 350);
 
+// Invoice management
+async function loadInvoices() {
+  try {
+    const response = await fetch('/api/invoices');
+    const data = await response.json();
+    
+    if (!data.ok) {
+      console.error('Failed to load invoices:', data.error);
+      return;
+    }
+    
+    renderInvoicesTable(data.invoices);
+  } catch (error) {
+    console.error('Error loading invoices:', error);
+  }
+}
+
+function renderInvoicesTable(invoices) {
+  const container = document.getElementById('invoicesTable');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <table class="table table-dark">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Customer</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${invoices.map(invoice => `
+          <tr>
+            <td><code>${invoice.invoice_number}</code></td>
+            <td>
+              <div>${invoice.customer_name || 'N/A'}</div>
+              <small class="text-muted">${invoice.customer_email}</small>
+            </td>
+            <td>$${invoice.total_amount}</td>
+            <td>
+              <span class="badge bg-${getStatusColor(invoice.status)}">${invoice.status}</span>
+            </td>
+            <td>${new Date(invoice.created_at).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" onclick="viewInvoice('${invoice.invoice_number}')">View</button>
+              ${invoice.status === 'pending' ? 
+                `<button class="btn btn-sm btn-outline-success" onclick="markAsPaid('${invoice.invoice_number}')">Mark Paid</button>` : 
+                ''
+              }
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function getStatusColor(status) {
+  switch (status) {
+    case 'paid': return 'success';
+    case 'pending': return 'warning';
+    case 'cancelled': return 'danger';
+    case 'expired': return 'secondary';
+    default: return 'secondary';
+  }
+}
+
+async function viewInvoice(invoiceNumber) {
+  try {
+    const response = await fetch(`/api/invoices/${invoiceNumber}`);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      alert('Failed to load invoice');
+      return;
+    }
+    
+    const invoice = data.invoice;
+    
+    // Create modal content
+    const modalContent = `
+      <div class="modal-header">
+        <h5 class="modal-title">Invoice #${invoice.invoice_number}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Customer Information</h6>
+            <p><strong>Email:</strong> ${invoice.customer_email}</p>
+            <p><strong>Name:</strong> ${invoice.customer_name || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${invoice.customer_phone || 'N/A'}</p>
+          </div>
+          <div class="col-md-6">
+            <h6>Invoice Details</h6>
+            <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(invoice.status)}">${invoice.status}</span></p>
+            <p><strong>Total:</strong> $${invoice.total_amount}</p>
+            <p><strong>Created:</strong> ${new Date(invoice.created_at).toLocaleString()}</p>
+            ${invoice.lockbox_code ? `<p><strong>Lockbox Code:</strong> <code>${invoice.lockbox_code}</code></p>` : ''}
+          </div>
+        </div>
+        
+        <h6 class="mt-3">Items</h6>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.items.map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>$${item.unit_price}</td>
+                  <td>$${item.total_price}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        ${invoice.admin_notes ? `
+          <h6 class="mt-3">Admin Notes</h6>
+          <p>${invoice.admin_notes}</p>
+        ` : ''}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    `;
+    
+    // Show modal
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+          ${modalContent}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+      document.body.removeChild(modal);
+    });
+    
+  } catch (error) {
+    console.error('Error viewing invoice:', error);
+    alert('Failed to load invoice details');
+  }
+}
+
+async function markAsPaid(invoiceNumber) {
+  if (!confirm('Mark this invoice as paid?')) return;
+  
+  try {
+    const response = await fetch(`/api/invoices/${invoiceNumber}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'paid' })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      toast('Invoice marked as paid');
+      loadInvoices();
+    } else {
+      toast('Failed to update invoice', true);
+    }
+  } catch (error) {
+    console.error('Error marking invoice as paid:', error);
+    toast('Failed to update invoice', true);
+  }
+}
+
+// Load invoices after page init
+setTimeout(loadInvoices, 400);
+
 

@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Invoices</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="dark">
+    <header class="topbar">
+      <div class="container wide topbar-inner">
+        <div class="brand"><span class="logo">⟡</span><span>Admin</span><span class="badge-pill">Invoices</span></div>
+        <nav>
+          <a href="/admin.html">Admin Dashboard</a>
+          <a href="/admin-content.html">Edit Site Content</a>
+          <a href="/admin-vendors.html">Manage Vendors</a>
+          <a href="/admin-photo-contests.html">Photo Contests</a>
+          <a href="/newsletter.html">Newsletter</a>
+          <a href="/admin-invoices.html" aria-current="page">Invoices</a>
+        </nav>
+        <div class="actions"><button id="logout" class="cta secondary">Logout</button></div>
+      </div>
+    </header>
+    <main class="container full admin" style="padding-left:0;padding-right:0">
+      <div class="admin-layout no-sidebar">
+        <div class="content">
+          <div class="admin-header">
+            <div>
+              <div class="breadcrumbs small text-secondary">Home / Admin / Invoices</div>
+              <h1 class="page-title">Manage Invoices</h1>
+            </div>
+          </div>
+          
+          <section class="section-card">
+            <div class="section-head">
+              <h2 style="margin:0">Invoices</h2>
+              <div class="actions">
+                <a href="/shop.html" target="_blank" class="cta secondary">View Shop</a>
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="table-scroll">
+                <div id="invoicesTable" class="table-wrap">
+                  <!-- Invoices will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <section class="section-card">
+            <div class="section-head">
+              <h2 style="margin:0">Products</h2>
+              <div class="actions">
+                <button id="addProductBtn" class="cta">Add Product</button>
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="table-scroll">
+                <div id="productsTable" class="table-wrap">
+                  <!-- Products will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div class="modal hidden" id="addProductModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Add New Product</h3>
+          <button class="modal-close" data-close-modal>×</button>
+        </div>
+        <div class="modal-body">
+          <form id="addProductForm">
+            <div class="field">
+              <label for="productName">Product Name *</label>
+              <input type="text" id="productName" required>
+            </div>
+            <div class="field">
+              <label for="productDescription">Description</label>
+              <textarea id="productDescription" rows="3"></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="productCategory">Category</label>
+                <select id="productCategory">
+                  <option value="golf">Golf</option>
+                  <option value="beach">Beach</option>
+                  <option value="outdoor">Outdoor</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="productPrice">Price ($) *</label>
+                <input type="number" id="productPrice" min="0" step="0.01" required>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="productQuantity">Available Quantity</label>
+                <input type="number" id="productQuantity" min="1" value="1">
+              </div>
+              <div class="field">
+                <label for="productMaxOrder">Max Per Order</label>
+                <input type="number" id="productMaxOrder" min="1" value="1">
+              </div>
+            </div>
+            <div class="field">
+              <label for="productInstructions">Instructions</label>
+              <textarea id="productInstructions" rows="2" placeholder="Instructions for guests..."></textarea>
+            </div>
+            <div class="field">
+              <label for="productImage">Image URL</label>
+              <input type="url" id="productImage" placeholder="https://...">
+            </div>
+            <div class="field">
+              <label class="checkbox-inline">
+                <input type="checkbox" id="productActive" checked>
+                <span>Active (available for purchase)</span>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="button" class="cta secondary" data-close-modal>Cancel</button>
+              <button type="submit" class="cta">Add Product</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div class="modal hidden" id="editProductModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Edit Product</h3>
+          <button class="modal-close" data-close-modal>×</button>
+        </div>
+        <div class="modal-body">
+          <form id="editProductForm">
+            <input type="hidden" id="editProductId">
+            <div class="field">
+              <label for="editProductName">Product Name *</label>
+              <input type="text" id="editProductName" required>
+            </div>
+            <div class="field">
+              <label for="editProductDescription">Description</label>
+              <textarea id="editProductDescription" rows="3"></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="editProductCategory">Category</label>
+                <select id="editProductCategory">
+                  <option value="golf">Golf</option>
+                  <option value="beach">Beach</option>
+                  <option value="outdoor">Outdoor</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="editProductPrice">Price ($) *</label>
+                <input type="number" id="editProductPrice" min="0" step="0.01" required>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="editProductQuantity">Available Quantity</label>
+                <input type="number" id="editProductQuantity" min="1" value="1">
+              </div>
+              <div class="field">
+                <label for="editProductMaxOrder">Max Per Order</label>
+                <input type="number" id="editProductMaxOrder" min="1" value="1">
+              </div>
+            </div>
+            <div class="field">
+              <label for="editProductInstructions">Instructions</label>
+              <textarea id="editProductInstructions" rows="2" placeholder="Instructions for guests..."></textarea>
+            </div>
+            <div class="field">
+              <label for="editProductImage">Image URL</label>
+              <input type="url" id="editProductImage" placeholder="https://...">
+            </div>
+            <div class="field">
+              <label class="checkbox-inline">
+                <input type="checkbox" id="editProductActive">
+                <span>Active (available for purchase)</span>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="button" class="cta secondary" data-close-modal>Cancel</button>
+              <button type="submit" class="cta">Update Product</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal hidden" id="confirmModal">
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <h3>Confirm Action</h3>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage">Are you sure?</p>
+          <div class="actions">
+            <button id="confirmYes" class="cta danger">Yes</button>
+            <button class="cta secondary" data-close-modal>No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Details Modal -->
+    <div class="modal hidden" id="invoiceDetailsModal" role="dialog" aria-modal="true" aria-labelledby="invoiceDetailsTitle">
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <div class="mh-left">
+            <span class="mh-icon">🧾</span>
+            <div class="mh-text">
+              <h3 id="invoiceDetailsTitle" class="mh-title">Invoice</h3>
+              <p class="mh-sub" id="invoiceDetailsSub">Details</p>
+            </div>
+          </div>
+          <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body" id="invoiceDetailsBody">
+          <!-- Filled dynamically -->
+        </div>
+        <div class="modal-actions" style="padding: 12px 14px">
+          <button class="cta secondary" data-close-modal>Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div class="modal hidden" id="editInvoiceModal" role="dialog" aria-modal="true" aria-labelledby="editInvoiceTitle">
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <div class="mh-left">
+            <span class="mh-icon">✏️</span>
+            <div class="mh-text">
+              <h3 id="editInvoiceTitle" class="mh-title">Edit Invoice</h3>
+              <p class="mh-sub" id="editInvoiceSub"></p>
+            </div>
+          </div>
+          <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="editInvoiceForm">
+            <input type="hidden" id="editInvoiceNumber" />
+            <div class="field-row">
+              <div class="field">
+                <label for="editInvoiceStatus">Status</label>
+                <select id="editInvoiceStatus">
+                  <option value="pending">pending</option>
+                  <option value="paid">paid</option>
+                  <option value="cancelled">cancelled</option>
+                  <option value="expired">expired</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="editInvoiceLockbox">Lockbox Code</label>
+                <input id="editInvoiceLockbox" type="text" placeholder="e.g. 1234" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="editInvoiceNotes">Admin Notes</label>
+              <textarea id="editInvoiceNotes" rows="3" placeholder="Notes for this invoice…"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button class="cta secondary" type="button" data-close-modal>Cancel</button>
+              <button class="cta" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/nav.js"></script>
+    <script src="/js/admin-invoices.js"></script>
+  </body>
+</html> 

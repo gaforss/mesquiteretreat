@@ -24,6 +24,8 @@ import { subscribeLimiter } from './middleware/rateLimiters.js';
 import vendorsRouter from './routes/vendors.routes.js';
 import vendorPublicRouter from './routes/vendors.public.routes.js';
 import instagramRouter from './routes/instagram.routes.js';
+import invoicesRouter from './routes/invoices.routes.js';
+import productsRouter from './routes/products.routes.js';
 import Vendor from './models/vendor.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -92,6 +94,15 @@ function isVendorAuthed(req){
 app.get(['/vendor','/vendor.html'], (req, res) => {
   if (!isVendorAuthed(req)) return res.redirect('/vendor-login.html');
   return res.sendFile(path.join(__dirname, 'public', 'vendor.html'));
+});
+
+// Shop and payment pages
+app.get(['/shop','/shop.html'], (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'shop.html'));
+});
+
+app.get('/pay/:invoice_number', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pay.html'));
 });
 
 function isAuthed(req){
@@ -282,6 +293,8 @@ app.use('/api/draw', drawRouter);
 app.use('/api', siteContentRouter); // /site-content
 app.use('/api/newsletter', newsletterRouter); // /newsletter/*
 app.use('/api/instagram', instagramRouter); // /instagram/*
+app.use('/api/invoices', invoicesRouter); // /invoices/*
+app.use('/api/products', productsRouter); // /products/*
 
 
 const port = Number(process.env.PORT || 3000);

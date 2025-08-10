@@ -161,6 +161,114 @@ async function sendWinnerNotificationEmail(email, promotionName) {
   });
 }
 
+// Invoice-related email functions
+async function sendInvoiceEmail(email, invoiceData) {
+  const { invoice_number, total_amount, items, expires_at, payment_url } = invoiceData;
+  const expiryDate = new Date(expires_at).toLocaleDateString();
+  
+  return sendEmail({
+    to: email,
+    subject: `Invoice #${invoice_number} - The Mesquite Retreat`,
+    html: `<div style="font-family:Arial,sans-serif;line-height:1.6">
+      <h2>Invoice #${invoice_number}</h2>
+      <p>Thank you for your order at The Mesquite Retreat!</p>
+      
+      <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:20px 0;">
+        <h3>Order Summary</h3>
+        ${items.map(item => `
+          <div style="margin:10px 0;padding:10px;border-bottom:1px solid #eee;">
+            <strong>${item.name}</strong><br>
+            <small>${item.description || ''}</small><br>
+            Qty: ${item.quantity} × $${item.unit_price} = $${item.total_price}
+          </div>
+        `).join('')}
+        <div style="margin-top:20px;padding-top:10px;border-top:2px solid #FF385C;">
+          <strong>Total: $${total_amount}</strong>
+        </div>
+      </div>
+      
+      <p><strong>Payment Due:</strong> ${expiryDate}</p>
+      
+      <p><a href="${payment_url}" style="display:inline-block;padding:12px 20px;background:#FF385C;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">Pay Now</a></p>
+      
+      <p>This invoice will expire on ${expiryDate}. Please complete payment to secure your items.</p>
+    </div>`,
+    tag: 'invoice'
+  });
+}
+
+async function sendPaymentConfirmationEmail(email, invoiceData) {
+  const { invoice_number, total_amount, items, lockbox_code, access_instructions, access_expires_at } = invoiceData;
+  const expiryDate = new Date(access_expires_at).toLocaleDateString();
+  
+  return sendEmail({
+    to: email,
+    subject: `Payment Confirmed - Access Code for ${invoice_number}`,
+    html: `<div style="font-family:Arial,sans-serif;line-height:1.6">
+      <h2>🎉 Payment Confirmed!</h2>
+      <p>Thank you for your payment of $${total_amount} for invoice #${invoice_number}.</p>
+      
+      <div style="background:#f8f9fa;border:2px solid #28a745;border-radius:8px;padding:20px;margin:20px 0;">
+        <h3>🔐 Your Access Code</h3>
+        <div style="text-align:center;margin:20px 0;">
+          <div style="font-size:32px;font-weight:bold;color:#28a745;letter-spacing:4px;">${lockbox_code}</div>
+        </div>
+        <p><strong>Access Instructions:</strong></p>
+        <p>${access_instructions || 'Enter this code on the lockbox located in the 4th bedroom storage closet to access your items.'}</p>
+        <p><strong>Access expires:</strong> ${expiryDate}</p>
+      </div>
+      
+      <div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:15px;margin:20px 0;">
+        <h4>📋 Order Details</h4>
+        ${items.map(item => `
+          <div style="margin:8px 0;">
+            <strong>${item.name}</strong> (Qty: ${item.quantity})
+          </div>
+        `).join('')}
+      </div>
+      
+      <p>Your items will be available in the storage closet. Please return all items before checkout.</p>
+      <p>Enjoy your stay at The Mesquite Retreat!</p>
+    </div>`,
+    tag: 'payment_confirmation'
+  });
+}
+
+async function sendAdminInvoiceNotification(invoiceData) {
+  const { invoice_number, customer_email, customer_name, total_amount, items, check_in_date, check_out_date } = invoiceData;
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.MAIL_FROM || 'admin@mesquiteretreat.com';
+  
+  return sendEmail({
+    to: adminEmail,
+    subject: `New Invoice Payment: #${invoice_number}`,
+    html: `<div style="font-family:Arial,sans-serif;line-height:1.6">
+      <h2>💰 New Invoice Payment</h2>
+      <p>A guest has paid for additional items!</p>
+      
+      <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:20px 0;">
+        <h3>Invoice Details</h3>
+        <p><strong>Invoice:</strong> #${invoice_number}</p>
+        <p><strong>Customer:</strong> ${customer_name || 'N/A'} (${customer_email})</p>
+        <p><strong>Amount:</strong> $${total_amount}</p>
+        <p><strong>Check-in:</strong> ${check_in_date ? new Date(check_in_date).toLocaleDateString() : 'N/A'}</p>
+        <p><strong>Check-out:</strong> ${check_out_date ? new Date(check_out_date).toLocaleDateString() : 'N/A'}</p>
+      </div>
+      
+      <div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:15px;margin:20px 0;">
+        <h4>Items Purchased</h4>
+        ${items.map(item => `
+          <div style="margin:8px 0;">
+            <strong>${item.name}</strong> - Qty: ${item.quantity} - $${item.total_price}
+          </div>
+        `).join('')}
+      </div>
+      
+      <p>Please ensure the items are available in the storage closet for the guest.</p>
+    </div>`,
+    tag: 'admin_notification'
+  });
+}
+
 // Get current email transport info
 function getEmailTransportInfo() {
   return {
@@ -179,5 +287,8 @@ export {
   sendTestEmail,
   sendDiscountCodeEmail,
   sendWinnerNotificationEmail,
+  sendInvoiceEmail,
+  sendPaymentConfirmationEmail,
+  sendAdminInvoiceNotification,
   getEmailTransportInfo
 }; 
