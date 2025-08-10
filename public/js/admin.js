@@ -337,6 +337,12 @@ async function loadStats() {
   const data = await res.json();
   if (!data.ok) return;
   
+  console.log('Admin stats data received:', data);
+  console.log('subscriberGrowth data details:', {
+    length: data.subscriberGrowth?.length,
+    items: data.subscriberGrowth?.map(item => ({ date: item._id, count: item.count }))
+  });
+  
 
   
   // Ensure totals object exists and has default values
@@ -408,93 +414,120 @@ async function loadStats() {
     }
   };
 
-  // Trip distribution (bar)
+  // Subscriber growth over time (line chart)
   try{
     const el = document.getElementById('tripBars');
     if (!el) return; // Element doesn't exist
 
-    if (window.ApexCharts && data.byTrip && Array.isArray(data.byTrip) && data.byTrip.length > 0){
+    if (window.ApexCharts && data.subscriberGrowth && Array.isArray(data.subscriberGrowth) && data.subscriberGrowth.length > 0){
       try {
-        const categories = data.byTrip.map(x=>x.key).filter(Boolean);
-        const seriesData = data.byTrip.map(x=>x.count).filter(val => typeof val === 'number');
+        const categories = data.subscriberGrowth.map(x => x._id).filter(Boolean);
+        const seriesData = data.subscriberGrowth.map(x => x.count).filter(val => typeof val === 'number');
         
         if (categories.length === 0 || seriesData.length === 0) {
-          throw new Error('Invalid chart data');
+          console.warn('Subscriber growth chart data validation failed:', { 
+            categories, 
+            seriesData, 
+            originalData: data.subscriberGrowth,
+            categoriesLength: categories.length,
+            seriesDataLength: seriesData.length
+          });
+          throw new Error('Invalid chart data - no valid categories or series data');
         }
         
         if (el.__chart__) el.__chart__.destroy();
         el.__chart__ = new ApexCharts(el, {
-        chart: { 
-          type: 'bar', 
-          height: 280, 
-          toolbar: { show: false }, 
-          foreColor: '#e8eef7',
-          background: 'transparent',
-          animations: { enabled: false },
-          dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#60a5fa', opacity: 0.15 }
-        },
-        theme: { 
-          mode: 'dark',
-          palette: 'palette1'
-        },
-        grid: baseGrid,
-        colors: ['#60a5fa'],
-        plotOptions: { 
-          bar: { 
-            borderRadius: 12, 
-            columnWidth: '45%', 
-            endingShape: 'rounded',
-            distributed: false
-          } 
-        },
-        dataLabels: { enabled: false },
-        xaxis: { ...baseAxis, categories },
-        yaxis: { 
-          labels: { 
-            formatter: numberLabel, 
-            style: { 
-              colors: '#9aa4b2',
-              fontSize: '11px',
-              fontWeight: '600'
+          chart: { 
+            type: 'line', 
+            height: 280, 
+            toolbar: { show: false }, 
+            foreColor: '#e8eef7',
+            background: 'transparent',
+            animations: { enabled: false },
+            dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#10b981', opacity: 0.15 }
+          },
+          theme: { 
+            mode: 'dark',
+            palette: 'palette1'
+          },
+          grid: baseGrid,
+          colors: ['#10b981'],
+          stroke: { 
+            width: 3, 
+            curve: 'smooth',
+            lineCap: 'round'
+          },
+          dataLabels: { enabled: false },
+          xaxis: { 
+            ...baseAxis, 
+            categories,
+            type: 'datetime',
+            labels: {
+              ...baseAxis.labels,
+              formatter: function(value) {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }
+            }
+          },
+          yaxis: { 
+            labels: { 
+              formatter: numberLabel, 
+              style: { 
+                colors: '#9aa4b2',
+                fontSize: '11px',
+                fontWeight: '600'
+              } 
+            },
+            min: 0,
+            tickAmount: 5
+          },
+          series: [{ name: 'New Subscribers', data: seriesData }],
+          fill: { 
+            type: 'gradient', 
+            gradient: { 
+              shade: 'dark', 
+              type: 'vertical', 
+              opacityFrom: 0.4, 
+              opacityTo: 0.05, 
+              stops: [0, 100],
+              colorStops: [
+                { offset: 0, color: '#10b981', opacity: 0.3 },
+                { offset: 100, color: '#10b981', opacity: 0.05 }
+              ]
             } 
           },
-          min: 0,
-          tickAmount: 5
-        },
-        series: [{ name: 'Signups', data: seriesData }],
-        fill: { 
-          type: 'gradient', 
-          gradient: { 
-            shade: 'dark', 
-            type: 'vertical', 
-            opacityFrom: 0.9, 
-            opacityTo: 0.4, 
-            stops: [0, 100],
-            colorStops: [
-              { offset: 0, color: '#60a5fa', opacity: 1 },
-              { offset: 100, color: '#3b82f6', opacity: 0.6 }
-            ]
-          } 
-        },
-        states: {
-          hover: {
-            filter: {
-              type: 'darken',
-              value: 0.1
+          tooltip: {
+            x: {
+              formatter: function(value) {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                });
+              }
+            }
+          },
+          states: {
+            hover: {
+              filter: {
+                type: 'darken',
+                value: 0.1
+              }
             }
           }
-        }
-      });
-      el.__chart__.render();
+        });
+        el.__chart__.render();
       } catch (chartError) {
-        console.error('Error creating trip chart:', chartError);
+        console.error('Error creating subscriber growth chart:', chartError);
         if (el.__chart__) el.__chart__.destroy();
-        el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 Chart error<br><small>Unable to display trip data</small></div></div>';
+        el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 Chart error<br><small>Unable to display subscriber growth data</small></div></div>';
       }
     } else if (el && window.ApexCharts) {
-      // Show a simple message instead of a complex chart to avoid ApexCharts errors
+      // Show a simple message when no data is available
       if (el.__chart__) el.__chart__.destroy();
-      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 No trip data available<br><small>Subscribers haven\'t specified trip types yet<br>Total subscribers: ' + (totals.total || 0) + '</small></div></div>';
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📈 Subscriber Growth<br><small>No signups in the last 30 days<br>Total subscribers: ' + (totals.total || 0) + '</small></div></div>';
     } else if (el && !window.ApexCharts) {
       // Retry loading charts if ApexCharts isn't available yet
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 Loading charts...<br><small>Waiting for ApexCharts library</small></div></div>';
@@ -506,10 +539,10 @@ async function loadStats() {
       }, 1000);
     } else if (el) {
       // Fallback for when ApexCharts is not available
-      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📊 No trip data available<br><small>Subscribers haven\'t specified trip types yet</small></div></div>';
+      el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px;color:#5f6b7a;font-size:14px;text-align:center;"><div>📈 Subscriber Growth<br><small>No signups in the last 30 days</small></div></div>';
     }
   }catch(e){
-    console.error('Error rendering trip chart:', e);
+    console.error('Error rendering subscriber growth chart:', e);
   }
 
   // Country distribution (horizontal bar)

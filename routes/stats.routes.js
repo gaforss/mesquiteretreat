@@ -12,12 +12,24 @@ router.get('/admin-stats', adminLimiter, requireAdmin, async (_req, res) => {
       { $group: { _id: null, total: { $sum: 1 }, confirmed: { $sum: { $cond: ['$confirmed', 1, 0] } }, totalStars: { $sum: '$stars' }, referred: { $sum: { $cond: [{ $gt: ['$referred_by', null] }, 1, 0] } } } }
     ]);
     const totals = totalsAgg[0] || { total:0, confirmed:0, totalStars:0, referred:0 };
-    const byTrip = await Subscriber.aggregate([
-      { $group: { _id: '$trip_type', count: { $sum: 1 } } },
-      { $project: { _id: 0, key: '$_id', count: 1 } },
-      { $sort: { count: -1 } }
+    // Get subscriber growth over the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const subscriberGrowth = await Subscriber.aggregate([
+      { $match: { created_at: { $gte: thirtyDaysAgo } } },
+      { $group: { 
+        _id: { 
+          $dateToString: { format: '%Y-%m-%d', date: '$created_at' } 
+        }, 
+        count: { $sum: 1 } 
+      }},
+      { $sort: { _id: 1 } }
     ]);
-    return res.json({ ok:true, totals, byTrip });
+    
+    console.log('Subscriber growth data:', subscriberGrowth);
+    
+    return res.json({ ok:true, totals, subscriberGrowth });
   }catch(err){ return res.status(500).json({ ok:false, error:'Server error' }); }
 });
 
