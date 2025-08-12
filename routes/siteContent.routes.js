@@ -105,16 +105,19 @@ function getDefaultContent(){
 
 router.get('/site-content', async (_req, res) => {
   try{
-    // FORCE DEFAULTS - IGNORE DATABASE COMPLETELY
+    // Prefer saved content from Mongo; fall back to sensible defaults
+    let doc = null;
+    try {
+      doc = await SiteContent.findOne({ key: 'default' }).lean();
+    } catch (dbErr) {
+      console.error('SiteContent fetch error:', dbErr?.message || dbErr);
+    }
     const defaults = getDefaultContent();
-    console.log('API returning reviews count:', defaults.reviews?.length || 0);
-    console.log('API reviews names:', defaults.reviews?.map(r => r.name).join(', '));
-    return res.json({ ok:true, content: defaults });
+    const content = doc ? { ...defaults, ...doc } : defaults;
+    return res.json({ ok:true, content });
   }catch(err){
     console.error('API error:', err);
-    const fallback = getDefaultContent();
-    console.log('API fallback reviews count:', fallback.reviews?.length || 0);
-    return res.json({ ok:true, content: fallback });
+    return res.json({ ok:true, content: getDefaultContent() });
   }
 });
 
