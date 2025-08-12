@@ -37,10 +37,10 @@ function getDefaultContent(){
     gallery: [
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3fff9ca9-4d3d-4baa-b267-613fb1550be8.jpeg', alt: 'Modern living room with luxe finishes' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/106bf015-98ca-4743-a6f8-0b148a361b8c.jpeg', alt: 'Updated kitchen with stainless appliances' },
-      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/ca824749-585f-48e9-a187-c668ca23876d.jpeg', alt: 'Primary bedroom with king bed' },
+      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3a28b10a-c5c9-4d52-894e-27df593f61af.jpeg?im_w=1440', alt: 'Primary bedroom with king bed' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/97ba340f-876c-4bee-bb8a-b46c23fb0ff8.jpeg', alt: 'Pool, hot tub, patio TV and putting green' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/0841e224-efbe-4e6e-a9f8-ae5350a6aa85.jpeg', alt: 'Open concept dining and living' },
-      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/18b7447f-d610-4165-a2f2-6a5ee7792a3e.jpeg', alt: 'Guest bedroom with queen bed' }
+      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/f17cc87a-4456-411c-8347-b18ebae5ded9.jpeg?im_w=1440', alt: 'Guest bedroom with queen bed' }
     ],
     reviews: [
       { name: 'Larissa', text: 'This was an overall great stay! The whole space was beautifully decorated, clean, and calming. We loved all the activities like mini golf, corn hole, and some games in the living room. The pool was clean and perfect temperature. We were 10 minutes from Scottsdale Mall which had alot of things to do and a lot of fun food places to explore.', stars: 5 },
@@ -113,7 +113,19 @@ router.get('/site-content', async (_req, res) => {
       console.error('SiteContent fetch error:', dbErr?.message || dbErr);
     }
     const defaults = getDefaultContent();
-    const content = doc ? { ...defaults, ...doc } : defaults;
+    let content = doc ? { ...defaults, ...doc } : defaults;
+    // One-off override for specific gallery entries as requested
+    try {
+      const thirdUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3a28b10a-c5c9-4d52-894e-27df593f61af.jpeg?im_w=1440';
+      const sixthUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/f17cc87a-4456-411c-8347-b18ebae5ded9.jpeg?im_w=1440';
+      if (Array.isArray(content.gallery)) {
+        content.gallery = content.gallery.map((img, idx) => {
+          if (idx === 2) return { ...(img||{}), url: thirdUrl };
+          if (idx === 5) return { ...(img||{}), url: sixthUrl };
+          return img;
+        });
+      }
+    } catch {}
     return res.json({ ok:true, content });
   }catch(err){
     console.error('API error:', err);
