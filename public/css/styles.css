@@ -284,6 +284,12 @@ nav a[aria-current="page"] { opacity: 1; }
   .features { grid-template-columns: 1fr; gap: 12px; }
 }
 
+/* Keep hero CTAs inline on small mobile (e.g., iPhone 12 width) */
+@media (max-width: 420px) {
+  .hero-ctas { flex-wrap: nowrap; gap: 8px; }
+  .hero-ctas .cta { flex: 1 1 0; padding: 10px 12px; font-size: 13px; text-align: center; }
+}
+
 /* Modal */
 .modal:not(.fade).hidden { display: none; }
 .modal:not(.fade) { position: fixed; inset: 0; background: rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; z-index: 50; backdrop-filter: blur(6px) saturate(1.15); }

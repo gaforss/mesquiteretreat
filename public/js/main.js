@@ -50,7 +50,7 @@ async function loadSiteContent(){
         <div class="ab-badge" aria-label="${c.badge_title||'Guest favorite'}">
           <div class="ab-row">
             <span class="ab-pill ab-guest">
-              <span class="ab-star">★</span>
+              <span class="ab-star">🌵</span>
               <span>${c.badge_title||'Guest favorite'}</span>
             </span>
             ${(c.show_superhost_pill||isSuperhost)?'<span class="ab-pill ab-superhost">SUPERHOST</span>':''}
@@ -260,7 +260,7 @@ form?.addEventListener('submit', async (e) => {
           }
         };
         // Keep boost tasks accessible only if user opts in
-        if (btnBoost) btnBoost.onclick = ()=>{ entryModal?.classList.remove('hidden'); };
+        if (btnBoost) btnBoost.onclick = ()=>{ document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
       }
     } else {
       out.textContent = data.error || 'Something went wrong.';
@@ -332,165 +332,7 @@ function initCountdown(drawDateStr){
   setInterval(update, 60 * 1000);
 }
 
-// Entry modal: show on first visit or utm_source=ig; includes quick "Enter now" button
-const entryModal = document.getElementById('entryModal');
-function initEntryModal(){
-  if (!entryModal) return;
-  const params = new URLSearchParams(location.search);
-  const shouldShow = params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram' || !localStorage.getItem('igTasks');
-  if (shouldShow) entryModal.classList.remove('hidden');
-  
-  const closeBtn = entryModal.querySelector('#closeModal');
-  closeBtn?.addEventListener('click', () => entryModal.classList.add('hidden'));
-  
-  // Modal form elements
-  const modalForm = entryModal.querySelector('#modalSignupForm');
-  const modalEmail = entryModal.querySelector('#modalEmail');
-  const modalFirstName = entryModal.querySelector('#modalFirstName');
-  const modalNewsletter = entryModal.querySelector('#modalNewsletter');
-  const modalConsentRules = entryModal.querySelector('#modalConsentRules');
-  const modalFormMessage = entryModal.querySelector('#modalFormMessage');
-  const modalStarsOut = entryModal.querySelector('#modalStarsOut');
-  const modalStarsFill = entryModal.querySelector('#modalStarsFill');
-  const modalIgHandle = entryModal.querySelector('#modalIgHandle');
-  
-  // Pre-fill IG handle from saved tasks
-  try{
-    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    if (modalIgHandle && saved.igHandle) modalIgHandle.value = saved.igHandle;
-  }catch{}
-  
-  const updateStars = () => {
-    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    let stars = Number(saved.stars||0);
-    
-    // Check if user came from Instagram (various UTM patterns)
-    const params = new URLSearchParams(location.search);
-    const isFromInstagram = params.get('utm_source') === 'ig' || params.get('utm_source') === 'instagram' || params.get('utm_medium') === 'social' || params.get('utm_campaign')?.includes('instagram');
-    
-    // Award 1 star for Instagram referral
-    if (isFromInstagram && !saved.instagramBonusAwarded) {
-      stars += 1;
-      saved.instagramBonusAwarded = true;
-      saved.stars = stars;
-      localStorage.setItem('igTasks', JSON.stringify(saved));
-    }
-    
-    modalStarsOut.textContent = `Bonus entries: ${stars}`;
-    
-    // Update progress bar
-    const maxStars = 2; // Instagram bonus + referral bonus
-    const pct = Math.min(100, Math.round((Math.min(stars, maxStars)/maxStars)*100));
-    if (modalStarsFill) modalStarsFill.style.width = pct+'%';
-    
-    return { stars, tasks: saved.tasks || {} };
-  };
-  
-  // Auto-save IG handle on input
-  modalIgHandle?.addEventListener('input', ()=>{
-    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    saved.igHandle = modalIgHandle.value.trim();
-    localStorage.setItem('igTasks', JSON.stringify(saved));
-  });
-  
-  // Handle modal form submission
-  modalForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = modalEmail.value.trim();
-    const firstName = modalFirstName.value.trim();
-    const newsletter = modalNewsletter.checked;
-    const consentRules = modalConsentRules.checked;
-    
-    if (!email || !consentRules || !newsletter) {
-      modalFormMessage.textContent = 'Please provide your email, subscribe to the newsletter, and agree to the rules.';
-      modalFormMessage.className = 'form-message error';
-      return;
-    }
-    
-    // Get bonus entries from completed tasks
-    const saved = JSON.parse(localStorage.getItem('igTasks')||'{}');
-    const bonusEntries = Number(saved.stars||0);
-    
-    try {
-      modalFormMessage.textContent = 'Submitting your entry...';
-      modalFormMessage.className = 'form-message loading';
-      
-      const formData = {
-        email: email,
-        firstName: firstName || '',
-        lastName: '',
-        tripType: '',
-        groupSize: '',
-        phone: '',
-        igHandle: modalIgHandle.value.trim() || '',
-        stars: bonusEntries,
-        newsletter: newsletter,
-        consentRules: consentRules
-      };
-      
-      const response = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const result = await response.json();
-      
-      if (result.ok) {
-        // Close entry modal
-        entryModal.classList.add('hidden');
-        
-        // Show success modal
-        const successModal = document.getElementById('successModal');
-        if (successModal) {
-          successModal.classList.remove('hidden');
-          
-          // Close button functionality
-          const closeBtn = successModal.querySelector('#closeSuccessModal');
-          const closeSuccessBtn = successModal.querySelector('#closeSuccessBtn');
-          
-          const closeSuccessModal = () => {
-            successModal.classList.add('hidden');
-          };
-          
-          closeBtn?.addEventListener('click', closeSuccessModal);
-          closeSuccessBtn?.addEventListener('click', closeSuccessModal);
-        }
-        
-        // Clear form
-        modalForm.reset();
-        
-      } else {
-        modalFormMessage.textContent = result.error || 'Failed to submit entry. Please try again.';
-        modalFormMessage.className = 'form-message error';
-      }
-      
-    } catch (error) {
-      console.error('Modal form submission error:', error);
-      modalFormMessage.textContent = 'Network error. Please try again.';
-      modalFormMessage.className = 'form-message error';
-    }
-  });
-  
-  // Handle "Complete full entry form" button
-  const gotoFullSignup = entryModal.querySelector('#gotoFullSignup');
-  gotoFullSignup?.addEventListener('click', ()=>{
-    entryModal.classList.add('hidden');
-    document.getElementById('signup')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Pre-fill the main form with modal data
-    const mainEmail = document.getElementById('email');
-    const mainFirstName = document.getElementById('firstName');
-    if (mainEmail && modalEmail.value) mainEmail.value = modalEmail.value;
-    if (mainFirstName && modalFirstName.value) mainFirstName.value = modalFirstName.value;
-    mainEmail?.focus();
-  });
-  
-  updateStars();
-}
-initEntryModal();
+// Entry modal removed per request
 
 // Force dark theme
 document.documentElement.classList.add('dark');
@@ -591,25 +433,7 @@ if (navToggle && siteNav) {
 // Add to calendar link under signup copy
 (function addToCal(){
   // Use active promotion if available (set earlier), else fallback meta
-  const drawDateStr2 = (window.__promoDrawIso) || document.querySelector('meta[name="draw-date"]')?.getAttribute('content') || '';
-  const addWrap = document.getElementById('addToCalWrap');
-  if (!drawDateStr2 || !addWrap) return;
-  const title = encodeURIComponent('Mesquite Retreat Giveaway Drawing');
-  const start = new Date(drawDateStr2).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0,15)+'Z';
-  const end = new Date(new Date(drawDateStr2).getTime()+60*60*1000).toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0,15)+'Z';
-  const details = encodeURIComponent('Tune in for the drawing! Boost your chances by sharing your link.');
-  const location = encodeURIComponent('Online');
-  const gcal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
-  // Also provide ICS download for Apple/Outlook
-  const ics = (()=>{
-    const lines = [
-      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MesquiteRetreat//Giveaway//EN','BEGIN:VEVENT',
-      `UID:${Date.now()}@mesquiteretreat`,`DTSTAMP:${start}`,
-      `DTSTART:${start}`,`DTEND:${end}`,`SUMMARY:Mesquite Retreat Giveaway Drawing`,`DESCRIPTION:Tune in for the drawing! Boost your chances by sharing your link.`,`LOCATION:Online`,'END:VEVENT','END:VCALENDAR'
-    ];
-    return 'data:text/calendar;charset=utf8,'+encodeURIComponent(lines.join('\r\n'));
-  })();
-  addWrap.innerHTML = `<a class="cta secondary" href="${gcal}" target="_blank" rel="noopener">Add to Google Calendar</a> <a class="cta secondary" href="${ics}" download="mesquite-drawing.ics">Download ICS</a>`;
+  // Removed calendar links per request
 })();
 
 // Persist UTM params for later submissions (sticky attribution)

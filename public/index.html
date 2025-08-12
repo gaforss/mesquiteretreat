@@ -23,140 +23,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      /* Modal form improvements */
-      #entryModal .signup-form {
-        margin: 0;
-      }
-      
-      #entryModal .field {
-        margin-bottom: 16px;
-      }
-      
-      #entryModal .field label {
-        display: block;
-        margin-bottom: 6px;
-        color: #a9b0bc;
-        font-size: 14px;
-        font-weight: 600;
-      }
-      
-      #entryModal .field input {
-        width: 100%;
-        padding: 12px 14px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 8px;
-        color: #ffffff;
-        font-size: 14px;
-        transition: all 0.2s ease;
-      }
-      
-      #entryModal .field input:focus {
-        outline: none;
-        border-color: #ffc107;
-        background: rgba(255,255,255,0.08);
-        box-shadow: 0 0 0 2px rgba(255,193,7,0.1);
-      }
-      
-      #entryModal .field input::placeholder {
-        color: #5f6b7a;
-      }
-      
-      #entryModal .checkbox-inline {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        font-size: 14px;
-        line-height: 1.4;
-        color: #a9b0bc;
-      }
-      
-      #entryModal .checkbox-inline input[type="checkbox"] {
-        width: auto;
-        margin: 0;
-        margin-top: 2px;
-      }
-      
-      #entryModal .checkbox-inline a {
-        color: #ffc107;
-        text-decoration: none;
-      }
-      
-      #entryModal .checkbox-inline a:hover {
-        text-decoration: underline;
-      }
-      
-      #entryModal .form-message {
-        margin: 8px 0 0;
-        font-size: 14px;
-        min-height: 20px;
-      }
-      
-      #entryModal .form-message.error {
-        color: #ff6b6b;
-      }
-      
-      #entryModal .form-message.success {
-        color: #51cf66;
-      }
-      
-      #entryModal .form-message.loading {
-        color: #ffc107;
-      }
-      
-      /* Tasks section styling */
-      #entryModal .tasks {
-        margin: 0;
-      }
-      
-      #entryModal .task-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        margin-bottom: 8px;
-      }
-      
-      #entryModal .task-row:last-child {
-        margin-bottom: 0;
-      }
-      
-      #entryModal .task-title {
-        font-size: 14px;
-        color: #e8eef7;
-        font-weight: 500;
-      }
-      
-      #entryModal .task-row input {
-        width: auto;
-        flex: 1;
-        max-width: 150px;
-        margin: 0;
-        padding: 6px 8px;
-        font-size: 12px;
-      }
-      
-      /* Progress bar */
-      #entryModal .progress {
-        height: 6px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 999px;
-        overflow: hidden;
-        margin: 12px 0 8px;
-      }
-      
-      #entryModal .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ffc107, #ffd54f);
-        width: 0%;
-        transition: width 0.3s ease;
-      }
-      
       /* Fix dropdown text visibility in dark theme */
       select {
         background-color: rgba(255,255,255,0.06) !important;
@@ -196,90 +62,11 @@
     </style>
   </head>
   <body>
-    <div id="entryModal" class="modal hidden">
-      <div class="modal-card modal-compact">
-        <div class="modal-header">
-          <div class="mh-left">
-            <span class="mh-icon">🎁</span>
-            <div class="mh-text">
-              <h2 class="mh-title">2 free nights giveaway</h2>
-              <p class="mh-sub">Enter now & earn bonus entries</p>
-            </div>
-          </div>
-          <button id="closeModal" class="modal-close">×</button>
-        </div>
-        <div class="modal-body">
-          <details class="fine-print"><summary>Rules & notes</summary>
-            <p style="margin:8px 0 0">Sun–Tue check‑in only, 2‑night minimum. Travel by Dec 31, 2025. No blackouts. Winner covers travel and cleaning fee. Winners can add 2‑night minimum add‑ons. Ends Aug 31. Not affiliated with Instagram.</p>
-          </details>
-          
-          <!-- Primary Email Entry Form -->
-          <form id="modalSignupForm" class="signup-form" style="margin-bottom: 20px;">
-            <div class="field">
-              <label for="modalEmail">Email address <span style="color: #ff6b6b;">*</span></label>
-              <input id="modalEmail" name="email" type="email" required autocomplete="email" placeholder="your@email.com" />
-            </div>
-            
-            <div class="field">
-              <label for="modalFirstName">First name</label>
-              <input id="modalFirstName" name="firstName" type="text" autocomplete="given-name" placeholder="Optional" />
-            </div>
-            
-            <div class="field">
-              <label class="checkbox-inline">
-                <input id="modalNewsletter" type="checkbox" required checked />
-                <span>Subscribe to our newsletter for exclusive offers & updates (required for future contests)</span>
-              </label>
-            </div>
-            
-            <div class="field" style="display:flex; align-items:center; gap:8px">
-              <label class="checkbox-inline">
-                <input id="modalConsentRules" type="checkbox" required />
-                <span>I agree to the <a href="/rules.html" target="_blank" rel="noopener">Official Rules</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
-              </label>
-            </div>
-            
-                            <button type="submit" class="cta submit" style="width: 100%; margin-bottom: 16px;">🌵 Win an AZ Staycation!</button>
-            <p id="modalFormMessage" class="form-message" role="status" aria-live="polite"></p>
-          </form>
-          
-          <!-- Optional Boost Tasks -->
-          <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
-            <h4 style="margin: 0 0 12px; font-size: 16px; color: #a9b0bc;">🎯 Boost your chances (optional)</h4>
-            <p style="margin: 0 0 16px; font-size: 14px; color: #5f6b7a;">Earn extra entries by:</p>
-            
-            <div class="tasks">
-              <label class="task-row">
-                <span class="task-title">Instagram handle</span>
-                <input id="modalIgHandle" placeholder="@yourhandle" />
-              </label>
-              <div class="task-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                <span class="task-title">Earn bonus entries</span>
-                <div style="font-size: 13px; color: #5f6b7a; line-height: 1.4;">
-                  <div>• <strong>+1 star</strong> if you found us on Instagram (automatic)</div>
-                  <div>• <strong>+1 star</strong> for each friend who enters using your referral link</div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="progress" aria-hidden="true">
-              <div id="modalStarsFill" class="progress-fill" style="width:0%"></div>
-            </div>
-            <p id="modalStarsOut" style="margin: 8px 0 0; font-size: 14px; color: #a9b0bc;">Bonus entries: 0</p>
-          </div>
-          
-          <!-- Alternative: Full Signup Link -->
-          <div style="margin-top: 16px; text-align: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <p style="margin: 0 0 8px; font-size: 14px; color: #5f6b7a;">Want to provide more details?</p>
-            <button id="gotoFullSignup" class="cta secondary" type="button" style="width: 100%;">Complete full entry form</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    
     <header class="site-header">
       <div class="container header-inner">
         <a class="brand" href="/index.html">
-          <span class="logo">⟡</span>
+          <span class="logo">🌵</span>
           <span class="name" id="propertyName">The Mesquite Retreat on Oak</span>
         </a>
         <button class="menu-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
@@ -327,17 +114,17 @@
             </div>
           </div>
           <div class="feature">
-            <div class="feat-icon"><span class="emoji">⛳</span></div>
-            <div class="feat-text">
-              <div class="feat-title">Private Putting Green</div>
-              <div class="feat-sub">Backyard entertainment</div>
-            </div>
-          </div>
-          <div class="feature">
             <div class="feat-icon"><span class="emoji">🔥</span></div>
             <div class="feat-text">
               <div class="feat-title">Heated Pool & Hot Tub</div>
               <div class="feat-sub">Firepit lounge</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feat-icon"><span class="emoji">⛳</span></div>
+            <div class="feat-text">
+              <div class="feat-title">Private Putting Green</div>
+              <div class="feat-sub">Backyard entertainment</div>
             </div>
           </div>
           <div class="feature">
@@ -423,60 +210,7 @@
         </div>
       </section>
 
-      <section id="details" class="details-section">
-        <div class="container">
-          <ul class="nav nav-tabs" id="detailsTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab-home-tab" data-bs-toggle="tab" data-bs-target="#tab-home" type="button" role="tab" aria-controls="tab-home" aria-selected="true">About the home</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-area-tab" data-bs-toggle="tab" data-bs-target="#tab-area" type="button" role="tab" aria-controls="tab-area" aria-selected="false">Local area</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-value-tab" data-bs-toggle="tab" data-bs-target="#tab-value" type="button" role="tab" aria-controls="tab-value" aria-selected="false">Why 4 bedrooms here</button>
-            </li>
-          </ul>
-          <div class="tab-content details-content" id="detailsTabsContent">
-            <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="tab-home-tab" tabindex="0">
-              <div class="details-card">
-                <p>
-                  A modern Scottsdale oasis designed for relaxing and entertaining: open‑concept living with a wine & coffee bar, a fully stocked kitchen, and stylish bedrooms. Step outside to a private resort backyard featuring a heated pool, hot tub, firepit lounge, covered patio with TV & dining, BBQ, and a 3‑hole putting green. Minutes to Old Town, top golf courses, Fashion Square, and the best dining in Scottsdale.
-                </p>
-                <ul>
-                  <li>Heated pool & hot tub • Firepit • Patio TV & dining • BBQ</li>
-                  <li>3 stylish bedrooms, 2 full baths • Hotel‑quality linens</li>
-                  <li>Dedicated workspace • Fast Wi‑Fi • Washer & dryer</li>
-                </ul>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="tab-area" role="tabpanel" aria-labelledby="tab-area-tab" tabindex="0">
-              <div class="details-card">
-                <p>
-                  You’ll be close to everything that makes Scottsdale special. Start in Old Town for art walks, dining, and nightlife; tee off at world‑class courses (TPC, Troon, Talking Stick); then unwind at spa resorts or hike Camelback and McDowell Sonoran Preserve. Families love the Phoenix Zoo, OdySea Aquarium, and spring training baseball. End your day poolside at home with a perfect desert sunset.
-                </p>
-                <ul>
-                  <li>Old Town Scottsdale: 10–15 min</li>
-                  <li>Golf: TPC, Talking Stick, Troon, Papago — easy drives</li>
-                  <li>Shopping & dining: Fashion Square, Kierland Commons</li>
-                </ul>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="tab-value" role="tabpanel" aria-labelledby="tab-value-tab" tabindex="0">
-              <div class="details-card">
-                <p>
-                  In Scottsdale, extra bedrooms are a premium. A four‑bedroom layout unlocks flexibility: families can spread out, golf foursomes get private rooms, and multi‑generational or friends’ trips gain comfort without booking multiple homes. That means better sleep, easier mornings, and real savings versus reserving two separate properties.
-                </p>
-                <ul>
-                  <li>Ideal for families, golf trips, and work‑friendly stays</li>
-                  <li>Private rooms for everyone • More storage • Better privacy</li>
-                  <li>One destination hub close to courses, dining, and Old Town</li>
-                </ul>
-                <p class="muted small">Tip: Add extra nights to extend your stay for a full long‑weekend experience.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       <section id="reviews" class="reviews-section">
         <div class="container">
@@ -587,7 +321,6 @@
             <div class="signup-copy">
               <h2>Enter our giveaway</h2>
               <p>Sign up to enter our occasional giveaway and receive availability and offer updates.</p>
-              <div id="addToCalWrap" style="margin:10px 0 0"></div>
               <p id="entriesToday" class="muted small" style="margin:6px 0 0"></p>
             </div>
             <form id="signupForm" class="signup-form">
