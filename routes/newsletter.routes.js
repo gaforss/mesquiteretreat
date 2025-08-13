@@ -158,6 +158,36 @@ router.post('/test', async (req, res) => {
   }
 });
 
+// Send a preview of the newsletter to a single address (uses newsletter stream)
+router.post('/preview', async (req, res) => {
+  if (!isAuthed(req)) {
+    return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  }
+
+  try {
+    const { subject, message, to } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({ ok: false, error: 'Subject and message are required' });
+    }
+
+    const previewTo = to || process.env.ADMIN_EMAIL || process.env.MAIL_FROM;
+    if (!previewTo) {
+      return res.status(400).json({ ok: false, error: 'No preview recipient specified' });
+    }
+
+    const result = await sendNewsletterEmail(previewTo, subject, message);
+
+    if (result.success) {
+      return res.json({ ok: true, message: 'Preview sent', to: previewTo, messageId: result.messageId, transport: result.transport });
+    }
+
+    return res.status(500).json({ ok: false, error: 'Failed to send preview', details: result.error });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: 'Server error', details: err.message });
+  }
+});
+
 // Save draft
 router.post('/draft', (req, res) => {
   if (!isAuthed(req)) {

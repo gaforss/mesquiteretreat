@@ -54,6 +54,14 @@ async function sendEmail(options) {
       if (replyTo) postmarkOptions.ReplyTo = replyTo;
       if (attachments) postmarkOptions.Attachments = attachments;
 
+      // Choose appropriate Postmark Message Stream
+      const globalStream = process.env.POSTMARK_MESSAGE_STREAM;
+      const txStream = process.env.POSTMARK_TRANSACTIONAL_STREAM;
+      const newsletterStream = process.env.POSTMARK_NEWSLETTER_STREAM;
+      const isNewsletter = (tag || '').toLowerCase() === 'newsletter';
+      const chosenStream = isNewsletter ? (newsletterStream || globalStream) : (txStream || globalStream);
+      if (chosenStream) postmarkOptions.MessageStream = chosenStream;
+
       const result = await transporter.sendEmail(postmarkOptions);
       return {
         success: true,
