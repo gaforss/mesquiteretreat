@@ -10,7 +10,7 @@ function getDefaultContent(){
     key: 'default',
     property_name: 'The Mesquite Retreat on Oak',
     hero_title: 'The Mesquite Retreat on Oak',
-    hero_subtitle: 'Scottsdale, AZ — 3 bedrooms · 2 baths · Sleeps 6',
+    hero_subtitle: 'Luxe Scottsdale Oasis near Old Town — 3 Bed · 2 Bath · Sleeps 6',
     hero_badge: 'Guest favorite · 5.0 (12)',
     badge_title: 'Guest favorite',
     badge_description: 'One of the most loved homes on Airbnb, according to guests',
@@ -119,6 +119,7 @@ router.get('/site-content', async (_req, res) => {
       const firstUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/c3ae42f5-7f6f-4d5f-9072-1537734ae470.jpeg?im_w=1200';
       const thirdUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3a28b10a-c5c9-4d52-894e-27df593f61af.jpeg?im_w=1440';
       const sixthUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/f17cc87a-4456-411c-8347-b18ebae5ded9.jpeg?im_w=1440';
+      const forcedSubtitle = 'Luxe Scottsdale Oasis near Old Town — 3 Bed · 2 Bath · Sleeps 6';
       if (Array.isArray(content.gallery)) {
         content.gallery = content.gallery.map((img, idx) => {
           if (idx === 0) return { ...(img||{}), url: firstUrl };
@@ -127,6 +128,7 @@ router.get('/site-content', async (_req, res) => {
           return img;
         });
       }
+      content.hero_subtitle = forcedSubtitle;
     } catch {}
     return res.json({ ok:true, content });
   }catch(err){

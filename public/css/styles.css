@@ -288,6 +288,13 @@ nav a[aria-current="page"] { opacity: 1; }
 @media (max-width: 420px) {
   .hero-ctas { flex-wrap: nowrap; gap: 8px; }
   .hero-ctas .cta { flex: 1 1 0; padding: 10px 12px; font-size: 13px; text-align: center; }
+  /* Keep hero badge pills on a single line on iPhone 12 widths */
+  .ab-badge { padding: 7px 9px; }
+  .ab-row { flex-wrap: nowrap; gap: 4px; justify-content: flex-start; }
+  .ab-pill { padding: 3px 7px; font-size: 10.5px; letter-spacing: .005em; white-space: nowrap; }
+  .ab-star { font-size: 10.5px; }
+  /* Slightly smaller subtitle to avoid overflow */
+  .hero .hero-text p { font-size: 16px; line-height: 1.35; }
 }
 
 /* Modal */

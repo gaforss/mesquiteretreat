@@ -14,7 +14,18 @@ async function loadSiteContent(){
     // Hero
     const h1 = document.getElementById('heroTitle'); if (h1) h1.textContent = c.hero_title || name;
     const heroBadge = document.querySelector('.hero .badge'); if (heroBadge) heroBadge.textContent = c.hero_badge || heroBadge.textContent;
-    const heroSub = document.querySelector('.hero .hero-text p'); if (heroSub) heroSub.textContent = c.hero_subtitle || heroSub.textContent;
+    const heroSub = document.querySelector('.hero .hero-text p');
+    if (heroSub){
+      const subTxt = c.hero_subtitle || heroSub.textContent;
+      if (typeof subTxt === 'string' && subTxt.includes('—') && window.innerWidth <= 420){
+        const parts = subTxt.split('—');
+        const left = (parts[0]||'').trim();
+        const right = (parts.slice(1).join('—')||'').trim();
+        heroSub.innerHTML = `${escapeHtml(left)} —<br>${escapeHtml(right)}`;
+      } else {
+        heroSub.textContent = subTxt;
+      }
+    }
     const heroImg = document.querySelector('.hero-image img'); if (heroImg && c.hero_image_url) heroImg.src = c.hero_image_url;
     // Book links
     document.querySelectorAll('a.airbnb').forEach(a=>{ a.href = bookUrl; });
