@@ -35,6 +35,8 @@ function initNewsletter() {
   // Preview button
   const previewBtn = document.getElementById('previewBtn');
   previewBtn.addEventListener('click', showPreview);
+  const sendFromPreviewBtn = document.getElementById('sendFromPreview');
+  sendFromPreviewBtn.addEventListener('click', sendPreviewFromModal);
   
   // Save draft button
   const saveDraftBtn = document.getElementById('saveDraftBtn');
@@ -188,6 +190,40 @@ function showPreview() {
   
   // Show modal
   document.getElementById('previewModal').classList.remove('hidden');
+}
+
+// Send preview to a single recipient using the preview endpoint
+async function sendPreviewFromModal() {
+  const subject = document.getElementById('subject').value.trim();
+  const message = document.getElementById('message').value.trim();
+  const to = (document.getElementById('previewTo').value || '').trim();
+
+  if (!subject || !message) {
+    showMessage('Please fill in subject and message first.', 'error');
+    return;
+  }
+  if (!to) {
+    showMessage('Enter an email in "Send preview to".', 'error');
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/newsletter/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ subject, message, to })
+    });
+    const j = await r.json();
+    if (j.ok) {
+      showMessage(`Preview sent to ${to}`, 'success');
+      closeModals();
+    } else {
+      showMessage(j.error || 'Failed to send preview', 'error');
+    }
+  } catch (e) {
+    showMessage('Network error. Please try again.', 'error');
+  }
 }
 
 // Format plain text message for preview display

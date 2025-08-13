@@ -23,6 +23,33 @@ async function initTransporter() {
   }
 }
 
+// Convert plain text newsletter content into basic HTML
+function convertPlainTextNewsletterToHtml(plainText) {
+  if (!plainText || typeof plainText !== 'string') return '';
+  let text = plainText.trim();
+  // Escape accidental angle brackets minimally (if someone typed < and > without valid tags)
+  const looksLikeHtml = /<\s*\w+[^>]*>/i.test(text) || /<\/.+?>/i.test(text);
+  if (looksLikeHtml) {
+    return text;
+  }
+  // Replace bullet starters with <li>
+  text = text.replace(/^\s*[•\-]\s+/gm, '<li>');
+  // Wrap consecutive <li> blocks into <ul>
+  text = text.replace(/(?:<li>[^\n]*\n?)+/g, (match) => {
+    const items = match.trim().split(/\n+/).map(s => s.trim()).filter(Boolean);
+    return `<ul>${items.join('')}</ul>`;
+  });
+  // Convert double newlines to paragraph breaks
+  text = text.replace(/\n\n+/g, '</p><p>');
+  // Convert remaining single newlines to <br> (outside of lists)
+  text = text.replace(/\n/g, '<br>');
+  // Wrap in paragraph tag
+  text = `<p>${text}</p>`;
+  // Clean up any empty paragraphs
+  text = text.replace(/<p>\s*<\/p>/g, '');
+  return text;
+}
+
 // Send email function that works with both Postmark and nodemailer
 async function sendEmail(options) {
   const {
@@ -112,10 +139,11 @@ async function sendConfirmationEmail(email, confirmUrl, propertyName) {
 }
 
 async function sendNewsletterEmail(email, subject, message) {
+  const html = convertPlainTextNewsletterToHtml(message);
   return sendEmail({
     to: email,
     subject,
-    html: message,
+    html,
     tag: 'newsletter'
   });
 }
