@@ -151,6 +151,14 @@ nav a[aria-current="page"] { opacity: 1; }
 @media (min-width: 1280px) {
   .hero-image img, .hero-video { height: 420px; object-fit: cover; }
 }
+/* Tweak hero layout for ~900px wide portrait screens to avoid tall right column creating blank space */
+@media (max-width: 980px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 16px; }
+  .hero-image img, .hero-video { height: auto; max-height: 360px; object-fit: cover; }
+  /* Ensure badge doesn't overlap the title on tall portrait screens */
+  .hero-badge { left: 12px; right: 12px; top: 12px; max-width: none; }
+  .hero-text { margin-top: 160px; }
+}
 
 /* Hero badge overlay */
 .hero { position: relative; }
