@@ -14,17 +14,18 @@ async function ensureVendor(){
   const mustChange = !!v.mustChangePassword;
   const linkSection = document.getElementById('linkSection');
   const pwdSection = document.getElementById('pwdSection');
-  if (mustChange){
-    if (linkSection) linkSection.style.display = 'none';
-    if (pwdSection) { pwdSection.style.display = ''; pwdSection.scrollIntoView({ behavior:'smooth' }); }
-  } else {
-    if (linkSection) linkSection.style.display = '';
-    if (pwdSection) pwdSection.style.display = 'none';
-  }
+  // Always show link section; keep password section visible until set
+  if (linkSection) linkSection.style.display = '';
+  if (pwdSection) pwdSection.style.display = mustChange ? '' : 'none';
+  if (mustChange && pwdSection) { try{ pwdSection.scrollIntoView({ behavior:'smooth' }); } catch{} }
 
   const link = `${location.origin}/?vendor=${encodeURIComponent(v.code)}`;
   const input = document.getElementById('shareLink'); if (input) input.value = link;
+  // Also provide a short offline-friendly link
+  const shortLink = `${location.origin}/api/public/r/${encodeURIComponent(v.code)}`;
+  const shortEl = document.getElementById('shareLinkShort'); if (shortEl) shortEl.value = shortLink;
   document.getElementById('copyBtn')?.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(link); alert('Link copied'); }catch{} });
+  document.getElementById('copyBtnShort')?.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(shortLink); alert('Short link copied'); }catch{} });
   const tw = `https://x.com/intent/tweet?text=${encodeURIComponent('Check out this Scottsdale stay and enter the giveaway!')}%20${encodeURIComponent(link)}`;
   const fb = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
   document.getElementById('shareTwitter').href = tw;
@@ -111,28 +112,76 @@ async function ensureVendor(){
       const j2 = await r2.json(); if (j2.ok) renderOfferings(j2.rows||[]);
     }catch{ out.textContent = 'Failed'; }
   });
+
+  // Live image/logo preview
+  const imgUrlEl = document.getElementById('offImg');
+  const imgThumb = document.getElementById('offImgThumb');
+  const imgStatus = document.getElementById('offImgStatus');
+  const logoUrlEl = document.getElementById('offLogo');
+  const logoThumb = document.getElementById('offLogoThumb');
+  const logoStatus = document.getElementById('offLogoStatus');
+  if (imgUrlEl && imgThumb){
+    imgUrlEl.addEventListener('input', ()=>{
+      const url = imgUrlEl.value.trim();
+      imgThumb.src = url||'';
+      if (imgStatus) imgStatus.textContent = url ? 'Loading preview…' : 'Paste an image URL to preview';
+    });
+    imgThumb.addEventListener('load', ()=>{ if (imgStatus) imgStatus.textContent = 'Preview loaded'; });
+    imgThumb.addEventListener('error', ()=>{ if (imgStatus) imgStatus.textContent = 'Image failed to load'; });
+  }
+  if (logoUrlEl && logoThumb){
+    logoUrlEl.addEventListener('input', ()=>{
+      const url = logoUrlEl.value.trim();
+      logoThumb.src = url||'';
+      if (logoStatus) logoStatus.textContent = url ? 'Loading preview…' : 'Paste a logo URL to preview';
+    });
+    logoThumb.addEventListener('load', ()=>{ if (logoStatus) logoStatus.textContent = 'Preview loaded'; });
+    logoThumb.addEventListener('error', ()=>{ if (logoStatus) logoStatus.textContent = 'Logo failed to load'; });
+  }
 })();
 
 function renderOfferings(rows){
   const wrap = document.getElementById('offeringsList'); if (!wrap) return;
-  wrap.innerHTML = `<table><thead><tr>
-    <th>Title</th><th>Description</th><th>URL</th><th>Price</th><th>Discount</th><th>Active</th><th>Actions</th>
-  </tr></thead><tbody></tbody></table>`;
-  const tbody = wrap.querySelector('tbody');
+  // Card grid UI
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+  grid.style.gap = '12px';
+  const base = location.origin;
   rows.forEach(o=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${o.title||''}</td>
-      <td>${o.description||''}</td>
-      <td>${o.url?`<a class="reviews-link" href="${o.url}" target="_blank" rel="noopener">Link</a>`:''}</td>
-      <td>${o.price!=null?o.price:''}</td>
-      <td>${o.discount_percent!=null?`${o.discount_percent}%`:(o.discount_code||o.discount_text||'')}</td>
-      <td>${o.active? 'Yes':'No'}</td>
-      <td>
-        <button class="cta secondary" data-off-toggle="${o._id}">${o.active?'Disable':'Enable'}</button>
-        <button class="cta danger" data-off-del="${o._id}" style="margin-left:6px">Delete</button>
-      </td>`;
-    tbody.appendChild(tr);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-body">
+        ${o.image_url?`<img src="${o.image_url}" alt="${o.title||''}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,.12)"/>`:''}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          ${o.logo_url?`<img src="${o.logo_url}" alt="logo" style="width:32px;height:32px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.14)"/>`:''}
+          <strong>${o.title||''}</strong>
+          <span class="chip ${o.active?'yes':'secondary'}" style="margin-left:auto">${o.active?'Active':'Disabled'}</span>
+        </div>
+        <div class="small text-secondary" style="min-height:36px;margin-bottom:8px">${o.description||''}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          ${o.price!=null?`<span class="chip">$${Number(o.price).toFixed(2)}</span>`:''}
+          ${o.discount_percent!=null?`<span class="chip yes">${o.discount_percent}% off</span>`:''}
+          ${o.discount_text?`<span class="chip">${o.discount_text}</span>`:''}
+          ${o.discount_code?`<span class="chip">Code: ${o.discount_code}</span>`:''}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          ${o.url?`<a class="cta secondary" href="${o.url}" target="_blank" rel="noopener">Open link</a>`:''}
+          <button class="cta secondary" data-off-toggle="${o._id}">${o.active?'Disable':'Enable'}</button>
+          <button class="cta danger" data-off-del="${o._id}">Delete</button>
+        </div>
+        ${o.url?`
+        <div style=\"display:flex; gap:8px; align-items:center;\">
+          <input class=\"share-off\" data-id=\"${o._id}\" value=\"${base}/api/public/go/${o._id}\" readonly />
+          <button class=\"cta secondary\" data-copy-off=\"${o._id}\">Copy link</button>
+        </div>
+        `:''}
+      </div>`;
+    grid.appendChild(card);
   });
+  wrap.innerHTML='';
+  wrap.appendChild(grid);
   // Bind actions
   wrap.querySelectorAll('[data-off-toggle]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -151,6 +200,15 @@ function renderOfferings(rows){
       await fetch('/api/vendors/offerings/'+id, { method:'DELETE', credentials:'include' });
       const r = await fetch('/api/vendors/offerings', { credentials:'include' });
       const j = await r.json(); if (j.ok) renderOfferings(j.rows||[]);
+    });
+  });
+  // Bind copy per-offering link
+  wrap.querySelectorAll('[data-copy-off]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-copy-off');
+      const inp = wrap.querySelector(`input.share-off[data-id="${CSS.escape(id)}"]`);
+      const val = inp?.value || '';
+      try{ await navigator.clipboard.writeText(val); alert('Share link copied'); }catch{}
     });
   });
 }
