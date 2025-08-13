@@ -231,6 +231,10 @@ nav a[aria-current="page"] { opacity: 1; }
 .signup-copy p { color: var(--muted); }
 .signup-copy .small { color: var(--muted); }
 .signup-image { width: 100%; border-radius: 12px; margin-top: 12px; box-shadow: 0 8px 22px rgba(0,0,0,.25); border: 1px solid var(--border); }
+/* Styled rules link */
+.rules-link { display:inline-flex; align-items:center; gap:6px; text-decoration:none; color: var(--primary); font-weight:700; }
+.rules-link::after { content:'↗'; font-size: 12px; opacity: .8; }
+.rules-link:hover { text-decoration: underline; }
 .signup-form .field { margin-bottom: 14px; }
 .signup-form label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 14px; }
 .signup-form input, .signup-form textarea, .signup-form select { width: 100%; padding: 12px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); }

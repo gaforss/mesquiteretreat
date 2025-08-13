@@ -437,6 +437,16 @@ if (navToggle && siteNav) {
   });
 }
 
+// Contest Rules modal wiring
+document.getElementById('openRulesLink')?.addEventListener('click', (e)=>{
+  e.preventDefault();
+  document.getElementById('rulesModal')?.classList.remove('hidden');
+});
+document.querySelector('[data-close-rules]')?.addEventListener('click', ()=>{
+  document.getElementById('rulesModal')?.classList.add('hidden');
+});
+document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') document.getElementById('rulesModal')?.classList.add('hidden'); }, { passive: true });
+
 // Public entries today counter
 (async function entriesToday(){
   const el = document.getElementById('entriesToday'); if (!el) return;
