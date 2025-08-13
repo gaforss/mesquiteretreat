@@ -35,7 +35,7 @@ function getDefaultContent(){
       { emoji: '🍽️', title: 'Covered Patio', subtitle: 'Dining & BBQ area' }
     ],
     gallery: [
-      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3fff9ca9-4d3d-4baa-b267-613fb1550be8.jpeg', alt: 'Modern living room with luxe finishes' },
+      { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/c3ae42f5-7f6f-4d5f-9072-1537734ae470.jpeg?im_w=1200', alt: 'Modern living room with luxe finishes' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/106bf015-98ca-4743-a6f8-0b148a361b8c.jpeg', alt: 'Updated kitchen with stainless appliances' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3a28b10a-c5c9-4d52-894e-27df593f61af.jpeg?im_w=1440', alt: 'Primary bedroom with king bed' },
       { url: 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/97ba340f-876c-4bee-bb8a-b46c23fb0ff8.jpeg', alt: 'Pool, hot tub, patio TV and putting green' },
@@ -116,10 +116,12 @@ router.get('/site-content', async (_req, res) => {
     let content = doc ? { ...defaults, ...doc } : defaults;
     // One-off override for specific gallery entries as requested
     try {
+      const firstUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/c3ae42f5-7f6f-4d5f-9072-1537734ae470.jpeg?im_w=1200';
       const thirdUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/3a28b10a-c5c9-4d52-894e-27df593f61af.jpeg?im_w=1440';
       const sixthUrl = 'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1310467447728284655/original/f17cc87a-4456-411c-8347-b18ebae5ded9.jpeg?im_w=1440';
       if (Array.isArray(content.gallery)) {
         content.gallery = content.gallery.map((img, idx) => {
+          if (idx === 0) return { ...(img||{}), url: firstUrl };
           if (idx === 2) return { ...(img||{}), url: thirdUrl };
           if (idx === 5) return { ...(img||{}), url: sixthUrl };
           return img;
