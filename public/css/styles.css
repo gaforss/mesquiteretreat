@@ -147,9 +147,9 @@ nav a[aria-current="page"] { opacity: 1; }
 /* Small CTA for table actions */
 .cta.cta-sm { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
 .cta.danger { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #ef4444 100%); }
-.hero-image img { width: 100%; border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 24px rgba(255,193,7,.08); }
+.hero-image img, .hero-video { width: 100%; border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 24px rgba(255,193,7,.08); display:block; }
 @media (min-width: 1280px) {
-  .hero-image img { height: 420px; object-fit: cover; }
+  .hero-image img, .hero-video { height: 420px; object-fit: cover; }
 }
 
 /* Hero badge overlay */
@@ -222,6 +222,7 @@ nav a[aria-current="page"] { opacity: 1; }
 .signup-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; box-shadow: 0 10px 30px rgba(20,40,80,.08), 0 0 20px rgba(255,193,7,.06); }
 .signup-copy p { color: var(--muted); }
 .signup-copy .small { color: var(--muted); }
+.signup-image { width: 100%; border-radius: 12px; margin-top: 12px; box-shadow: 0 8px 22px rgba(0,0,0,.25); border: 1px solid var(--border); }
 .signup-form .field { margin-bottom: 14px; }
 .signup-form label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 14px; }
 .signup-form input, .signup-form textarea, .signup-form select { width: 100%; padding: 12px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); }

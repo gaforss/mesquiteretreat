@@ -27,6 +27,16 @@ async function loadSiteContent(){
       }
     }
     const heroImg = document.querySelector('.hero-image img'); if (heroImg && c.hero_image_url) heroImg.src = c.hero_image_url;
+    const signupImg = document.getElementById('signupImage'); if (signupImg && c.hero_image_url) signupImg.src = c.hero_image_url;
+    // If video exists, prefer it; else keep image
+    const vid = document.getElementById('heroVideo');
+    if (vid){
+      try{
+        // Only auto-play on larger screens; mobile may block autoplay with sound (muted flag set)
+        const canAutoplay = true;
+        if (canAutoplay){ vid.play().catch(()=>{}); }
+      }catch{}
+    }
     // Book links
     document.querySelectorAll('a.airbnb').forEach(a=>{ a.href = bookUrl; });
     // Features - DISABLED TO KEEP 6 FEATURES FROM HTML
