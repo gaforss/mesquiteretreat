@@ -1,4 +1,40 @@
 User-agent: *
+Disallow: /admin/
+Disallow: /admin.html
+Disallow: /admin-content.html
+Disallow: /admin-photo-contests.html
+Disallow: /admin-vendors.html
+Disallow: /admin-invoices.html
+Disallow: /newsletter.html
+Disallow: /vendor.html
+Disallow: /vendor-login.html
+Disallow: /vendor-reset-password.html
+Disallow: /login.html
+Allow: /
+
+# AI crawlers (opt-in)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Applebot-Extended
 Allow: /
 
 Sitemap: https://mesquiteretreat.com/sitemap.xml
