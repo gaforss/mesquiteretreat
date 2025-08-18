@@ -40,8 +40,26 @@ function logError(...args) { console.error('[ERROR]', ...args); }
 function maskEmail(email) { const [u,d] = String(email||'').split('@'); return `${u?.slice(0,2)}***@${d||''}`; }
 function maskMongoUri(uri) { try { const m=String(uri||''); const at=m.indexOf('@'); return at>-1?'***'+m.slice(at):m.slice(0,24)+'…'; } catch { return '***'; } }
 
-const allowedOrigin = process.env.SITE_URL || 'http://localhost:3000';
-app.use(cors({ origin: allowedOrigin, credentials: true }));
+const allowedOrigins = [
+  process.env.SITE_URL || 'http://localhost:3000',
+  'https://themesquiteretreat.com',
+  'https://www.themesquiteretreat.com',
+  'https://g4realty.com',
+  'https://www.g4realty.com'
+].filter(Boolean);
+
+app.use(cors({ 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
